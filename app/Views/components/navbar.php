@@ -1,18 +1,27 @@
 <?php
+// Récupérer la locale actuelle
+$locale = service('request')->getLocale();
+if (empty($locale)) {
+    $locale = 'fr'; // Par défaut
+}
+
 // Détection de la page active
 $currentUri = uri_string();
 $activePage = '';
 
-// Déterminer quelle page est active
-if (empty($currentUri) || $currentUri === '/') {
+// Déterminer quelle page est active (en ignorant le segment de locale)
+$segments = explode('/', trim($currentUri, '/'));
+$pageSegment = isset($segments[1]) ? $segments[1] : '';
+
+if ($pageSegment === 'accueil' || $pageSegment === $locale) {
     $activePage = 'accueil';
-} elseif (strpos($currentUri, 'produits') !== false) {
+} elseif ($pageSegment === 'produits') {
     $activePage = 'produits';
-} elseif (strpos($currentUri, 'services') !== false) {
+} elseif ($pageSegment === 'services') {
     $activePage = 'services';
-} elseif (strpos($currentUri, 'contact') !== false) {
+} elseif ($pageSegment === 'contact') {
     $activePage = 'contact';
-} elseif (strpos($currentUri, 'connexion') !== false || strpos($currentUri, 'login') !== false) {
+} elseif ($pageSegment === 'connexion' || $pageSegment === 'login') {
     $activePage = 'connexion';
 }
 
@@ -37,11 +46,11 @@ function getNavLinkClasses($page, $activePage) {
         </button>
 
         <ul id="navbar-links" class="hidden md:flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6 mt-0 md:mt-0 absolute md:relative top-16 md:top-0 left-0 w-full md:w-auto bg-primary-dark md:bg-transparent p-6 md:p-0 z-20">
-            <li><a href="/" class="<?= getNavLinkClasses('accueil', $activePage) ?>">ACCUEIL</a></li>
-            <li><a href="/produits" class="<?= getNavLinkClasses('produits', $activePage) ?>">PRODUITS</a></li>
-            <li><a href="/services" class="<?= getNavLinkClasses('services', $activePage) ?>">SERVICES</a></li>
-            <li><a href="/contact" class="<?= getNavLinkClasses('contact', $activePage) ?>">CONTACT</a></li>
-            <li><a href="/connexion" class="<?= getNavLinkClasses('connexion', $activePage) ?>">CONNEXION</a></li>
+            <li><a href="/<?= $locale ?>/" class="<?= getNavLinkClasses('accueil', $activePage) ?>"><?= lang('Text.nav.accueil') ?></a></li>
+            <li><a href="/<?= $locale ?>/produits" class="<?= getNavLinkClasses('produits', $activePage) ?>"><?= lang('Text.nav.produits') ?></a></li>
+            <li><a href="/<?= $locale ?>/services" class="<?= getNavLinkClasses('services', $activePage) ?>"><?= lang('Text.nav.services') ?></a></li>
+            <li><a href="/<?= $locale ?>/contact" class="<?= getNavLinkClasses('contact', $activePage) ?>"><?= lang('Text.nav.contact') ?></a></li>
+            <li><a href="/<?= $locale ?>/connexion" class="<?= getNavLinkClasses('connexion', $activePage) ?>"><?= lang('Text.nav.connexion') ?></a></li>
         </ul>
     </div>
 </nav>
