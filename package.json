@@ -1,0 +1,13 @@
+{
+  "name": "app-web-vincent",
+  "version": "1.0.0",
+  "description": "Application Web avec CodeIgniter et Tailwind CSS",
+  "scripts": {
+    "dev": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css --watch",
+    "build": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}
+
