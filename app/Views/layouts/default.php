@@ -8,20 +8,30 @@
     <link rel="shortcut icon" type="image/png" href="/favicon.ico">
     <link href="/css/output.css" rel="stylesheet">
 </head>
-<body class="bg-bg-light">
-    <?php echo view('App\\Views\\components\\navbar'); ?>
 
-    <div class="container mx-auto px-4 md:px-0 max-w-screen-lg bg-white shadow-lg my-8">
-        <?= $this->renderSection('content') ?>
-    </div>
+<body class="min-h-screen flex flex-col font-sans text-gray-800 bg-gray-50">
 
-    <?= $this->renderSection('footer') ?>
+    <?= view('App\Views\components\navbar'); ?>
+
+    <main class="flex-grow w-full flex flex-col">
+        
+        <section class="flex-grow flex flex-col px-4 py-8 md:px-20 xl:px-80 md:py-20 
+            <?= $this->renderSection('bgColor') ?: 'bg-white' ?> 
+            <?= $this->renderSection('extraClasses') ?>
+        ">
+            
+            <?= $this->renderSection('content') ?>
+            
+        </section>
+
+    </main>
+
+    <?= view('App\Views\components\footer'); ?>
 
     <script>
-        document.getElementById('navbar-toggle').addEventListener('click', function() {
-            var navbarLinks = document.getElementById('navbar-links');
-            navbarLinks.classList.toggle('hidden');
-        });
+        const btn = document.getElementById('navbar-toggle');
+        const menu = document.getElementById('navbar-links');
+        if(btn && menu) btn.addEventListener('click', () => menu.classList.toggle('hidden'));
     </script>
 </body>
 </html>

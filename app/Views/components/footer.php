@@ -1,4 +1,4 @@
-<footer class="bg-primary-dark text-white py-8 px-6 mt-16">
+<footer class="bg-primary-dark text-white py-8 px-6">
     <div class="container mx-auto flex flex-col md:flex-row justify-between items-start">
         <div class="mb-8 md:mb-0">
             <h3 class="text-2xl font-bold mb-4">KAYART</h3>
