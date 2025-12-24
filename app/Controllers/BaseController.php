@@ -32,12 +32,21 @@ abstract class BaseController extends Controller
      */
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        // Load here all helpers you want to be available in your controllers that extend BaseController.
-        // Caution: Do not put the this below the parent::initController() call below.
-        $this->helpers = ['lang'];
+        // Helpers disponibles partout (vues + contrôleurs), comme dans l'ancien projet.
+        // IMPORTANT: à définir avant le parent::initController().
+        $this->helpers = ['url', 'lang', 'translate'];
 
         // Caution: Do not edit this line.
         parent::initController($request, $response, $logger);
+
+        // Si ?lang= est fourni, on le persiste en cookie (30 jours) pour les pages suivantes.
+        // (Logique reprise de l'ancien projet)
+        $lang = $this->request->getGet('lang');
+        if ($lang && in_array($lang, ['fr', 'en'], true)) {
+            setcookie('site_lang', $lang, time() + 60 * 60 * 24 * 30, '/');
+            // dispo immédiatement sur la requête courante
+            $_COOKIE['site_lang'] = $lang;
+        }
 
         // Preload any models, libraries, etc, here.
         // $this->session = service('session');

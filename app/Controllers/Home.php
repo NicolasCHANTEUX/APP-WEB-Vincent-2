@@ -6,9 +6,6 @@ class Home extends BaseController
 {
     public function index()
     {
-        $data = [
-            'locale' => $this->request->getLocale()
-        ];
-        return view('home', $data);
+        return view('pages/accueil');
     }
 }

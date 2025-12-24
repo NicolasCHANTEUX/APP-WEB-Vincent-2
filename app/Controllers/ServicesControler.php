@@ -6,9 +6,6 @@ class ServicesControler extends BaseController
 {
     public function index()
     {
-        $data = [
-            'locale' => $this->request->getLocale()
-        ];
-        return view('services', $data);
+        return view('pages/services');
     }
 }

@@ -17,7 +17,10 @@ class Filters extends BaseFilters
         'performance'   => \CodeIgniter\Filters\PerformanceMetrics::class,
 
         // --- ON CHANGE LE NOM ICI (de 'locale' à 'langfilter') ---
-        'langfilter'    => \App\Filters\LocaleFilter::class, 
+        'langfilter'    => \App\Filters\LocaleFilter::class,
+
+        // Auth admin (comme dans l'ancien projet)
+        'adminauth'     => \App\Filters\AdminAuthFilter::class,
     ];
 
     public array $required = [
@@ -41,5 +44,9 @@ class Filters extends BaseFilters
     ];
 
     public array $methods = [];
-    public array $filters = [];
+    public array $filters = [
+        'adminauth' => [
+            'before' => ['admin', 'admin/*'],
+        ],
+    ];
 }

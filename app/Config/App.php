@@ -16,6 +16,7 @@ class App extends BaseConfig
      *
      * E.g., http://example.com/
      */
+    // Base URL du projet (adapter si besoin). Pour `php spark serve --port 8080`.
     public string $baseURL = 'http://localhost:8080/';
 
     /**
@@ -40,7 +41,8 @@ class App extends BaseConfig
      * something else. If you have configured your web server to remove this file
      * from your site URIs, set this variable to an empty string.
      */
-    public string $indexPage = 'index.php';
+    // URLs "propres" (sans index.php)
+    public string $indexPage = '';
 
     /**
      * --------------------------------------------------------------------------

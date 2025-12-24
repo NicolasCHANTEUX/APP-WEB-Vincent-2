@@ -1,21 +1,21 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="<?= esc(site_lang()) ?>">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= esc($pageTitle ?? 'KAYART - L\'artisanat du carbone') ?></title>
+    <title><?= esc($pageTitle ?? trans('meta_title')) ?></title>
     <meta name="description"
-        content="<?= esc($meta_description ?? 'KAYART, l\'excellence du carbone au service de la performance et du design.') ?>">
+        content="<?= esc($meta_description ?? trans('meta_description')) ?>">
 
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="<?= current_url() ?>">
 
     <meta property="og:type" content="website">
-    <meta property="og:locale" content="<?= service('request')->getLocale() ?>">
+    <meta property="og:locale" content="<?= esc(site_lang()) ?>">
     <meta property="og:site_name" content="KAYART">
     <meta property="og:title" content="<?= esc($pageTitle ?? 'KAYART') ?>">
-    <meta property="og:description" content="<?= esc($meta_description ?? 'L\'artisanat du carbone.') ?>">
+    <meta property="og:description" content="<?= esc($meta_description ?? trans('meta_description')) ?>">
     <meta property="og:url" content="<?= current_url() ?>">
     <link rel="icon" type="image/png" href="/favicon.ico">
 
@@ -23,7 +23,7 @@
 
 </head>
 
-<body class="min-h-screen flex flex-col font-sans text-gray-800 bg-gray-50 antialiased">
+<body class="min-h-screen flex flex-col font-sans text-gray-800 bg-gray-50 antialiased pt-20">
 
     <div class="fixed top-4 right-4 z-[9999] w-full max-w-sm space-y-4 pointer-events-none">
         <?php if (session()->getFlashdata('success')): ?>
@@ -69,22 +69,13 @@
             </div>
         <?php endif; ?>
     </div>
-    <?php
-    // Détection simple des pages admin pour cacher navbar/footer si besoin
-    $isAdminPage = strpos(current_url(), '/admin') !== false;
-    ?>
-
-    <?php if (!$isAdminPage): ?>
-        <?= view('components/navbar') ?>
-    <?php endif; ?>
+    <?= view('components/navbar') ?>
 
     <main class="flex-grow w-full flex flex-col">
         <?= $this->renderSection('root_content') ?>
     </main>
 
-    <?php if (!$isAdminPage): ?>
-        <?= view('components/footer') ?>
-    <?php endif; ?>
+    <?= view('components/footer') ?>
 
 
     <script src="https://unpkg.com/lucide@latest" defer></script>

@@ -1,0 +1,47 @@
+#--------------------------------------------------------------------
+# ENVIRONMENT & SECURITY
+#--------------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+app\Config\Database.php
+app\Config\Email.php
+
+#--------------------------------------------------------------------
+# NODE.JS / TAILWIND (NPM)
+#--------------------------------------------------------------------
+/node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json # (Optionnel : En général on le garde, mais si tu veux éviter les conflits, tu peux l'ignorer. Recommandé de le garder)
+
+#--------------------------------------------------------------------
+# CODEIGNITER 4 SPECIFIC
+#--------------------------------------------------------------------
+/vendor
+vendor/
+/writable/*
+!/writable/**/*.gitignore
+!/writable/**/index.html
+/tests/_support/_generated
+
+#--------------------------------------------------------------------
+# GENERATED ASSETS (Build Artifacts)
+#--------------------------------------------------------------------
+# On ignore le fichier CSS généré car il peut être reconstruit avec "npm run watch"
+# Si tu déplois sur un serveur qui n'a pas Node.js, supprime la ligne ci-dessous.
+/public/css/styles.css
+
+#--------------------------------------------------------------------
+# IDE & OS FILES
+#--------------------------------------------------------------------
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+tailwindcss
+tailwindcss.exe
+/vendor/
+/vendor/
