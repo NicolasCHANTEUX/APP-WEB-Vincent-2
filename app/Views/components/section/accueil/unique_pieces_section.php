@@ -1,3 +1,7 @@
+<?php 
+$lang = site_lang(); 
+$langQuery = '?lang=' . $lang;
+?>
 <h2 class="text-4xl font-bold mb-12 border-b-2 border-accent-gold pb-2 inline-block"><?= trans('unique_title') ?></h2>
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
     <div class="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center text-center">

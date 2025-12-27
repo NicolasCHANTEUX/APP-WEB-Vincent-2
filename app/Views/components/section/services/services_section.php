@@ -54,8 +54,8 @@
     <div class="bg-gradient-to-r from-primary-dark to-primary-dark/90 rounded-2xl shadow-xl p-10 text-center text-white">
         <h3 class="text-3xl font-serif text-accent-gold mb-4"><?= esc(trans('repair_contact_title')) ?></h3>
         <p class="text-gray-100 text-lg mb-6 max-w-2xl mx-auto"><?= esc(trans('repair_contact_text')) ?></p>
-        <a href="<?= site_url('contact') . '?lang=' . site_lang() ?>" class="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-accent-gold text-white font-semibold tracking-wide hover:bg-accent-gold/90 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
-            <i data-lucide="mail" class="w-5 h-5"></i>
+        <a href="<?= site_url('contact') . '?lang=' . site_lang() ?>" class="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary-dark text-white font-semibold tracking-wide hover:bg-primary-dark/90 border-2 border-accent-gold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+            <i data-lucide="mail" class="w-5 h-5" aria-hidden="true"></i>
             <?= esc(trans('repair_contact_button')) ?>
         </a>
     </div>

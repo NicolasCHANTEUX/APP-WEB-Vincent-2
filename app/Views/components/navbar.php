@@ -24,12 +24,12 @@ $getNavLinkClasses = static function (string $page) use ($activePage): string {
 
 <nav class="bg-primary-dark text-gray-300 font-serif shadow-md fixed top-0 left-0 right-0 z-50">
     <div class="container mx-auto flex justify-between items-center py-4 px-6">
-        <a href="<?= site_url('/') ?>" class="text-2xl font-bold text-accent-gold tracking-widest hover:opacity-80 transition-opacity">
-            KAYART
+        <a href="<?= site_url('/') ?>" class="flex items-center hover:opacity-80 transition-opacity" aria-label="Kayart accueil">
+            <img src="<?= base_url('images/kayart_logo.png') ?>" alt="KAYART Logo" class="h-12 w-auto" style="max-height:48px;">
         </a>
 
-        <button id="navbar-toggle" class="md:hidden text-accent-gold focus:outline-none focus:ring-2 focus:ring-accent-gold rounded">
-            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <button id="navbar-toggle" class="md:hidden text-accent-gold focus:outline-none focus:ring-2 focus:ring-accent-gold rounded" aria-label="Ouvrir le menu de navigation">
+            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
         </button>

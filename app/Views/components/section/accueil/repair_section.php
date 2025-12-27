@@ -51,8 +51,8 @@
             <?= trans('repair_contact_text') ?>
         </p>
         <div class="mt-4">
-            <a href="<?= site_url('contact') . '?lang=' . site_lang() ?>" class="inline-flex items-center px-4 py-2 bg-accent-gold text-white rounded-lg hover:bg-accent-gold/90 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <a href="<?= site_url('contact') . '?lang=' . site_lang() ?>" class="inline-flex items-center px-4 py-2 bg-primary-dark text-white rounded-lg hover:bg-primary-dark/90 border-2 border-accent-gold transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 <?= trans('repair_contact_button') ?>

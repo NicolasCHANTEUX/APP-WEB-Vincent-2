@@ -39,14 +39,14 @@ $langQ = '?lang=' . site_lang();
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <div class="inline-flex items-center gap-1">
-                                    <button class="inline-flex items-center justify-center p-2 rounded-lg hover:bg-gray-100" type="button" title="Éditer">
-                                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                                    <button class="inline-flex items-center justify-center p-2 rounded-lg hover:bg-gray-100" type="button" aria-label="Éditer le produit">
+                                        <i data-lucide="pencil" class="w-4 h-4" aria-hidden="true"></i>
                                     </button>
-                                    <button class="inline-flex items-center justify-center p-2 rounded-lg hover:bg-gray-100" type="button" title="Voir">
-                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                    <button class="inline-flex items-center justify-center p-2 rounded-lg hover:bg-gray-100" type="button" aria-label="Voir les détails du produit">
+                                        <i data-lucide="eye" class="w-4 h-4" aria-hidden="true"></i>
                                     </button>
-                                    <button class="inline-flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 text-red-600" type="button" title="Supprimer">
-                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    <button class="inline-flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 text-red-600" type="button" aria-label="Supprimer le produit">
+                                        <i data-lucide="trash-2" class="w-4 h-4" aria-hidden="true"></i>
                                     </button>
                                 </div>
                             </td>

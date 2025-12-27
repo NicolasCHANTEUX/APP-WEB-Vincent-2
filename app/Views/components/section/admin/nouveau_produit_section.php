@@ -37,7 +37,7 @@ $langQ = '?lang=' . site_lang();
             </div>
 
             <div class="md:col-span-2 flex justify-end">
-                <button type="button" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent-gold text-white hover:opacity-90 transition">
+                <button type="button" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-dark text-white hover:bg-primary-dark/90 border-2 border-accent-gold transition">
                     <i data-lucide="save" class="w-4 h-4"></i>
                     Enregistrer
                 </button>

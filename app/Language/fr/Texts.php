@@ -50,6 +50,26 @@ return [
     'repair_contact_text'   => 'Besoin d\'une réparation ou d\'un devis ?<br>Notre équipe est à votre disposition.',
     'repair_contact_button' => 'Nous contacter',
 
+    // FAQ Section
+    'faq_title' => 'Questions fréquentes',
+    'faq_q1' => 'Pourquoi choisir une pagaie ou un équipement en carbone sur-mesure plutôt qu\'en série ?',
+    'faq_a1' => 'Choisir une pièce <strong>faite main</strong> en <strong>carbone</strong> ou en <strong>composite</strong>, c\'est opter pour un ratio poids/rigidité exceptionnel qu\'un équipement industriel en plastique ne peut égaler. La <strong>fabrication sur-mesure</strong> nous permet d\'adapter la <strong>rigidité du manche</strong>, la forme de la pale ou l\'ergonomie d\'un <strong>siège de kayak</strong> spécifiquement à votre morphologie et votre style de navigation. Cela se traduit par une meilleure transmission de l\'effort, moins de fatigue et une <strong>performance</strong> accrue sur l\'eau.',
+    'faq_q2' => 'Est-il possible de réparer un kayak ou une pagaie en carbone fissuré ?',
+    'faq_a2' => 'Oui, la <strong>réparation de matériaux composites</strong> est une de nos spécialités. Qu\'il s\'agisse d\'une fissure sur la coque d\'un kayak, d\'une <strong>pagaie cassée</strong> ou d\'un délaminage, nous intervenons pour restaurer la structure. Nous utilisons des techniques de <strong>stratification sous vide</strong> avec de la <strong>résine époxy</strong> haute performance et des tissus (Carbone, Kevlar, Fibre de verre) pour garantir que la zone réparée soit aussi solide, voire plus solide, que l\'original, tout en soignant l\'esthétique et l\'étanchéité.',
+    'faq_q3' => 'Comment améliorer le confort et le contrôle de mon kayak (calages, sièges) ?',
+    'faq_a3' => 'L\'interface entre le pagayeur et le bateau est cruciale. Nous fabriquons des <strong>cales-genoux</strong>, des <strong>cales-cuisses</strong> et des <strong>sièges anatomiques en carbone</strong> pour optimiser ce contact. Une bonne <strong>amélioration de kayak</strong> passe par un calage personnalisé qui permet de faire corps avec le bateau. Cela améliore l\'esquimautage, la gîte et la direction, tout en supprimant les points de compression douloureux lors des longues sorties.',
+    'faq_q4' => 'Quels matériaux composites utilisez-vous pour la fabrication de pièces ?',
+    'faq_a4' => 'Nous sélectionnons rigoureusement nos matériaux pour leur durabilité et leur légèreté. Nous travaillons principalement avec la <strong>fibre de carbone</strong> pour la rigidité, le <strong>Kevlar-Carbone</strong> pour la résistance aux chocs (idéal pour les kayaks de rivière ou de mer) et la <strong>fibre de verre</strong> pour certaines finitions. Toutes nos pièces sont réalisées avec des <strong>résines époxy</strong> de qualité marine, garantissant une excellente tenue face aux UV et à l\'eau de mer, contrairement aux résines polyester classiques.',
+    'faq_q5' => 'Pouvez-vous réaliser des prototypes ou des modifications spécifiques sur un kayak existant ?',
+    'faq_a5' => 'Absolument. En tant qu\'atelier artisanal, nous sommes spécialisés dans le <strong>prototypage</strong> et la <strong>modification de kayak</strong>. Que vous souhaitiez ajouter un puit de dérive, renforcer une hiloire, créer un <strong>aileron sur-mesure</strong> ou modifier la forme d\'une coque pour la compétition, nous étudions votre projet. Notre savoir-faire en <strong>moulage</strong> et <strong>usinage composite</strong> nous permet de concrétiser des demandes très techniques que les grands fabricants ne peuvent pas traiter.',
+    
+    // FAQ - Liens et textes de liaison
+    'faq_contact_link_text' => 'Contactez-nous',
+    'faq_contact_suffix_q2' => 'pour un devis de <strong>réparation</strong>.',
+    'faq_products_prefix' => 'Découvrez nos',
+    'faq_products_link_text' => 'produits sur-mesure',
+    'faq_contact_suffix_q5' => 'pour discuter de votre projet.',
+
     // Pages - Produits
     'products_title'              => 'Produits',
     'products_lead'               => 'Découvrez notre collection exclusive de pièces d\'art uniques',
@@ -103,6 +123,11 @@ return [
     'contact_form_images_help'    => 'Vous pouvez sélectionner plusieurs images (max 5 images, 2MB chacune)',
     'contact_form_submit'         => 'Envoyer',
     'contact_form_success'        => 'Votre message a été envoyé avec succès !',
+    'contact_form_title'          => 'Formulaire de contact',
+    'contact_form_subtitle'       => 'Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais',
+    'contact_form_name_placeholder' => 'Votre nom complet',
+    'contact_form_email_placeholder' => 'votre.email@exemple.com',
+    'contact_form_message_placeholder' => 'Décrivez votre projet ou votre demande...',
 
     // Pages - Connexion
     'login_title'                => 'Connexion',

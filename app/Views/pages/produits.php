@@ -9,8 +9,13 @@ $this->setData([
 
 <?= $this->section('root_content') ?>
 
+<?= view_cell('App\\Cells\\Hero::render', [
+    'title' => trans('products_title'),
+    'subtitle' => trans('products_lead'),
+]) ?>
+
 <?= view_cell('App\\Cells\\ContainerComposant::render', [
-    'enfant'  => view_cell('App\\Cells\\sections\\produits\\ProduitsSectionComposant::render', [
+    'enfant' => view('components/section/produits/produits_wrapper', [
         'categories' => $categories ?? [],
         'products' => $products ?? [],
         'selectedCategory' => $selectedCategory ?? 'all',

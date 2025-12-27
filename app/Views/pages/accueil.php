@@ -31,6 +31,11 @@ $this->setData([
         'bgColor' => 'bg-gray-100',
 ]) ?>
 
+<?= view_cell('App\\Cells\\ContainerComposant::render', [
+        'enfant'  => view_cell('App\\Cells\\sections\\accueil\\FaqSectionComposant::render'),
+        'bgColor' => 'bg-white',
+]) ?>
+
 <?= $this->endSection() ?>
 
 

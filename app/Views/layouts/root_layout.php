@@ -20,10 +20,13 @@
     <link rel="icon" type="image/png" href="/favicon.ico">
 
     <link href="/css/output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@1,900&display=swap" rel="stylesheet">
 
 </head>
 
-<body class="min-h-screen flex flex-col font-sans text-gray-800 bg-gray-50 antialiased pt-20">
+<body class="min-h-screen flex flex-col font-sans text-gray-800 bg-gray-50 antialiased">
 
     <div class="fixed top-4 right-4 z-[9999] w-full max-w-sm space-y-4 pointer-events-none">
         <?php if (session()->getFlashdata('success')): ?>

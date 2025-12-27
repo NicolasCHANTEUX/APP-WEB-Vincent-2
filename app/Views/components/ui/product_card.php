@@ -32,7 +32,14 @@ $img = (string) ($p['image'] ?? base_url('images/kayart_logo.png'));
 
     <div class="mt-auto p-6 pt-0">
         <div class="border-t border-gray-100 pt-4">
-            <a href="#" class="block w-full text-center px-4 py-3 rounded-lg bg-accent-gold text-white font-semibold tracking-wide hover:opacity-90 transition">
+            <?php 
+            $productId = (int) ($p['id'] ?? 0);
+            $lang = site_lang();
+            $detailUrl = $productId > 0 
+                ? site_url('produits/' . $productId) . '?lang=' . $lang 
+                : site_url('produits') . '?lang=' . $lang;
+            ?>
+            <a href="<?= esc($detailUrl) ?>" class="block w-full text-center px-4 py-3 rounded-lg bg-primary-dark text-white font-semibold tracking-wide hover:bg-primary-dark/90 border-2 border-accent-gold transition">
                 <?= esc(trans('products_view_details')) ?>
             </a>
         </div>

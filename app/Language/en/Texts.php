@@ -50,6 +50,26 @@ return [
     'repair_contact_text'   => 'Need a repair or a quote?<br>Our team is at your disposal.',
     'repair_contact_button' => 'Contact us',
 
+    // FAQ Section
+    'faq_title' => 'Frequently Asked Questions',
+    'faq_q1' => 'Why choose a custom-made carbon paddle or equipment rather than off-the-shelf?',
+    'faq_a1' => 'Choosing a <strong>handmade</strong> piece in <strong>carbon</strong> or <strong>composite</strong> means opting for an exceptional weight/rigidity ratio that industrial plastic equipment cannot match. <strong>Custom manufacturing</strong> allows us to adapt the <strong>shaft rigidity</strong>, blade shape, or ergonomics of a <strong>kayak seat</strong> specifically to your morphology and paddling style. This results in better power transmission, less fatigue, and increased <strong>performance</strong> on the water.',
+    'faq_q2' => 'Is it possible to repair a cracked kayak or carbon paddle?',
+    'faq_a2' => 'Yes, <strong>composite material repair</strong> is one of our specialties. Whether it\'s a crack on a kayak hull, a <strong>broken paddle</strong>, or delamination, we intervene to restore the structure. We use <strong>vacuum bagging</strong> techniques with high-performance <strong>epoxy resin</strong> and fabrics (Carbon, Kevlar, Fiberglass) to ensure the repaired area is as strong, or even stronger, than the original, while also taking care of aesthetics and watertightness.',
+    'faq_q3' => 'How can I improve the comfort and control of my kayak (footrests, seats)?',
+    'faq_a3' => 'The interface between the paddler and the boat is crucial. We manufacture <strong>knee braces</strong>, <strong>thigh braces</strong>, and <strong>anatomic carbon seats</strong> to optimize this contact. A good <strong>kayak improvement</strong> comes from personalized bracing that allows you to become one with the boat. This improves rolling, edging, and steering, while eliminating painful pressure points during long outings.',
+    'faq_q4' => 'What composite materials do you use for part manufacturing?',
+    'faq_a4' => 'We rigorously select our materials for their durability and lightness. We primarily work with <strong>carbon fiber</strong> for rigidity, <strong>Kevlar-Carbon</strong> for impact resistance (ideal for river or sea kayaks), and <strong>fiberglass</strong> for certain finishes. All our parts are made with marine-grade <strong>epoxy resins</strong>, ensuring excellent resistance to UV and saltwater, unlike standard polyester resins.',
+    'faq_q5' => 'Can you create prototypes or specific modifications on an existing kayak?',
+    'faq_a5' => 'Absolutely. As an artisanal workshop, we specialize in <strong>prototyping</strong> and <strong>kayak modification</strong>. Whether you want to add a skeg box, reinforce a coaming, create a <strong>custom fin</strong>, or modify a hull shape for competition, we study your project. Our expertise in <strong>molding</strong> and <strong>composite machining</strong> allows us to realize highly technical requests that major manufacturers cannot handle.',
+    
+    // FAQ - Links and connecting text
+    'faq_contact_link_text' => 'Contact us',
+    'faq_contact_suffix_q2' => 'for a repair quote.',
+    'faq_products_prefix' => 'Discover our',
+    'faq_products_link_text' => 'custom products',
+    'faq_contact_suffix_q5' => 'to discuss your project.',
+
     // Pages - Products
     'products_title'              => 'Products',
     'products_lead'               => 'Discover our exclusive collection of unique art pieces',
@@ -103,6 +123,11 @@ return [
     'contact_form_images_help'    => 'You can select multiple images (max 5 images, 2MB each)',
     'contact_form_submit'         => 'Send',
     'contact_form_success'        => 'Your message has been sent successfully!',
+    'contact_form_title'          => 'Contact form',
+    'contact_form_subtitle'       => 'Fill out the form below and we will get back to you as soon as possible',
+    'contact_form_name_placeholder' => 'Your full name',
+    'contact_form_email_placeholder' => 'your.email@example.com',
+    'contact_form_message_placeholder' => 'Describe your project or request...',
 
     // Pages - Login
     'login_title'                 => 'Login',

@@ -12,6 +12,7 @@ class Hero
         $data['logoAlt'] = $data['logoAlt'] ?? 'KAYART Logo';
         $data['bgImage'] = $data['bgImage'] ?? base_url('images/image_here.png');
         $data['blur'] = $data['blur'] ?? 8; // Intensité du flou (0-20)
+        $data['height'] = $data['height'] ?? 'min-h-[70vh]'; // Hauteur du hero
 
         return view('components/hero', $data);
     }

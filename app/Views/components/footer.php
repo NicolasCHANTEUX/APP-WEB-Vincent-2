@@ -13,9 +13,9 @@
         <div>
             <h3 class="text-xl font-semibold mb-4"><?= trans('footer_social_title') ?></h3>
             <ul>
-                <li><a href="#" class="hover:text-accent-gold"><?= trans('footer_social_instagram') ?></a></li>
-                <li><a href="#" class="hover:text-accent-gold"><?= trans('footer_social_facebook') ?></a></li>
-                <li><a href="#" class="hover:text-accent-gold"><?= trans('footer_social_linkedin') ?></a></li>
+                <li><a href="https://www.instagram.com/kayart" target="_blank" rel="noopener noreferrer" class="hover:text-accent-gold" aria-label="Suivez-nous sur Instagram"><?= trans('footer_social_instagram') ?></a></li>
+                <li><a href="https://www.facebook.com/kayart" target="_blank" rel="noopener noreferrer" class="hover:text-accent-gold" aria-label="Suivez-nous sur Facebook"><?= trans('footer_social_facebook') ?></a></li>
+                <li><a href="https://www.linkedin.com/company/kayart" target="_blank" rel="noopener noreferrer" class="hover:text-accent-gold" aria-label="Suivez-nous sur LinkedIn"><?= trans('footer_social_linkedin') ?></a></li>
             </ul>
         </div>
     </div>
