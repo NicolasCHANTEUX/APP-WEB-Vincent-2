@@ -9,14 +9,14 @@ $this->setData([
 
 <?= $this->section('root_content') ?>
 
-<?= view_cell('App\\Cells\\PageHeader::render', [
-    'title' => trans('nav_services'),
-    'subtitle' => trans('services_subtitle'),
+<?= view_cell('App\\Cells\\Hero::render', [
+    'title' => trans('services_title'),
+    'subtitle' => trans('services_lead'),
 ]) ?>
 
 <?= view_cell('App\\Cells\\ContainerComposant::render', [
     'enfant'  => view_cell('App\\Cells\\sections\\services\\ServicesSectionComposant::render'),
-    'bgColor' => 'bg-white',
+    'bgColor' => 'bg-transparent',
 ]) ?>
 
 <?= $this->endSection() ?>

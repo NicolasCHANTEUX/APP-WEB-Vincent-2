@@ -22,20 +22,23 @@ class Database extends Config
     /**
      * The default database connection.
      *
+     * Configuration pour la base de données MySQL du projet Kayak
+     * Les valeurs sont surchargées par les variables d'environnement (.env) dans le constructeur
+     *
      * @var array<string, mixed>
      */
     public array $default = [
         'DSN'          => '',
-        'hostname'     => 'localhost',
-        'username'     => '',
+        'hostname'     => '127.0.0.1',
+        'username'     => 'root',
         'password'     => '',
-        'database'     => '',
+        'database'     => 'boutique_en_ligne',
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',
         'pConnect'     => false,
         'DBDebug'      => true,
         'charset'      => 'utf8mb4',
-        'DBCollat'     => 'utf8mb4_general_ci',
+        'DBCollat'     => 'utf8mb4_unicode_ci',
         'swapPre'      => '',
         'encrypt'      => false,
         'compress'     => false,
@@ -193,6 +196,29 @@ class Database extends Config
     public function __construct()
     {
         parent::__construct();
+
+        // Surcharge des valeurs de connexion par les variables d'environnement
+        $this->default['hostname'] = env('database.default.hostname', $this->default['hostname']);
+        $this->default['username'] = env('database.default.username', $this->default['username']);
+        $this->default['password'] = env('database.default.password', $this->default['password']);
+        $this->default['database'] = env('database.default.database', $this->default['database']);
+        $this->default['DBDriver'] = env('database.default.DBDriver', $this->default['DBDriver']);
+        
+        // Le port doit être un entier
+        $port = env('database.default.port', $this->default['port']);
+        $this->default['port'] = is_numeric($port) ? (int) $port : $this->default['port'];
+
+        // Configuration SSL si activée
+        if (env('database.default.encrypt.ssl_verify')) {
+            $this->default['encrypt'] = [
+                'ssl_verify' => true,
+                'ssl_ca'     => env('database.default.encrypt.ssl_ca', ''),
+                'ssl_capath' => env('database.default.encrypt.ssl_capath', ''),
+                'ssl_cert'   => env('database.default.encrypt.ssl_cert', ''),
+                'ssl_key'    => env('database.default.encrypt.ssl_key', ''),
+                'ssl_cipher' => env('database.default.encrypt.ssl_cipher', 'TLS_AES_256_GCM_SHA384'),
+            ];
+        }
 
         // Ensure that we always set the database group to 'tests' if
         // we are currently running an automated test suite, so that

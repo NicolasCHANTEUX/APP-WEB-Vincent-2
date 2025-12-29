@@ -1,9 +1,4 @@
 <div class="space-y-12">
-    <div class="text-center pt-6">
-        <h1 class="text-5xl md:text-6xl font-serif text-primary-dark"><?= esc(trans('services_title')) ?></h1>
-        <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto"><?= esc(trans('services_lead')) ?></p>
-    </div>
-
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <!-- Fabrication sur mesure -->
         <div class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-shadow">

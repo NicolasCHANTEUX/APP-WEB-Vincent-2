@@ -19,7 +19,11 @@
     <meta property="og:url" content="<?= current_url() ?>">
     <link rel="icon" type="image/png" href="/favicon.ico">
 
+    <!-- Preload critical CSS -->
+    <link rel="preload" href="/css/output.css" as="style">
     <link href="/css/output.css" rel="stylesheet">
+    
+    <!-- Optimized Google Fonts loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@1,900&display=swap" rel="stylesheet">

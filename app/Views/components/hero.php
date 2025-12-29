@@ -1,13 +1,15 @@
 <section class="relative w-full flex items-center justify-center overflow-hidden mt-16 md:mt-20" style="min-height: 60vh; height: 60vh;">
     <?php 
-    $bgImageUrl = $bgImage ?? base_url('images/image_here.png');
+    $bgImageUrl = $bgImage ?? base_url('images/image_here.webp');
     ?>
     <img 
         src="<?= esc($bgImageUrl) ?>" 
         alt="Fond décoratif" 
-        class="absolute inset-0 w-full h-full object-cover z-0" 
+        width="1920"
+        height="1080"
         fetchpriority="high"
         decoding="sync"
+        class="absolute inset-0 w-full h-full object-cover z-0" 
         style="
             filter: blur(<?= esc($blur ?? 8) ?>px);
             object-position: center 45%;
