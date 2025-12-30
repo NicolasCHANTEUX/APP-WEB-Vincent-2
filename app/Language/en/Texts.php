@@ -176,6 +176,7 @@ return [
 
     // Footer
     'footer_tagline'          => 'Carbon craftsmanship at the service of performance',
+    'footer_links_title'      => 'USEFUL LINKS',
     'footer_contact_title'    => 'CONTACT US',
     'footer_contact_address'  => 'XXX STREET XXXXX, CITY',
     'footer_contact_phone'    => 'XX XX XX XX XX',

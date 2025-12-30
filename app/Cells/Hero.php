@@ -8,7 +8,7 @@ class Hero
     {
         $data['title'] = $data['title'] ?? trans('hero_title');
         $data['subtitle'] = $data['subtitle'] ?? trans('hero_tagline');
-        $data['logo'] = $data['logo'] ?? base_url('images/kayart_logo.png');
+        $data['logo'] = $data['logo'] ?? base_url('images/kayart_logo.svg');
         $data['logoAlt'] = $data['logoAlt'] ?? 'KAYART Logo';
         $data['bgImage'] = $data['bgImage'] ?? base_url('images/image_here.webp');
         $data['blur'] = $data['blur'] ?? 8; // Intensité du flou (0-20)

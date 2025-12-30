@@ -21,6 +21,9 @@ class Filters extends BaseFilters
 
         // Auth admin (comme dans l'ancien projet)
         'adminauth'     => \App\Filters\AdminAuthFilter::class,
+        
+        // Cache headers pour ressources statiques (php spark serve)
+        'cacheheaders'  => \App\Filters\CacheHeadersFilter::class,
     ];
 
     public array $required = [
@@ -40,6 +43,7 @@ class Filters extends BaseFilters
         ],
         'after' => [
             // 'honeypot',
+            'cacheheaders', // Ajouter headers de cache (pour php spark serve)
         ],
     ];
 

@@ -176,6 +176,7 @@ return [
 
     // Footer
     'footer_tagline'          => 'L\'artisanat du carbone au service de la performance',
+    'footer_links_title'      => 'LIENS UTILES',
     'footer_contact_title'    => 'NOUS CONTACTER',
     'footer_contact_address'  => 'XXX RUE XXXXX, VILLE',
     'footer_contact_phone'    => 'XX XX XX XX XX',

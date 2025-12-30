@@ -19,14 +19,23 @@
     <meta property="og:url" content="<?= current_url() ?>">
     <link rel="icon" type="image/png" href="/favicon.ico">
 
+    <!-- Preload critical font -->
+    <link rel="preload" href="/fonts/roboto-900-italic.woff2" as="font" type="font/woff2" crossorigin>
+    
+    <!-- Local font definition (no external request) -->
+    <style>
+        @font-face {
+            font-family: 'Roboto';
+            src: url('/fonts/roboto-900-italic.woff2') format('woff2');
+            font-weight: 900;
+            font-style: italic;
+            font-display: swap;
+        }
+    </style>
+
     <!-- Preload critical CSS -->
     <link rel="preload" href="/css/output.css" as="style">
     <link href="/css/output.css" rel="stylesheet">
-    
-    <!-- Optimized Google Fonts loading -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@1,900&display=swap" rel="stylesheet">
 
 </head>
 
