@@ -26,10 +26,15 @@
     <style>
         @font-face {
             font-family: 'Roboto';
-            src: url('/fonts/roboto-900-italic.woff2') format('woff2');
-            font-weight: 900;
             font-style: italic;
+            font-weight: 900;
             font-display: swap;
+            src: url('/fonts/roboto-900-italic.woff2') format('woff2');
+        }
+        
+        /* Forcer l'application de la police en gras italique */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Roboto', sans-serif;
         }
     </style>
 

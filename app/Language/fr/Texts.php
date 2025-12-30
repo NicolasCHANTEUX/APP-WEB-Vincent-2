@@ -11,12 +11,12 @@ return [
     'nav_logout'   => 'DÉCONNEXION',
 
     // Meta
-    'meta_title'       => 'KAYART - L\'artisanat du carbone au service de la performance',
+    'meta_title'       => 'KAYART - L\'artisanat du composite au service de la performance',
     'meta_description' => 'KAYART - Fabrication et réparation de pièces en carbone pour le kayak.',
 
     // Hero (Accueil)
     'hero_title'   => 'KAYART',
-    'hero_tagline' => 'L\'artisanat du carbone au service de la performance',
+    'hero_tagline' => 'L\'artisanat du composite au service de la performance',
 
     // Sections - Accueil
     'welcome_title' => 'Bienvenue chez KAYART',
@@ -33,7 +33,7 @@ return [
     'unique_sur_mesure_title'   => 'SUR MESURE',
     'unique_sur_mesure_desc'    => 'Adapté aux besoins spécifiques',
 
-    'carbon_title'     => 'L\'art du carbone au service de la performance',
+    'carbon_title'     => 'L\'art du composite au service de la performance',
     'carbon_text'      => 'Chez KAYART, rien n\'est laissé au hasard : le carbone est moulé, poncé et <strong class="font-semibold">ajusté à la main</strong>, garantissant une qualité de finition irréprochable.',
     'carbon_benefit1'  => 'Produits plus légers et plus durables',
     'carbon_benefit2'  => 'Meilleure adaptation au geste du pagayeur',
@@ -47,7 +47,7 @@ return [
     'repair_service4'       => 'Optimisations ergonomiques',
     'repair_objective'      => 'L\'objectif est simple : <strong class="font-semibold">prolonger la vie du matériel tout en améliorant ses performances.</strong>',
     'repair_contact_title'  => 'Contactez-nous',
-    'repair_contact_text'   => 'Besoin d\'une réparation ou d\'un devis ?<br>Notre équipe est à votre disposition.',
+    'repair_contact_text'   => 'Besoin d\'une réparation ou d\'un devis ? Je suis à votre disposition.',
     'repair_contact_button' => 'Nous contacter',
 
     // FAQ Section
@@ -175,12 +175,12 @@ return [
     'login_error'                 => 'Email ou mot de passe incorrect.',
 
     // Footer
-    'footer_tagline'          => 'L\'artisanat du carbone au service de la performance',
+    'footer_tagline'          => 'L\'artisanat du composite au service de la performance',
     'footer_links_title'      => 'LIENS UTILES',
     'footer_contact_title'    => 'NOUS CONTACTER',
-    'footer_contact_address'  => 'XXX RUE XXXXX, VILLE',
-    'footer_contact_phone'    => 'XX XX XX XX XX',
-    'footer_contact_email'    => 'CONTACT@KAYART.FR',
+    'footer_contact_address'  => 'La Buronniere, 72400 St Aubin des Coudrais',
+    'footer_contact_phone'    => '07 55 66 50 84',
+    'footer_contact_email'    => 'vincent.chanteux@orange.fr',
     'footer_social_title'     => 'NOS RÉSEAUX',
     'footer_social_instagram' => 'INSTAGRAM',
     'footer_social_facebook'  => 'FACEBOOK',

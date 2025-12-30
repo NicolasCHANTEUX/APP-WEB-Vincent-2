@@ -15,7 +15,7 @@
         <div class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-shadow">
             <div class="flex items-center gap-4 mb-4">
                 <div class="w-16 h-16 bg-primary-dark rounded-xl flex items-center justify-center">
-                    <i data-lucide="tool" class="w-8 h-8 text-white"></i>
+                    <i data-lucide="hammer" class="w-8 h-8 text-white"></i>
                 </div>
                 <h2 class="text-2xl font-serif text-primary-dark"><?= esc(trans('services_repair_title')) ?></h2>
             </div>
