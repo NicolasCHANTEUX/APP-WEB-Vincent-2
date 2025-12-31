@@ -98,7 +98,7 @@ class ProduitsControler extends BaseController
         $offset = ($page - 1) * $perPage;
         $categorySlug = $this->request->getGet('categorie') ?: 'all';
 
-        // Récupérer les produits selon le filtre
+        // --- 1. Récupération des données (Logique existante conservée) ---
         if ($categorySlug === 'all') {
             $totalProducts = $this->productModel->countAllResults(false);
             $allProducts = $this->productModel->getAllWithCategory();
@@ -119,12 +119,26 @@ class ProduitsControler extends BaseController
         // Calculer s'il y a encore plus de produits
         $hasMore = ($offset + $perPage) < $totalProducts;
 
-        // Formater les produits
-        $formattedProducts = $this->formatProducts($products);
+        // --- 2. GÉNÉRATION DU HTML (C'est ici que la magie opère) ---
+        // Au lieu de renvoyer des données brutes, on renvoie le HTML tout prêt.
+        $productsData = [];
+        
+        foreach ($products as $product) {
+            // On utilise la fonction view() de CodeIgniter pour charger 
+            // le composant exact utilisé au chargement initial.
+            // Cela garantit que le design (Tailwind, bordures, polices) est 100% identique.
+            $html = view('components/ui/product_card', ['product' => $product]);
+            
+            $productsData[] = [
+                'id' => $product->id ?? null, // Utile si besoin de débugger
+                'html' => $html // C'est ce champ que le JS va injecter
+            ];
+        }
 
+        // --- 3. Envoi de la réponse JSON ---
         return $this->response->setJSON([
             'success' => true,
-            'products' => $formattedProducts,
+            'products' => $productsData, // Contient maintenant le HTML
             'hasMore' => $hasMore,
             'currentPage' => $page,
             'totalProducts' => $totalProducts,
@@ -154,7 +168,7 @@ class ProduitsControler extends BaseController
                 'price' => $product['price'],
                 'discounted_price' => $product['discounted_price'],
                 'stock' => $product['stock'],
-                'image' => $product['image'] ? base_url($product['image']) : base_url('images/default-product.svg'),
+                'image' => $product['image'] ? base_url($product['image']) : base_url('images/default-image.webp'),
                 'category_name' => $product['category_name'] ?? trans('products_category_uncategorized'),
                 'category_slug' => $product['category_slug'] ?? '',
                 'sku' => $product['sku'],
@@ -188,7 +202,7 @@ class ProduitsControler extends BaseController
             'price' => $product['price'],
             'discounted_price' => $product['discounted_price'],
             'stock' => $product['stock'],
-            'image' => $product['image'] ? base_url($product['image']) : base_url('images/default-product.svg'),
+            'image' => $product['image'] ? base_url($product['image']) : base_url('images/default-image.webp'),
             'category_name' => $product['category_name'] ?? trans('products_category_uncategorized'),
             'category_slug' => $product['category_slug'] ?? '',
             'sku' => $product['sku'],

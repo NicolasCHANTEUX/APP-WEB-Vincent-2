@@ -6,7 +6,7 @@ $description = $product['description'] ?? '';
 $price = $product['price'] ?? 0;
 $discountedPrice = $product['discounted_price'] ?? null;
 $stock = $product['stock'] ?? 0;
-$image = $product['image'] ?? base_url('images/default-product.svg');
+$image = $product['image'] ?? base_url('images/default-image.webp');
 $categoryName = $product['category_name'] ?? '';
 $sku = $product['sku'] ?? '';
 $weight = $product['weight'] ?? null;
@@ -67,7 +67,7 @@ $errors = session()->getFlashdata('errors') ?? [];
                      srcset="<?= esc($image) ?> 400w, <?= esc($image) ?> 800w, <?= esc($image) ?> 1200w"
                      sizes="(max-width: 1024px) 100vw, 50vw"
                      class="w-full h-full object-cover"
-                     onerror="this.onerror=null; this.src='<?= base_url('images/default-product.svg') ?>';">
+                     onerror="this.onerror=null; this.src='<?= base_url('images/default-image.webp') ?>';">
             </div>
             
             <!-- Informations techniques -->

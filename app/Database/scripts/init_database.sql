@@ -5,12 +5,15 @@
 -- Date: 2025-12-29
 -- ============================================================
 
--- Création de la base de données si elle n'existe pas
-CREATE DATABASE IF NOT EXISTS `boutique_en_ligne` 
-DEFAULT CHARACTER SET utf8mb4 
-COLLATE utf8mb4_unicode_ci;
-
 USE `boutique_en_ligne`;
+
+DROP TABLE IF EXISTS `contact_attachment`;
+DROP TABLE IF EXISTS `contact_request`;
+DROP TABLE IF EXISTS `reservation`;
+DROP TABLE IF EXISTS `service`;
+DROP TABLE IF EXISTS `product`;
+DROP TABLE IF EXISTS `category`;
+DROP TABLE IF EXISTS `user`;
 
 -- ============================================================
 -- Table: user
@@ -175,12 +178,11 @@ INSERT INTO `category` (`name`, `slug`, `description`) VALUES
 
 -- Insertion de produits de démonstration
 INSERT INTO `product` (`title`, `slug`, `description`, `price`, `weight`, `dimensions`, `image`, `category_id`, `stock`, `sku`, `condition_state`) VALUES
-('Pagaie Carbone Compétition 210 cm', 'pagaie-carbone-competition-210', 'Pagaie haut de gamme en carbone intégral avec finition mate, idéale pour la compétition et les longues distances.', 299.99, 0.65, '210cm', 'images/kayart_image1.webp', 1, 10, 'PAG-CARB-COMP-210', 'new'),
-('Pagaie Carbone Loisir 215 cm', 'pagaie-carbone-loisir-215', 'Pagaie en carbone légère et maniable, parfaite pour le loisir et les randonnées.', 249.99, 0.70, '215cm', 'images/kayart_image2.webp', 1, 15, 'PAG-CARB-LOIS-215', 'new'),
-('Pagaie Carbone Rivière 200 cm', 'pagaie-carbone-riviere-200', 'Pagaie renforcée spécialement conçue pour la rivière et les eaux vives.', 279.99, 0.75, '200cm', 'images/kayart_image3.webp', 1, 12, 'PAG-CARB-RIV-200', 'new'),
-('Paire de Pagaies Personnalisées', 'paire-pagaies-personnalisees', 'Paire de pagaies en carbone avec finition bleu métallique personnalisable.', 200.00, 1.40, '210cm (paire)', 'images/kayart_image2.webp', 1, 1, 'PAG-PAIR-PERS', 'new'),
-('Siège Kayak Ergonomique', 'siege-kayak-ergonomique', 'Siège ergonomique avec mousse haute densité pour un confort optimal.', 149.99, 1.20, '45cm x 35cm', 'images/default-siege.webp', 2, 8, 'SIEG-ERGO-001', 'new');
-
+('Pagaie Carbone Compétition 210 cm', 'pagaie-carbone-competition-210', 'Pagaie haut de gamme en carbone intégral avec finition mate, idéale pour la compétition et les longues distances.', 299.99, 0.65, '210cm', 'kayart_image1.webp', 1, 10, 'PAG-CARB-COMP-210', 'new'),
+('Pagaie Carbone Loisir 215 cm', 'pagaie-carbone-loisir-215', 'Pagaie en carbone légère et maniable, parfaite pour le loisir et les randonnées.', 249.99, 0.70, '215cm', 'kayart_image2.webp', 1, 15, 'PAG-CARB-LOIS-215', 'new'),
+('Pagaie Carbone Rivière 200 cm', 'pagaie-carbone-riviere-200', 'Pagaie renforcée spécialement conçue pour la rivière et les eaux vives.', 279.99, 0.75, '200cm', 'kayart_image3.webp', 1, 12, 'PAG-CARB-RIV-200', 'new'),
+('Paire de Pagaies Personnalisées', 'paire-pagaies-personnalisees', 'Paire de pagaies en carbone avec finition bleu métallique personnalisable.', 200.00, 1.40, '210cm (paire)', 'kayart_image2.webp', 1, 1, 'PAG-PAIR-PERS', 'new'),
+('Siège Kayak Ergonomique', 'siege-kayak-ergonomique', 'Siège ergonomique avec mousse haute densité pour un confort optimal.', 149.99, 1.20, '45cm x 35cm', 'default-siege.webp', 2, 8, 'SIEG-ERGO-001', 'new');
 -- Insertion de services de démonstration
 INSERT INTO `service` (`title`, `description`, `price`, `image`) VALUES
 ('Réparation de pagaie', 'Réparation professionnelle de vos pagaies endommagées (fibre de verre, carbone).', 50.00, 'images/service-reparation.png'),

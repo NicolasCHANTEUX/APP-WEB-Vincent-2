@@ -5,7 +5,7 @@ $excerpt = (string) ($p['excerpt'] ?? '');
 $price = (float) ($p['price'] ?? 0);
 $discountedPrice = isset($p['discounted_price']) ? (float) $p['discounted_price'] : null;
 $stock = (int) ($p['stock'] ?? 0);
-$img = (string) ($p['image'] ?? base_url('images/default-product.svg'));
+$img = (string) ($p['image'] ?? base_url('images/default-image.webp'));
 $slug = (string) ($p['slug'] ?? '');
 $productId = (int) ($p['id'] ?? 0);
 ?>
@@ -21,7 +21,7 @@ $productId = (int) ($p['id'] ?? 0);
                  srcset="<?= esc($img) ?> 400w, <?= esc($img) ?> 800w"
                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                  class="w-full h-full object-cover"
-                 onerror="this.onerror=null; this.src='<?= base_url('images/default-product.svg') ?>';">
+                 onerror="this.onerror=null; this.src='<?= base_url('images/default-image.webp') ?>';">
         </div>
 
         <h3 class="mt-5 font-serif text-xl tracking-wide text-primary-dark uppercase"><?= esc($title) ?></h3>
