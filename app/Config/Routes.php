@@ -36,6 +36,8 @@ $routes->get('admin', 'AdminDashboardController::index', ['filter' => 'adminauth
 $routes->group('admin', ['filter' => 'adminauth', 'namespace' => 'App\\Controllers'], function ($routes) {
     $routes->get('produits', 'AdminProduitsController::index');
     $routes->get('produits/nouveau', 'AdminProduitsController::nouveau');
+    $routes->get('reservations', 'AdminReservationsController::index');
+    $routes->post('reservations/(:num)/update-status', 'AdminReservationsController::updateStatus/$1');
 });
 
 /**

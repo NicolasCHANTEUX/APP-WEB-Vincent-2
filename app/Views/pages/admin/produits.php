@@ -14,6 +14,7 @@ $this->setData([
         'products' => $products ?? [],
     ]),
     'bgColor' => 'bg-transparent',
+    'classes' => 'mt-16 md:mt-20',
 ]) ?>
 
 <?= $this->endSection() ?>

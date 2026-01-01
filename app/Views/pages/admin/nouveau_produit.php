@@ -12,6 +12,7 @@ $this->setData([
 <?= view_cell('App\\Cells\\ContainerComposant::render', [
     'enfant' => view('components/section/admin/nouveau_produit_section'),
     'bgColor' => 'bg-transparent',
+    'classes' => 'mt-16 md:mt-20',
 ]) ?>
 
 <?= $this->endSection() ?>

@@ -2,31 +2,56 @@
 
 namespace App\Controllers;
 
+use App\Models\ProductModel;
+use App\Models\ReservationModel;
+
 class AdminDashboardController extends BaseController
 {
+    protected $productModel;
+    protected $reservationModel;
+
+    public function __construct()
+    {
+        $this->productModel = new ProductModel();
+        $this->reservationModel = new ReservationModel();
+    }
+
     public function index()
     {
-        // Données démo (à remplacer par DB)
-        $lowStock = [
-            ['name' => 'Pagaie Personnalisée', 'stock' => 5, 'price' => 399.99],
-            ['name' => 'Pagaie KAYART Série Limitée', 'stock' => 3, 'price' => 449.99],
-            ['name' => 'Paire pagaies', 'stock' => 1, 'price' => 200.00],
-        ];
+        // Récupérer les produits en stock faible (stock < 10)
+        $lowStock = $this->productModel
+            ->select('title as name, stock, price')
+            ->where('stock <', 10)
+            ->orderBy('stock', 'ASC')
+            ->limit(5)
+            ->findAll();
 
-        $recent = [
-            ['name' => 'test', 'date' => '07/11/2025', 'price' => 10.00, 'stock' => 10],
-            ['name' => 'paire pagaies', 'date' => '06/11/2025', 'price' => 200.00, 'stock' => 1],
-            ['name' => 'Pagaie Carbone Compétition 210 cm', 'date' => '06/11/2025', 'price' => 299.99, 'stock' => 10],
-            ['name' => 'Pagaie Carbone Loisir 215 cm', 'date' => '06/11/2025', 'price' => 249.99, 'stock' => 15],
-            ['name' => 'Pagaie Carbone Rivière 200 cm', 'date' => '06/11/2025', 'price' => 279.99, 'stock' => 12],
+        // Récupérer les produits récemment ajoutés
+        $recentProducts = $this->productModel
+            ->select('title as name, created_at, price, stock')
+            ->orderBy('created_at', 'DESC')
+            ->limit(5)
+            ->findAll();
+
+        // Formatter les dates pour l'affichage
+        $recent = array_map(function($p) {
+            return [
+                'name' => $p['name'],
+                'date' => date('d/m/Y', strtotime($p['created_at'])),
+                'price' => $p['price'],
+                'stock' => $p['stock'],
+            ];
+        }, $recentProducts);
+
+        // Calculer les statistiques
+        $stats = [
+            'totalProducts' => $this->productModel->countAllResults(false),
+            'lowStockCount' => $this->productModel->where('stock <', 10)->countAllResults(false),
+            'newRequests'   => $this->reservationModel->where('status', 'new')->countAllResults(false),
         ];
 
         $data = [
-            'stats' => [
-                'totalProducts' => 32,
-                'lowStockCount' => 3,
-                'newRequests'   => 1,
-            ],
+            'stats'    => $stats,
             'lowStock' => $lowStock,
             'recent'   => $recent,
         ];
