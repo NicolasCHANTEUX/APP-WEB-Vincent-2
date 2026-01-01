@@ -40,6 +40,12 @@ class ProduitsControler extends BaseController
         // Récupérer le filtre de catégorie
         $selectedSlug = $this->request->getGet('categorie') ?: 'all';
         
+        // Récupérer le filtre "occasion"
+        $filterUsed = ($this->request->getGet('occasion') === '1');
+        
+        // Récupérer le terme de recherche
+        $searchQuery = trim($this->request->getGet('recherche') ?: '');
+        
         // Valider que le slug existe
         $validSlugs = array_column($categories, 'slug');
         if (!in_array($selectedSlug, $validSlugs, true)) {
@@ -50,18 +56,52 @@ class ProduitsControler extends BaseController
         $perPage = 15;
 
         // Récupérer le nombre total de produits selon le filtre
-        if ($selectedSlug === 'all') {
+        if ($filterUsed) {
+            // Filtre spécial : uniquement les produits d'occasion
+            $this->productModel->where('condition_state', 'used');
+            if (!empty($searchQuery)) {
+                $this->productModel->groupStart()
+                    ->like('product.title', $searchQuery)
+                    ->orLike('product.description', $searchQuery)
+                    ->groupEnd();
+            }
+            $totalProducts = $this->productModel->countAllResults(false);
+            $allProducts = $this->productModel->getAllWithCategory();
+        } elseif ($selectedSlug === 'all') {
+            if (!empty($searchQuery)) {
+                $this->productModel->groupStart()
+                    ->like('product.title', $searchQuery)
+                    ->orLike('product.description', $searchQuery)
+                    ->groupEnd();
+            }
             $totalProducts = $this->productModel->countAllResults(false);
             $allProducts = $this->productModel->getAllWithCategory();
         } else {
             // Compter les produits de la catégorie
             $categoryData = $this->categoryModel->findBySlug($selectedSlug);
             if ($categoryData) {
-                $totalProducts = $this->productModel->where('category_id', $categoryData['id'])->countAllResults(false);
+                $this->productModel->where('category_id', $categoryData['id']);
+                if (!empty($searchQuery)) {
+                    $this->productModel->groupStart()
+                        ->like('product.title', $searchQuery)
+                        ->orLike('product.description', $searchQuery)
+                        ->groupEnd();
+                }
+                $totalProducts = $this->productModel->countAllResults(false);
+                $allProducts = $this->productModel->getByCategorySlug($selectedSlug);
+                
+                // Filtrer par recherche si nécessaire
+                if (!empty($searchQuery)) {
+                    $allProducts = array_filter($allProducts, function($p) use ($searchQuery) {
+                        return stripos($p['title'], $searchQuery) !== false || 
+                               stripos($p['description'], $searchQuery) !== false;
+                    });
+                    $totalProducts = count($allProducts);
+                }
             } else {
                 $totalProducts = 0;
+                $allProducts = [];
             }
-            $allProducts = $this->productModel->getByCategorySlug($selectedSlug);
         }
 
         // Prendre seulement les 15 premiers produits
@@ -80,6 +120,7 @@ class ProduitsControler extends BaseController
             'totalProducts' => $totalProducts,
             'hasMore' => $hasMore,
             'perPage' => $perPage,
+            'searchQuery' => $searchQuery,
         ]);
     }
 
@@ -97,9 +138,14 @@ class ProduitsControler extends BaseController
         $page = max(1, (int) ($this->request->getGet('page') ?: 1));
         $offset = ($page - 1) * $perPage;
         $categorySlug = $this->request->getGet('categorie') ?: 'all';
+        $filterUsed = ($this->request->getGet('occasion') === '1');
 
         // --- 1. Récupération des données (Logique existante conservée) ---
-        if ($categorySlug === 'all') {
+        if ($filterUsed) {
+            // Filtre spécial : uniquement les produits d'occasion
+            $totalProducts = $this->productModel->where('condition_state', 'used')->countAllResults(false);
+            $allProducts = $this->productModel->where('condition_state', 'used')->getAllWithCategory();
+        } elseif ($categorySlug === 'all') {
             $totalProducts = $this->productModel->countAllResults(false);
             $allProducts = $this->productModel->getAllWithCategory();
         } else {
@@ -148,16 +194,51 @@ class ProduitsControler extends BaseController
     /**
      * Formater les produits pour la vue
      */
+    /**
+     * Vérifier si une image existe physiquement et retourner le bon chemin
+     */
+    private function getValidImagePath(?string $imagePath): string
+    {
+        // Si pas d'image en BDD, utiliser l'image par défaut
+        if (empty($imagePath)) {
+            return base_url('images/default-image.webp');
+        }
+
+        // Construire le chemin physique du fichier
+        $physicalPath = FCPATH . ltrim($imagePath, '/');
+        
+        // Vérifier si le fichier existe physiquement
+        if (file_exists($physicalPath) && is_file($physicalPath)) {
+            return base_url($imagePath);
+        }
+        
+        // Fichier introuvable, utiliser l'image par défaut
+        return base_url('images/default-image.webp');
+    }
+
+    /**
+     * Formater les produits pour la vue
+     */
     private function formatProducts(array $products): array
     {
         $formattedProducts = [];
+
         foreach ($products as $product) {
-            // Générer l'excerpt (les 100 premiers caractères de la description)
+            // Générer l'excerpt
             $excerpt = $product['description'] 
                 ? (mb_strlen($product['description']) > 100 
                     ? mb_substr($product['description'], 0, 100) . '...' 
                     : $product['description'])
                 : '';
+
+            // --- CORRECTION DU PRIX REMISÉ ---
+            // On vérifie si un pourcentage de réduction existe
+            $discountedPrice = null;
+            if (!empty($product['discount_percent']) && $product['discount_percent'] > 0) {
+                // Calcul : Prix - (Prix * Pourcentage / 100)
+                $discountedPrice = $product['price'] - ($product['price'] * ($product['discount_percent'] / 100));
+            }
+            // ---------------------------------
 
             $formattedProducts[] = [
                 'id' => $product['id'],
@@ -166,9 +247,11 @@ class ProduitsControler extends BaseController
                 'excerpt' => $excerpt,
                 'description' => $product['description'],
                 'price' => $product['price'],
-                'discounted_price' => $product['discounted_price'],
+                'discount_percent' => $product['discount_percent'] ?? null,
+                // On utilise la variable calculée ci-dessus
+                'discounted_price' => $discountedPrice, 
                 'stock' => $product['stock'],
-                'image' => $product['image'] ? base_url($product['image']) : base_url('images/default-image.webp'),
+                'image' => $this->getValidImagePath($product['image']),
                 'category_name' => $product['category_name'] ?? trans('products_category_uncategorized'),
                 'category_slug' => $product['category_slug'] ?? '',
                 'sku' => $product['sku'],
@@ -176,6 +259,7 @@ class ProduitsControler extends BaseController
                 'dimensions' => $product['dimensions'],
             ];
         }
+
         return $formattedProducts;
     }
 
@@ -193,6 +277,13 @@ class ProduitsControler extends BaseController
             );
         }
 
+        // --- CORRECTION DU PRIX REMISÉ (Calcul) ---
+        $discountedPrice = null;
+        if (!empty($product['discount_percent']) && $product['discount_percent'] > 0) {
+            $discountedPrice = $product['price'] - ($product['price'] * ($product['discount_percent'] / 100));
+        }
+        // ------------------------------------------
+
         // Formater le produit
         $formattedProduct = [
             'id' => $product['id'],
@@ -200,9 +291,10 @@ class ProduitsControler extends BaseController
             'slug' => $product['slug'],
             'description' => $product['description'],
             'price' => $product['price'],
-            'discounted_price' => $product['discounted_price'],
+            'discount_percent' => $product['discount_percent'] ?? null,
+            'discounted_price' => $discountedPrice, // Utilisation du calcul
             'stock' => $product['stock'],
-            'image' => $product['image'] ? base_url($product['image']) : base_url('images/default-image.webp'),
+            'image' => $this->getValidImagePath($product['image']),
             'category_name' => $product['category_name'] ?? trans('products_category_uncategorized'),
             'category_slug' => $product['category_slug'] ?? '',
             'sku' => $product['sku'],

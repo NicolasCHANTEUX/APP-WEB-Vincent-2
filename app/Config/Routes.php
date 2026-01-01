@@ -26,6 +26,11 @@ $routes->post('contact', 'ContactControler::sendEmail');
 $routes->post('connexion', 'ConnexionControler::authenticate');
 $routes->get('deconnexion', 'AuthController::logout');
 
+// Pages légales
+$routes->get('mentions-legales', 'PagesController::mentionsLegales');
+$routes->get('politique-confidentialite', 'PagesController::privacy');
+$routes->get('cgv', 'PagesController::cgv');
+
 // Admin
 $routes->get('admin', 'AdminDashboardController::index', ['filter' => 'adminauth']);
 $routes->group('admin', ['filter' => 'adminauth', 'namespace' => 'App\\Controllers'], function ($routes) {

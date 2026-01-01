@@ -4,7 +4,7 @@ $id = $product['id'] ?? 0;
 $title = $product['title'] ?? '';
 $description = $product['description'] ?? '';
 $price = $product['price'] ?? 0;
-$discountedPrice = $product['discounted_price'] ?? null;
+$discountPercent = $product['discount_percent'] ?? null;
 $stock = $product['stock'] ?? 0;
 $image = $product['image'] ?? base_url('images/default-image.webp');
 $categoryName = $product['category_name'] ?? '';
@@ -12,7 +12,24 @@ $sku = $product['sku'] ?? '';
 $weight = $product['weight'] ?? null;
 $dimensions = $product['dimensions'] ?? null;
 $slug = $product['slug'] ?? '';
+$conditionState = $product['condition_state'] ?? 'new';
+$createdAt = $product['created_at'] ?? null;
 $lang = site_lang();
+
+// Calculer le prix réduit si réduction en pourcentage
+$finalPrice = $price;
+if ($discountPercent && $discountPercent > 0) {
+    $finalPrice = $price - ($price * ($discountPercent / 100));
+}
+
+// Calculer si le produit est récent (moins de 30 jours)
+$isNew = false;
+if ($createdAt) {
+    $createdDate = new DateTime($createdAt);
+    $now = new DateTime();
+    $diff = $now->diff($createdDate);
+    $isNew = ($diff->days <= 30);
+}
 
 // Messages flash
 $success = session()->getFlashdata('success');
@@ -79,7 +96,14 @@ $errors = session()->getFlashdata('errors') ?? [];
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
                         <span class="text-gray-600"><?= trans('product_sku') ?> :</span>
-                        <span class="font-medium text-gray-900"><?= esc($sku) ?></span>
+                        <span class="font-medium text-gray-900 font-mono"><?= esc($sku) ?></span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-600"><?= trans('product_condition') ?> :</span>
+                        <span class="font-medium <?= $conditionState === 'new' ? 'text-blue-700' : 'text-amber-700' ?>">
+                            <?= $conditionState === 'new' ? trans('product_condition_new') : trans('product_condition_used') ?>
+                        </span>
                     </div>
                     
                     <?php if ($weight): ?>
@@ -101,14 +125,32 @@ $errors = session()->getFlashdata('errors') ?? [];
                         <span class="font-medium text-gray-900"><?= esc($categoryName) ?></span>
                     </div>
                     
+                    <?php if ($createdAt): ?>
                     <div class="flex justify-between">
+                        <span class="text-gray-600"><?= trans('product_added_on') ?> :</span>
+                        <span class="font-medium text-gray-900">
+                            <?= date('d/m/Y', strtotime($createdAt)) ?>
+                        </span>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <div class="flex justify-between items-center">
                         <span class="text-gray-600"><?= trans('product_availability') ?> :</span>
-                        <?php if ($stock > 0): ?>
-                            <span class="font-medium text-emerald-700">
+                        <?php if ($stock > 10): ?>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                <span class="w-2 h-2 bg-emerald-500 rounded-full mr-1.5"></span>
                                 <?= trans('products_stock_available') ?> (<?= $stock ?>)
                             </span>
+                        <?php elseif ($stock > 0): ?>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                                <span class="w-2 h-2 bg-amber-500 rounded-full mr-1.5"></span>
+                                <?= trans('products_stock_limited') ?> (<?= $stock ?>)
+                            </span>
                         <?php else: ?>
-                            <span class="font-medium text-red-600"><?= trans('products_stock_out') ?></span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
+                                <span class="w-2 h-2 bg-red-500 rounded-full mr-1.5"></span>
+                                <?= trans('products_stock_out') ?>
+                            </span>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -119,14 +161,44 @@ $errors = session()->getFlashdata('errors') ?? [];
         <div>
             <!-- Titre et prix -->
             <div class="mb-6">
-                <h1 class="font-serif text-3xl lg:text-4xl font-bold text-primary-dark uppercase mb-4">
-                    <?= esc($title) ?>
-                </h1>
+                <div class="flex items-start justify-between gap-4 mb-4">
+                    <h1 class="font-serif text-3xl lg:text-4xl font-bold text-primary-dark uppercase">
+                        <?= esc($title) ?>
+                    </h1>
+                    
+                    <!-- Badges -->
+                    <div class="flex flex-col gap-2">
+                        <?php if ($isNew): ?>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                                <?= trans('product_badge_new') ?>
+                            </span>
+                        <?php endif; ?>
+                        
+                        <?php if ($conditionState === 'used'): ?>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                                <?= trans('product_condition_used') ?>
+                            </span>
+                        <?php else: ?>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                                <?= trans('product_condition_new') ?>
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                </div>
                 
-                <div class="text-3xl font-bold text-gray-900">
-                    <?php if ($discountedPrice && $discountedPrice < $price): ?>
-                        <span class="line-through text-gray-500 text-2xl"><?= number_format($price, 2, ',', ' ') ?> €</span>
-                        <span class="ml-3 text-red-600"><?= number_format($discountedPrice, 2, ',', ' ') ?> €</span>
+                <div class="text-2xl font-bold text-gray-900">
+                    <?php if ($discountPercent && $discountPercent > 0): ?>
+                        <div class="flex items-baseline gap-2 flex-wrap">
+                            <span class="text-gray-600 font-normal text-base">Prix :</span>
+                            <span class="line-through text-gray-500 text-xl font-semibold"><?= number_format($price, 2, ',', ' ') ?> €</span>
+                            <span class="text-red-600 text-3xl font-bold"><?= number_format($finalPrice, 2, ',', ' ') ?> €</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                                -<?= number_format($discountPercent, 0) ?>%
+                            </span>
+                        </div>
                     <?php else: ?>
                         <?= number_format($price, 2, ',', ' ') ?> €
                     <?php endif; ?>
@@ -143,10 +215,11 @@ $errors = session()->getFlashdata('errors') ?? [];
                 </div>
             </div>
 
-            <!-- Formulaire de réservation -->
-            <div class="bg-gray-50 rounded-2xl p-8 border-2 border-accent-gold">
-                <h2 class="font-serif text-2xl font-bold text-primary-dark uppercase mb-6">
-                    <?= trans('reservation_form_title') ?>
+            <?php if ($conditionState === 'used'): ?>
+                <!-- PRODUIT OCCASION: Formulaire de réservation -->
+                <div class="bg-gray-50 rounded-2xl p-8 border-2 border-accent-gold">
+                    <h2 class="font-serif text-2xl font-bold text-primary-dark uppercase mb-6">
+                        <?= trans('reservation_form_title') ?>
                 </h2>
                 
                 <p class="text-gray-600 mb-6">
@@ -203,22 +276,8 @@ $errors = session()->getFlashdata('errors') ?? [];
                         <?php endif; ?>
                     </div>
 
-                    <!-- Quantité -->
-                    <div>
-                        <label for="quantity" class="block text-sm font-semibold text-gray-900 mb-2">
-                            <?= trans('reservation_quantity') ?>
-                        </label>
-                        <input type="number" 
-                               id="quantity" 
-                               name="quantity" 
-                               value="<?= old('quantity', 1) ?>"
-                               min="1"
-                               max="<?= $stock > 0 ? $stock : 100 ?>"
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-gold focus:border-accent-gold transition <?= isset($errors['quantity']) ? 'border-red-500' : '' ?>">
-                        <?php if (isset($errors['quantity'])): ?>
-                            <p class="mt-1 text-sm text-red-600"><?= esc($errors['quantity']) ?></p>
-                        <?php endif; ?>
-                    </div>
+                    <!-- Quantité (masquée pour produits d'occasion - toujours 1) -->
+                    <input type="hidden" name="quantity" value="1">
 
                     <!-- Message -->
                     <div>
@@ -259,6 +318,54 @@ $errors = session()->getFlashdata('errors') ?? [];
                     </div>
                 </div>
             </div>
+            
+            <?php else: ?>
+                <!-- PRODUIT NEUF: Paiement par carte (à venir) -->
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 border-2 border-gray-300">
+                    <div class="text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-accent-gold rounded-full mb-4">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                            </svg>
+                        </div>
+                        
+                        <h2 class="font-serif text-2xl font-bold text-primary-dark uppercase mb-3">
+                            <?= trans('payment_card_title') ?>
+                        </h2>
+                        
+                        <p class="text-gray-600 mb-6">
+                            <?= trans('payment_card_coming_soon') ?>
+                        </p>
+                        
+                        <div class="bg-white rounded-lg p-6 shadow-sm mb-6">
+                            <div class="flex items-center justify-center gap-4 mb-4">
+                                <svg class="w-12 h-8" viewBox="0 0 48 32" fill="none">
+                                    <rect width="48" height="32" rx="4" fill="#1434CB"/>
+                                    <rect x="8" y="12" width="32" height="8" rx="1" fill="white"/>
+                                </svg>
+                                <svg class="w-12 h-8" viewBox="0 0 48 32" fill="none">
+                                    <rect width="48" height="32" rx="4" fill="#EB001B"/>
+                                    <circle cx="20" cy="16" r="8" fill="#FF5F00"/>
+                                    <circle cx="28" cy="16" r="8" fill="#F79E1B"/>
+                                </svg>
+                            </div>
+                            <p class="text-sm text-gray-500">
+                                <?= trans('payment_card_methods') ?>
+                            </p>
+                        </div>
+                        
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                            <p class="text-sm text-amber-800">
+                                <span class="font-semibold"><?= trans('payment_temporary_alternative') ?></span><br>
+                                <?= trans('payment_contact_us') ?>: 
+                                <a href="<?= base_url('contact?lang=' . $lang) ?>" class="underline font-medium hover:text-accent-gold">
+                                    <?= trans('nav_contact') ?>
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>

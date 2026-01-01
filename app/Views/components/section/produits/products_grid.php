@@ -3,9 +3,17 @@ $products = $products ?? [];
 $hasMore = $hasMore ?? false;
 $selectedCategory = $selectedCategory ?? 'all';
 $totalProducts = $totalProducts ?? count($products);
+$searchQuery = $searchQuery ?? '';
 ?>
 
 <section class="lg:col-span-9">
+    <!-- Barre de recherche -->
+    <?= view('components/ui/products_search_bar', [
+        'selectedCategory' => $selectedCategory,
+        'searchQuery' => $searchQuery,
+        'filterUsed' => (service('request')->getGet('occasion') === '1')
+    ]) ?>
+
     <?php if (empty($products)): ?>
         <div class="text-center py-16">
             <svg class="mx-auto h-24 w-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -101,8 +109,7 @@ $totalProducts = $totalProducts ?? count($products);
 
             if (data.success && data.products.length > 0) {
                 
-                // 4. Injection du HTML (C'est là que la magie opère !)
-                // On ne construit plus le HTML ici, on injecte celui reçu du serveur
+                // 4. Injection du HTML des nouveaux produits
                 data.products.forEach(item => {
                     productsGrid.insertAdjacentHTML('beforeend', item.html);
                 });
@@ -130,8 +137,5 @@ $totalProducts = $totalProducts ?? count($products);
             }
         }
     });
-    
-    // J'ai supprimé createProductCard, formatPrice et escapeHtml
-    // car PHP s'occupe de tout maintenant !
 })();
 </script>

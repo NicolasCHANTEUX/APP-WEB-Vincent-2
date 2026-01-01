@@ -80,6 +80,10 @@ return [
     'products_category_shims'     => 'Shims and supports',
     'products_category_accessories' => 'Carbon accessories',
     'products_category_uncategorized' => 'Uncategorized',
+    'products_filter_used'        => 'Used Products',
+    'products_filter_used_desc'   => 'Products with exclusive discounts',
+    'products_discounted'         => 'Discounted',
+    'products_search_placeholder' => 'Search for a product...',
     'products_no_products'        => 'No products found',
     'products_no_products_title'  => 'No products available',
     'products_no_products_message' => 'There are currently no products in this category.',
@@ -92,12 +96,18 @@ return [
     'products_view_details'       => 'VIEW DETAILS',
     'products_price'              => 'Price',
     'products_stock_available'    => 'In stock',
+    'products_stock_limited'      => 'Limited stock',
     'products_stock_out'          => 'Out of stock',
 
     // Page - Product detail
     'product_back_to_list'        => 'Back to products list',
     'product_technical_info'      => 'Technical information',
     'product_sku'                 => 'Reference',
+    'product_condition'           => 'Condition',
+    'product_condition_new'       => 'New',
+    'product_condition_used'      => 'Used',
+    'product_badge_new'           => 'New',
+    'product_added_on'            => 'Added on',
     'product_weight'              => 'Weight',
     'product_dimensions'          => 'Dimensions',
     'product_category'            => 'Category',
@@ -120,6 +130,13 @@ return [
     'reservation_success'         => 'Your reservation request has been sent successfully! We will contact you very soon.',
     'reservation_error'           => 'An error occurred while sending your request. Please try again.',
     'reservation_product_not_found' => 'The requested product does not exist.',
+
+    // Page - Card payment (coming soon)
+    'payment_card_title'          => 'Card Payment',
+    'payment_card_coming_soon'    => 'Online payment will be available soon for this product.',
+    'payment_card_methods'        => 'Visa, Mastercard and other cards accepted',
+    'payment_temporary_alternative' => 'While online payment is being set up',
+    'payment_contact_us'          => 'Contact us to finalize your order',
 
     // Pages - Services
     'services_title'              => 'Services',
@@ -186,6 +203,13 @@ return [
     'footer_social_facebook'  => 'FACEBOOK',
     'footer_social_linkedin'  => 'LINKEDIN',
     'footer_copyright'        => 'KAYART - All rights reserved',
+    
+    // Legal pages
+    'footer_all_rights_reserved' => 'All rights reserved',
+    'footer_legal_mentions'      => 'Legal Notice',
+    'footer_privacy_policy'      => 'Privacy Policy (GDPR)',
+    'footer_cgv'                 => 'Terms & Conditions',
+    'legal_last_update'          => 'Last updated',
 ];
 
 

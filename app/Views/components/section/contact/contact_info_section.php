@@ -1,4 +1,5 @@
 <div class="space-y-8">
+    
     <div class="space-y-3 bg-white rounded-2xl shadow border border-gray-100 p-6">
         <h3 class="font-serif text-xl text-primary-dark flex items-center gap-2">
             <i data-lucide="mail" class="w-5 h-5 text-accent-gold"></i>
@@ -40,5 +41,33 @@
             </div>
         </div>
     </div>
-</div>
 
+    <div class="space-y-3 bg-white rounded-2xl shadow border border-gray-100 p-6">
+        <h3 class="font-serif text-xl text-primary-dark flex items-center gap-2">
+            <i data-lucide="map" class="w-5 h-5 text-accent-gold"></i>
+            <?= esc(trans('contact_location_title') ?: 'Notre Atelier') ?>
+        </h3>
+        
+        <div class="mt-4 rounded-xl overflow-hidden">
+            <?php
+            // Configuration des points pour la carte
+            $mapPoints = [
+                [
+                    // Coordonnées approximatives de la Buronnière, 72400 Saint-Aubin-des-Coudrais
+                    'latitude' => 48.190395, 
+                    'longitude' => 0.578511, 
+                    'markerText' => 'Atelier Kayart',
+                    'isMain' => true,
+                    'color' => 'gold' 
+                ]
+            ];
+            
+            echo view('components/section/contact/map_widget', [
+                'points' => $mapPoints, 
+                'defaultZoom' => 14,
+                'mapId' => 'contact-map'
+            ]); 
+            ?>
+        </div>
+    </div>
+</div>

@@ -80,6 +80,10 @@ return [
     'products_category_shims'     => 'Cales et appuis',
     'products_category_accessories' => 'Accessoires en carbone',
     'products_category_uncategorized' => 'Sans catégorie',
+    'products_filter_used'        => 'Produits d\'occasion',
+    'products_filter_used_desc'   => 'Produits avec réductions exclusives',
+    'products_discounted'         => 'Réduits',
+    'products_search_placeholder' => 'Rechercher un produit...',
     'products_no_products'        => 'Aucun produit trouvé',
     'products_no_products_title'  => 'Aucun produit disponible',
     'products_no_products_message' => 'Il n\'y a actuellement aucun produit dans cette catégorie.',
@@ -92,12 +96,18 @@ return [
     'products_view_details'       => 'VOIR LE DÉTAIL',
     'products_price'              => 'Prix',
     'products_stock_available'    => 'En stock',
+    'products_stock_limited'      => 'Stock limité',
     'products_stock_out'          => 'Rupture de stock',
 
     // Page - Détail produit
     'product_back_to_list'        => 'Retour à la liste des produits',
     'product_technical_info'      => 'Informations techniques',
     'product_sku'                 => 'Référence',
+    'product_condition'           => 'État',
+    'product_condition_new'       => 'Neuf',
+    'product_condition_used'      => 'Occasion',
+    'product_badge_new'           => 'Nouveau',
+    'product_added_on'            => 'Ajouté le',
     'product_weight'              => 'Poids',
     'product_dimensions'          => 'Dimensions',
     'product_category'            => 'Catégorie',
@@ -120,6 +130,13 @@ return [
     'reservation_success'         => 'Votre demande de réservation a été envoyée avec succès ! Nous vous contacterons très prochainement.',
     'reservation_error'           => 'Une erreur est survenue lors de l\'envoi de votre demande. Veuillez réessayer.',
     'reservation_product_not_found' => 'Le produit demandé n\'existe pas.',
+
+    // Page - Paiement carte (à venir)
+    'payment_card_title'          => 'Paiement par carte',
+    'payment_card_coming_soon'    => 'Le paiement en ligne sera bientôt disponible pour ce produit.',
+    'payment_card_methods'        => 'Visa, Mastercard et autres cartes acceptées',
+    'payment_temporary_alternative' => 'En attendant la mise en place du paiement en ligne',
+    'payment_contact_us'          => 'Contactez-nous pour finaliser votre commande',
 
     // Pages - Services
     'services_title'              => 'Services',
@@ -186,6 +203,13 @@ return [
     'footer_social_facebook'  => 'FACEBOOK',
     'footer_social_linkedin'  => 'LINKEDIN',
     'footer_copyright'        => 'KAYART - Tous droits réservés',
+    
+    // Pages légales
+    'footer_all_rights_reserved' => 'Tous droits réservés',
+    'footer_legal_mentions'      => 'Mentions Légales',
+    'footer_privacy_policy'      => 'Politique de Confidentialité (RGPD)',
+    'footer_cgv'                 => 'CGV',
+    'legal_last_update'          => 'Dernière mise à jour',
 ];
 
 

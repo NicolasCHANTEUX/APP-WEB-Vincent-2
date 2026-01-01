@@ -145,8 +145,35 @@
 
     <!-- Barre copyright -->
     <div class="bg-black bg-opacity-30 border-t border-white border-opacity-5 py-4 px-6">
-        <div class="container mx-auto text-center text-sm text-gray-400">
-            <p>&copy; <?= date('Y') ?> <?= trans('footer_copyright') ?></p>
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-400">
+            
+            <div class="text-center md:text-left">
+                <p>&copy; <?= date('Y') ?> KAYART. <?= trans('footer_all_rights_reserved') ?: 'Tous droits réservés.' ?></p>
+            </div>
+
+            <nav>
+                <ul class="flex flex-wrap justify-center md:justify-end gap-x-6 gap-y-2">
+                    <li>
+                        <a href="<?= base_url('mentions-legales?lang=' . site_lang()) ?>" 
+                           class="hover:text-accent-gold transition-colors duration-200 pd-2 mr-3">
+                            <?= trans('footer_legal_mentions') ?: 'Mentions Légales' ?>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?= base_url('politique-confidentialite?lang=' . site_lang()) ?>" 
+                           class="hover:text-accent-gold transition-colors duration-200 pd-2 mr-3">
+                            <?= trans('footer_privacy_policy') ?: 'Politique de Confidentialité (RGPD)' ?>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?= base_url('cgv?lang=' . site_lang()) ?>" 
+                           class="hover:text-accent-gold transition-colors duration-200 pd-2 mr-3">
+                            <?= trans('footer_cgv') ?: 'CGV' ?>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
         </div>
     </div>
 </footer>

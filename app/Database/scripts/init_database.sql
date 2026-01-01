@@ -59,14 +59,14 @@ CREATE TABLE IF NOT EXISTS `product` (
   `slug` VARCHAR(255) NOT NULL,
   `description` TEXT DEFAULT NULL,
   `price` DECIMAL(10, 2) NOT NULL,
-  `discounted_price` DECIMAL(10, 2) DEFAULT NULL,
+  `discount_percent` DECIMAL(5, 2) DEFAULT NULL COMMENT 'Pourcentage de réduction (ex: 15.50 pour 15.50%)',
   `weight` DECIMAL(10, 2) DEFAULT NULL COMMENT 'Poids en kg',
   `dimensions` VARCHAR(50) DEFAULT NULL COMMENT 'Ex: 210cm x 18cm',
   `image` VARCHAR(255) DEFAULT NULL,
   `category_id` INT UNSIGNED DEFAULT NULL,
   `stock` INT DEFAULT 0,
   `sku` VARCHAR(50) NOT NULL COMMENT 'Référence produit unique',
-  `condition_state` ENUM('new', 'used') DEFAULT 'new',
+  `condition_state` ENUM('new', 'used') DEFAULT 'new' COMMENT 'new=paiement carte, used=réservation avec réduction',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -177,12 +177,14 @@ INSERT INTO `category` (`name`, `slug`, `description`) VALUES
 ('Accessoires', 'accessoires', 'Accessoires et équipements pour kayak');
 
 -- Insertion de produits de démonstration
-INSERT INTO `product` (`title`, `slug`, `description`, `price`, `weight`, `dimensions`, `image`, `category_id`, `stock`, `sku`, `condition_state`) VALUES
-('Pagaie Carbone Compétition 210 cm', 'pagaie-carbone-competition-210', 'Pagaie haut de gamme en carbone intégral avec finition mate, idéale pour la compétition et les longues distances.', 299.99, 0.65, '210cm', 'kayart_image1.webp', 1, 10, 'PAG-CARB-COMP-210', 'new'),
-('Pagaie Carbone Loisir 215 cm', 'pagaie-carbone-loisir-215', 'Pagaie en carbone légère et maniable, parfaite pour le loisir et les randonnées.', 249.99, 0.70, '215cm', 'kayart_image2.webp', 1, 15, 'PAG-CARB-LOIS-215', 'new'),
-('Pagaie Carbone Rivière 200 cm', 'pagaie-carbone-riviere-200', 'Pagaie renforcée spécialement conçue pour la rivière et les eaux vives.', 279.99, 0.75, '200cm', 'kayart_image3.webp', 1, 12, 'PAG-CARB-RIV-200', 'new'),
-('Paire de Pagaies Personnalisées', 'paire-pagaies-personnalisees', 'Paire de pagaies en carbone avec finition bleu métallique personnalisable.', 200.00, 1.40, '210cm (paire)', 'kayart_image2.webp', 1, 1, 'PAG-PAIR-PERS', 'new'),
-('Siège Kayak Ergonomique', 'siege-kayak-ergonomique', 'Siège ergonomique avec mousse haute densité pour un confort optimal.', 149.99, 1.20, '45cm x 35cm', 'default-siege.webp', 2, 8, 'SIEG-ERGO-001', 'new');
+INSERT INTO `product` (`title`, `slug`, `description`, `price`, `weight`, `dimensions`, `image`, `category_id`, `stock`, `sku`, `condition_state`, `discount_percent`) VALUES
+('Pagaie Carbone Compétition 210 cm', 'pagaie-carbone-competition-210', 'Pagaie haut de gamme en carbone intégral avec finition mate, idéale pour la compétition et les longues distances.', 299.99, 0.65, '210cm', 'kayart_image1.webp', 1, 10, 'PAG-CARB-COMP-210', 'new', NULL),
+('Pagaie Carbone Loisir 215 cm', 'pagaie-carbone-loisir-215', 'Pagaie en carbone légère et maniable, parfaite pour le loisir et les randonnées.', 249.99, 0.70, '215cm', 'kayart_image2.webp', 1, 15, 'PAG-CARB-LOIS-215', 'new', NULL),
+('Pagaie Carbone Rivière 200 cm', 'pagaie-carbone-riviere-200', 'Pagaie renforcée spécialement conçue pour la rivière et les eaux vives.', 279.99, 0.75, '200cm', 'kayart_image3.webp', 1, 12, 'PAG-CARB-RIV-200', 'new', NULL),
+('Paire de Pagaies Personnalisées', 'paire-pagaies-personnalisees', 'Paire de pagaies en carbone avec finition bleu métallique personnalisable.', 200.00, 1.40, '210cm (paire)', 'kayart_image2.webp', 1, 1, 'PAG-PAIR-PERS', 'new', NULL),
+('Siège Kayak Ergonomique', 'siege-kayak-ergonomique', 'Siège ergonomique avec mousse haute densité pour un confort optimal.', 149.99, 1.20, '45cm x 35cm', 'default-siege.webp', 2, 8, 'SIEG-ERGO-001', 'new', NULL),
+('Cale Pieds Ajustables', 'cale-pieds-ajustables', 'Cales pieds réglables pour un meilleur maintien et confort.', 89.99, 0.50, '30cm x 15cm', 'default-cale-pieds.webp', 3, 20, 'CALE-PIEDS-ADJ', 'used', 20.00);
+
 -- Insertion de services de démonstration
 INSERT INTO `service` (`title`, `description`, `price`, `image`) VALUES
 ('Réparation de pagaie', 'Réparation professionnelle de vos pagaies endommagées (fibre de verre, carbone).', 50.00, 'images/service-reparation.png'),
@@ -201,7 +203,7 @@ SELECT
   p.slug,
   p.description,
   p.price,
-  p.discounted_price,
+  p.discount_percent,
   p.weight,
   p.dimensions,
   p.image,

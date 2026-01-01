@@ -17,7 +17,7 @@ class ProductModel extends Model
         'slug',
         'description',
         'price',
-        'discounted_price',
+        'discount_percent',
         'weight',
         'dimensions',
         'image',
@@ -169,8 +169,8 @@ class ProductModel extends Model
     {
         return $this->select('product.*, category.name as category_name, category.slug as category_slug')
             ->join('category', 'category.id = product.category_id', 'left')
-            ->where('product.discounted_price IS NOT NULL')
-            ->where('product.discounted_price >', 0)
+            ->where('product.discount_percent IS NOT NULL')
+            ->where('product.discount_percent >', 0)
             ->orderBy('product.created_at', 'DESC')
             ->findAll();
     }
