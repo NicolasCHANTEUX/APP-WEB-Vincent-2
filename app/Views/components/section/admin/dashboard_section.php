@@ -7,7 +7,7 @@ $newRequests = (int) ($stats['newRequests'] ?? 0);
 $langQ = '?lang=' . site_lang();
 ?>
 
-<div class="space-y-10 pt-32">
+<div class="space-y-10">
     
     <div class="relative overflow-hidden bg-gradient-to-br from-primary-dark via-slate-800 to-amber-900 rounded-3xl shadow-2xl border border-white/10 mb-6">
         <div class="absolute inset-0 opacity-5">
@@ -32,7 +32,7 @@ $langQ = '?lang=' . site_lang();
                     </h1>
                     
                     <p class="text-lg text-white/80 max-w-xl">
-                        Gérez vos produits, suivez vos réservations et optimisez votre boutique en ligne
+                        Gérez vos produits, suivez vos demandes clients et optimisez votre boutique en ligne
                     </p>
                     
                     <div class="grid grid-cols-3 gap-4 mt-8 max-w-2xl">
@@ -64,7 +64,7 @@ $langQ = '?lang=' . site_lang();
                         </div>
                         
                         <!-- Nouvelles demandes avec lien -->
-                        <a href="<?= site_url('admin/reservations') . $langQ ?>" class="group bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 hover:bg-emerald-500/20 hover:border-emerald-400/40 hover:shadow-lg transition-all duration-300">
+                        <a href="<?= site_url('admin/demandes') . $langQ ?>" class="group bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 hover:bg-emerald-500/20 hover:border-emerald-400/40 hover:shadow-lg transition-all duration-300">
                             <div class="flex items-center gap-4 mb-2">
                                 <div class="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/30 transition-colors">
                                     <i data-lucide="mail" class="w-6 h-6 text-emerald-300"></i>
@@ -106,11 +106,11 @@ $langQ = '?lang=' . site_lang();
                             </div>
                         </a>
                         
-                        <a href="<?= site_url('contact') . $langQ ?>" 
+                        <a href="<?= site_url('admin/demandes') . $langQ ?>" 
                            class="flex items-center gap-3 px-6 py-4 rounded-xl bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/20 transition">
                             <i data-lucide="mail" class="w-5 h-5 text-white"></i>
                             <div class="text-left">
-                                <div class="text-sm font-semibold text-white">Réservations</div>
+                                <div class="text-sm font-semibold text-white">Demandes</div>
                                 <div class="text-xs text-white/70">Gérer les demandes</div>
                             </div>
                         </a>

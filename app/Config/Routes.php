@@ -26,6 +26,9 @@ $routes->post('contact', 'ContactControler::sendEmail');
 $routes->post('connexion', 'ConnexionControler::authenticate');
 $routes->get('deconnexion', 'AuthController::logout');
 
+// Test logging
+$routes->get('test-log', 'TestLog::index');
+
 // Pages légales
 $routes->get('mentions-legales', 'PagesController::mentionsLegales');
 $routes->get('politique-confidentialite', 'PagesController::privacy');
@@ -36,8 +39,11 @@ $routes->get('admin', 'AdminDashboardController::index', ['filter' => 'adminauth
 $routes->group('admin', ['filter' => 'adminauth', 'namespace' => 'App\\Controllers'], function ($routes) {
     $routes->get('produits', 'AdminProduitsController::index');
     $routes->get('produits/nouveau', 'AdminProduitsController::nouveau');
-    $routes->get('reservations', 'AdminReservationsController::index');
-    $routes->post('reservations/(:num)/update-status', 'AdminReservationsController::updateStatus/$1');
+    
+    // Gestion des Demandes de contact/réservation
+    $routes->get('demandes', 'AdminDemandesController::index'); // Liste des demandes
+    $routes->get('demandes/(:num)', 'AdminDemandesController::show/$1'); // Détail d'une demande
+    $routes->post('demandes/(:num)/status', 'AdminDemandesController::updateStatus/$1'); // Mise à jour du statut
 });
 
 /**

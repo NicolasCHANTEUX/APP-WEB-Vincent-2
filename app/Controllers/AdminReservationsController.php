@@ -74,4 +74,28 @@ class AdminReservationsController extends BaseController
         return redirect()->to('admin/reservations?lang=' . $lang)
             ->with('error', 'Erreur lors de la mise à jour');
     }
+
+    /**
+     * Affiche le détail d'une demande
+     */
+    public function show($id)
+    {
+        $reservationModel = new \App\Models\ReservationModel();
+        
+        // On récupère la demande avec les infos du produit associé
+        // Assure-toi que ton modèle a bien une méthode pour faire la jointure, 
+        // sinon on le fait manuellement ici :
+        $demande = $reservationModel->select('reservation.*, product.title as product_title, product.price, product.image, product.sku')
+                                    ->join('product', 'product.id = reservation.product_id', 'left')
+                                    ->find($id);
+
+        if (!$demande) {
+            return redirect()->to('admin/demandes')->with('error', 'Demande introuvable.');
+        }
+
+        return view('pages/admin/demande_detail', [
+            'demande' => $demande,
+            'pageTitle' => 'Détail de la demande #' . $id
+        ]);
+    }
 }

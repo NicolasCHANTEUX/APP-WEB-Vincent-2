@@ -3,17 +3,17 @@
 namespace App\Controllers;
 
 use App\Models\ProductModel;
-use App\Models\ReservationModel;
+use App\Models\ContactRequestModel;
 
 class AdminDashboardController extends BaseController
 {
     protected $productModel;
-    protected $reservationModel;
+    protected $contactRequestModel;
 
     public function __construct()
     {
         $this->productModel = new ProductModel();
-        $this->reservationModel = new ReservationModel();
+        $this->contactRequestModel = new ContactRequestModel();
     }
 
     public function index()
@@ -47,7 +47,7 @@ class AdminDashboardController extends BaseController
         $stats = [
             'totalProducts' => $this->productModel->countAllResults(false),
             'lowStockCount' => $this->productModel->where('stock <', 10)->countAllResults(false),
-            'newRequests'   => $this->reservationModel->where('status', 'new')->countAllResults(false),
+            'newRequests'   => $this->contactRequestModel->where('status', 'new')->countAllResults(false),
         ];
 
         $data = [

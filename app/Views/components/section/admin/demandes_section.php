@@ -8,10 +8,9 @@ $langQ = '?lang=' . site_lang();
 // Mapping des statuts vers labels et couleurs
 $statusConfig = [
     'new' => ['label' => 'Nouvelles', 'color' => 'emerald', 'icon' => 'mail'],
-    'contacted' => ['label' => 'Contactées', 'color' => 'blue', 'icon' => 'phone'],
-    'confirmed' => ['label' => 'Confirmées', 'color' => 'purple', 'icon' => 'check-circle'],
-    'completed' => ['label' => 'Terminées', 'color' => 'gray', 'icon' => 'check'],
-    'cancelled' => ['label' => 'Annulées', 'color' => 'red', 'icon' => 'x-circle'],
+    'in_progress' => ['label' => 'En cours', 'color' => 'blue', 'icon' => 'clock'],
+    'completed' => ['label' => 'Traitées', 'color' => 'purple', 'icon' => 'check-circle'],
+    'archived' => ['label' => 'Archivées', 'color' => 'gray', 'icon' => 'archive'],
 ];
 ?>
 
@@ -78,8 +77,8 @@ $statusConfig = [
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Client</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Produit</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Quantité</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Sujet</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Message</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Statut</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
@@ -92,28 +91,16 @@ $statusConfig = [
                         ?>
                             <tr class="demande-row hover:bg-gray-50 transition-colors" data-status="<?= $status ?>">
                                 <td class="px-6 py-4">
-                                    <div class="font-medium text-gray-900"><?= esc($demande['customer_name']) ?></div>
-                                    <div class="text-sm text-gray-500"><?= esc($demande['customer_email']) ?></div>
-                                    <?php if (!empty($demande['customer_phone'])): ?>
-                                        <div class="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-                                            <i data-lucide="phone" class="w-3 h-3"></i>
-                                            <?= esc($demande['customer_phone']) ?>
-                                        </div>
-                                    <?php endif; ?>
+                                    <div class="font-medium text-gray-900"><?= esc($demande['name']) ?></div>
+                                    <div class="text-sm text-gray-500"><?= esc($demande['email']) ?></div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="font-medium text-gray-900"><?= esc($demande['product_title'] ?? 'N/A') ?></div>
-                                    <?php if (!empty($demande['category_name'])): ?>
-                                        <div class="text-xs text-gray-500"><?= esc($demande['category_name']) ?></div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($demande['price'])): ?>
-                                        <div class="text-sm text-gray-600 mt-1"><?= number_format($demande['price'], 2, ',', ' ') ?> €</div>
-                                    <?php endif; ?>
+                                    <div class="font-medium text-gray-900"><?= esc($demande['subject']) ?></div>
                                 </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-700">
-                                        <?= (int)($demande['quantity'] ?? 1) ?>
-                                    </span>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-600 line-clamp-2">
+                                        <?= esc(substr($demande['message'], 0, 100)) ?><?= strlen($demande['message']) > 100 ? '...' : '' ?>
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-<?= $config['color'] ?>-100 text-<?= $config['color'] ?>-700">
@@ -181,12 +168,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function viewDetails(id) {
-    // TODO: Implémenter modal de détails
-    console.log('View demande:', id);
+    window.location.href = '<?= site_url('admin/demandes/') ?>' + id + '<?= $langQ ?>';
 }
 
 function updateStatus(id) {
-    // TODO: Implémenter modal de mise à jour
-    console.log('Update status:', id);
+    // Rediriger vers la page de détail où se trouve le formulaire de mise à jour
+    window.location.href = '<?= site_url('admin/demandes/') ?>' + id + '<?= $langQ ?>';
 }
 </script>
