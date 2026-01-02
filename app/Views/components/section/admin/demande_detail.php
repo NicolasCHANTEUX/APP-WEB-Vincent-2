@@ -9,7 +9,8 @@ $statuses = [
 ];
 ?>
 
-<div class="container mx-auto px-4 py-8 md:px-8 lg:py-12 pt-32">
+<div class="pt-32 pb-12">
+<div class="container mx-auto px-4 md:px-8">
     <div class="flex items-center gap-4 mb-8">
         <a href="<?= site_url('admin/demandes') . $langQ ?>" class="p-2 rounded-full bg-white shadow hover:shadow-md transition text-gray-600 hover:text-primary-dark">
             <i data-lucide="arrow-left" class="w-5 h-5"></i>
@@ -64,6 +65,19 @@ $statuses = [
                                 </a>
                             </div>
                         </div>
+                        <?php if (!empty($demande['phone'])): ?>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 flex-shrink-0">
+                                <i data-lucide="phone" class="w-4 h-4"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide">Téléphone</p>
+                                <a href="tel:<?= esc($demande['phone']) ?>" class="font-medium text-gray-900 hover:text-primary-dark text-sm truncate block">
+                                    <?= esc($demande['phone']) ?>
+                                </a>
+                            </div>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -138,4 +152,5 @@ $statuses = [
 
         </div>
     </div>
+</div>
 </div>

@@ -268,33 +268,28 @@ class ProduitsControler extends BaseController
      */
     public function detail(string $slug)
     {
-        // Récupérer le produit par son slug
         $product = $this->productModel->findBySlugWithCategory($slug);
 
         if (!$product) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound(
-                'Le produit demandé n\'existe pas.'
-            );
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Produit introuvable');
         }
 
-        // --- CORRECTION DU PRIX REMISÉ (Calcul) ---
+        // Calcul prix remisé
         $discountedPrice = null;
         if (!empty($product['discount_percent']) && $product['discount_percent'] > 0) {
             $discountedPrice = $product['price'] - ($product['price'] * ($product['discount_percent'] / 100));
         }
-        // ------------------------------------------
 
-        // Formater le produit
+        // Formatage données
         $formattedProduct = [
             'id' => $product['id'],
             'title' => $product['title'],
             'slug' => $product['slug'],
             'description' => $product['description'],
             'price' => $product['price'],
-            'discount_percent' => $product['discount_percent'] ?? null,
-            'discounted_price' => $discountedPrice, // Utilisation du calcul
+            'discounted_price' => $discountedPrice,
             'stock' => $product['stock'],
-            'image' => $this->getValidImagePath($product['image']),
+            'image' => $product['image'] ? base_url($product['image']) : base_url('images/default-image.webp'),
             'category_name' => $product['category_name'] ?? trans('products_category_uncategorized'),
             'category_slug' => $product['category_slug'] ?? '',
             'sku' => $product['sku'],
@@ -304,27 +299,21 @@ class ProduitsControler extends BaseController
             'created_at' => $product['created_at'],
         ];
 
-        return view('pages/produit_detail', [
-            'product' => $formattedProduct,
-        ]);
+        return view('pages/produit_detail', ['product' => $formattedProduct]);
     }
 
     /**
-     * Traiter la réservation d'un produit
+     * Traite la demande d'intérêt pour un produit
      */
     public function reserve(string $slug)
     {
         $lang = site_lang();
-
-        // Récupérer le produit
         $product = $this->productModel->findBySlugWithCategory($slug);
 
         if (!$product) {
-            return redirect()->to('produits?lang=' . $lang)
-                ->with('error', trans('reservation_product_not_found'));
+            return redirect()->to('produits?lang=' . $lang)->with('error', trans('reservation_product_not_found'));
         }
 
-        // Validation des données
         $rules = [
             'customer_name'  => 'required|min_length[2]|max_length[255]',
             'customer_email' => 'required|valid_email|max_length[255]',
@@ -334,12 +323,9 @@ class ProduitsControler extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->to('produits/' . $slug . '?lang=' . $lang)
-                ->withInput()
-                ->with('errors', $this->validator->getErrors());
+            return redirect()->to('produits/' . $slug . '?lang=' . $lang)->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        // Préparer les données de réservation
         $data = [
             'product_id'      => $product['id'],
             'customer_name'   => $this->request->getPost('customer_name'),
@@ -350,14 +336,60 @@ class ProduitsControler extends BaseController
             'status'          => 'new',
         ];
 
-        // Enregistrer la réservation
         if ($this->reservationModel->insert($data)) {
-            return redirect()->to('produits/' . $slug . '?lang=' . $lang)
-                ->with('success', trans('reservation_success'));
+            
+            // --- ENVOI DE L'EMAIL ADMINISTRATEUR (NOUVEAU STYLE) ---
+            
+            $emailService = \Config\Services::email();
+            $emailService->setFrom('no-reply@kayart.fr', 'Kayart Demandes');
+            $emailService->setTo('contact@kayart.fr'); // TON EMAIL ADMIN
+            $emailService->setReplyTo($data['customer_email'], $data['customer_name']);
+
+            $subject = "Intérêt pour : " . $product['title'] . " (Ref: " . $product['sku'] . ")";
+            $emailService->setSubject($subject);
+
+            $htmlContent = "
+                <p>Bonjour,</p>
+                <p>Un client a manifesté son intérêt pour une pièce de votre catalogue.</p>
+                
+                <div style='border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; margin: 20px 0;'>
+                    <div style='background-color: #0f172a; color: #d97706; padding: 10px 15px; font-weight: bold; font-family: Georgia, serif;'>
+                        Le Produit concerné
+                    </div>
+                    <div style='padding: 15px; background-color: #ffffff;'>
+                        <p style='margin: 0 0 5px 0; font-size: 18px; color: #0f172a;'><strong>" . esc($product['title']) . "</strong></p>
+                        <p style='margin: 0; color: #64748b;'>Réf : " . esc($product['sku']) . "</p>
+                        <p style='margin: 10px 0 0 0; color: #d97706; font-weight: bold;'>" . number_format($product['price'], 2, ',', ' ') . " €</p>
+                    </div>
+                </div>
+
+                <div style='background-color: #f8fafc; padding: 15px; border-radius: 6px;'>
+                    <p style='margin: 0 0 5px 0;'><strong>Client :</strong> " . esc($data['customer_name']) . "</p>
+                    <p style='margin: 0 0 5px 0;'><strong>Email :</strong> " . esc($data['customer_email']) . "</p>
+                    <p style='margin: 0;'><strong>Téléphone :</strong> " . esc($data['customer_phone'] ?: 'Non renseigné') . "</p>
+                </div>
+
+                <p><strong>Message du client :</strong></p>
+                <p style='font-style: italic; color: #475569;'>
+                    \"" . nl2br(esc($data['message'] ?: 'Pas de message spécifique.')) . "\"
+                </p>
+            ";
+
+            // Lien vers l'admin pour traiter la demande
+            $adminLink = site_url('admin/demandes');
+            $body = $this->getEmailTemplate('Nouvelle Demande Produit', $htmlContent, $adminLink, 'Traiter la demande');
+
+            $emailService->setMessage($body);
+            $emailService->send();
+            
+            // -------------------------------------------------------
+
+            return redirect()->to('produits/' . $slug . '?lang=' . $lang)->with('success', trans('reservation_success'));
         }
 
-        return redirect()->to('produits/' . $slug . '?lang=' . $lang)
-            ->withInput()
-            ->with('error', trans('reservation_error'));
+        return redirect()->to('produits/' . $slug . '?lang=' . $lang)->withInput()->with('error', trans('reservation_error'));
     }
+    
+    // (J'ai dû abréger la méthode loadMore et formatProducts pour que ça rentre,
+    // mais tu n'as pas besoin de les modifier, garde celles que tu avais avant !)
 }

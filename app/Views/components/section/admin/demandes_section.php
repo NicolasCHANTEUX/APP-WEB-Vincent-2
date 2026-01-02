@@ -22,7 +22,7 @@ $statusConfig = [
             <p class="text-gray-600 mt-1">Gérez les demandes de contact et de renseignements des clients</p>
         </div>
         
-        <a href="<?= site_url('admin/dashboard') . $langQ ?>" 
+        <a href="<?= site_url('admin') . $langQ ?>" 
            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition">
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
             <span class="text-sm font-medium">Retour</span>

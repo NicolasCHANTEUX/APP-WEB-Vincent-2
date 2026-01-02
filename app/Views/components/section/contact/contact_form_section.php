@@ -25,6 +25,47 @@ $action = site_url('contact') . '?lang=' . $lang;
             <input name="email" type="email" value="<?= old('email') ?>" class="w-full rounded-lg border-2 border-gray-400 px-4 py-3 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent-gold/50 focus:border-accent-gold transition-all shadow-sm hover:border-gray-500" placeholder="<?= esc(trans('contact_form_email_placeholder')) ?>" />
         </div>
 
+        <!-- Champ Téléphone avec sélecteur de pays -->
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                <?= esc(trans('contact_form_phone', site_lang() === 'en' ? 'Phone (optional)' : 'Téléphone (optionnel)')) ?>
+            </label>
+            <div class="flex gap-2">
+                <!-- Sélecteur de code pays -->
+                <select id="phone-country" class="w-32 rounded-lg border-2 border-gray-400 px-3 py-3 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent-gold/50 focus:border-accent-gold transition-all shadow-sm hover:border-gray-500 cursor-pointer">
+                    <option value="+33" data-format="x xx xx xx xx" selected>🇫🇷 +33</option>
+                    <option value="+32" data-format="xxx xx xx xx">🇧🇪 +32</option>
+                    <option value="+41" data-format="xx xxx xx xx">🇨🇭 +41</option>
+                    <option value="+44" data-format="xxxx xxxxxx">🇬🇧 +44</option>
+                    <option value="+1" data-format="xxx xxx xxxx">🇺🇸 +1</option>
+                    <option value="+49" data-format="xxx xxxxxxx">🇩🇪 +49</option>
+                    <option value="+34" data-format="xxx xxx xxx">🇪🇸 +34</option>
+                    <option value="+39" data-format="xxx xxx xxxx">🇮🇹 +39</option>
+                    <option value="+351" data-format="xxx xxx xxx">🇵🇹 +351</option>
+                    <option value="+358" data-format="xx xxx xxxx">🇫🇮 +358</option>
+                    <option value="+47" data-format="xx xx xx xx">🇳🇴 +47</option>
+                    <option value="+420" data-format="xxx xxx xxx">🇨🇿 +420</option>
+                </select>
+                
+                <!-- Numéro de téléphone avec formatage automatique -->
+                <input 
+                    id="phone-number" 
+                    name="phone_number" 
+                    type="tel" 
+                    value="<?= old('phone_number') ?>" 
+                    class="flex-1 rounded-lg border-2 border-gray-400 px-4 py-3 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent-gold/50 focus:border-accent-gold transition-all shadow-sm hover:border-gray-500" 
+                    placeholder="6 00 00 00 00"
+                    maxlength="20"
+                />
+                
+                <!-- Champ caché pour stocker le numéro complet -->
+                <input type="hidden" id="phone-full" name="phone" value="<?= old('phone') ?>">
+            </div>
+            <p class="mt-1 text-xs text-gray-500">
+                <?= site_lang() === 'en' ? 'Spaces will be added automatically' : 'Les espaces seront ajoutés automatiquement' ?>
+            </p>
+        </div>
+
         <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2"><?= esc(trans('contact_form_subject')) ?></label>
             <select name="subject" class="w-full rounded-lg border-2 border-gray-400 px-4 py-3 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent-gold/50 focus:border-accent-gold transition-all shadow-sm hover:border-gray-500 cursor-pointer">
@@ -55,3 +96,77 @@ $action = site_url('contact') . '?lang=' . $lang;
     </form>
 </div>
 
+<script>
+// Formatage automatique du numéro de téléphone
+(function() {
+    const phoneCountry = document.getElementById('phone-country');
+    const phoneNumber = document.getElementById('phone-number');
+    const phoneFull = document.getElementById('phone-full');
+    
+    if (!phoneCountry || !phoneNumber || !phoneFull) return;
+    
+    // Fonction de formatage adaptée au pays
+    function formatPhoneNumber(value, countryCode) {
+        // Retirer tous les caractères non-numériques
+        const cleaned = value.replace(/\D/g, '');
+        
+        // Format selon le pays
+        let formatted = '';
+        
+        if (countryCode === '+33') {
+            // France: x xx xx xx xx (10 chiffres)
+            if (cleaned.length <= 1) formatted = cleaned;
+            else if (cleaned.length <= 3) formatted = cleaned[0] + ' ' + cleaned.slice(1);
+            else if (cleaned.length <= 5) formatted = cleaned[0] + ' ' + cleaned.slice(1, 3) + ' ' + cleaned.slice(3);
+            else if (cleaned.length <= 7) formatted = cleaned[0] + ' ' + cleaned.slice(1, 3) + ' ' + cleaned.slice(3, 5) + ' ' + cleaned.slice(5);
+            else if (cleaned.length <= 9) formatted = cleaned[0] + ' ' + cleaned.slice(1, 3) + ' ' + cleaned.slice(3, 5) + ' ' + cleaned.slice(5, 7) + ' ' + cleaned.slice(7);
+            else formatted = cleaned[0] + ' ' + cleaned.slice(1, 3) + ' ' + cleaned.slice(3, 5) + ' ' + cleaned.slice(5, 7) + ' ' + cleaned.slice(7, 9);
+        } else {
+            // Format générique: groupes de 3 chiffres
+            for (let i = 0; i < cleaned.length; i++) {
+                if (i > 0 && i % 3 === 0) formatted += ' ';
+                formatted += cleaned[i];
+            }
+        }
+        
+        return formatted;
+    }
+    
+    // Mise à jour du champ caché avec le numéro complet
+    function updateFullPhone() {
+        const countryCode = phoneCountry.value;
+        const number = phoneNumber.value.replace(/\D/g, '');
+        phoneFull.value = number ? countryCode + number : '';
+    }
+    
+    // Événement sur la saisie du numéro
+    phoneNumber.addEventListener('input', function(e) {
+        const countryCode = phoneCountry.value;
+        const formatted = formatPhoneNumber(e.target.value, countryCode);
+        e.target.value = formatted;
+        updateFullPhone();
+    });
+    
+    // Événement sur le changement de pays
+    phoneCountry.addEventListener('change', function() {
+        if (phoneNumber.value) {
+            const countryCode = phoneCountry.value;
+            const formatted = formatPhoneNumber(phoneNumber.value, countryCode);
+            phoneNumber.value = formatted;
+            updateFullPhone();
+        }
+    });
+    
+    // Initialiser si old() value existe
+    const oldPhone = '<?= old("phone") ?>';
+    if (oldPhone) {
+        // Extraire le code pays et le numéro
+        const match = oldPhone.match(/^(\+\d+)(\d+)$/);
+        if (match) {
+            phoneCountry.value = match[1];
+            phoneNumber.value = formatPhoneNumber(match[2], match[1]);
+            updateFullPhone();
+        }
+    }
+})();
+</script>

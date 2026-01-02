@@ -68,14 +68,11 @@ class AdminDemandesController extends BaseController
     }
 
     /**
-     * Mettre à jour le statut d'une demande
+     * Mettre à jour le statut d'une demande de contact
      */
-    public function updateStatus(int $id)
+    public function updateStatus($id)
     {
         $lang = site_lang();
-        
-        log_message('debug', '=== DEBUT updateStatus pour demande ID: ' . $id . ' ===');
-        
         $newStatus = $this->request->getPost('status');
         $adminReply = $this->request->getPost('admin_reply');
 
@@ -143,19 +140,169 @@ class AdminDemandesController extends BaseController
         log_message('error', 'Destinataire: ' . $demande['email']);
         log_message('error', 'Sujet: Re: ' . $demande['subject']);
         
-        // Template email simple
-        $message = "Bonjour " . $demande['name'] . ",\n\n";
-        $message .= "Merci pour votre message concernant : " . $demande['subject'] . "\n\n";
-        $message .= "Voici notre réponse :\n\n";
-        $message .= "---\n";
-        $message .= $reply . "\n";
-        $message .= "---\n\n";
-        $message .= "Pour rappel, votre message était :\n";
-        $message .= $demande['message'] . "\n\n";
-        $message .= "Cordialement,\n";
-        $message .= "L'équipe KayArt\n";
+        // Détecter la langue selon le numéro de téléphone
+        $isEnglish = false;
+        if (!empty($demande['phone'])) {
+            $isEnglish = !str_starts_with($demande['phone'], '+33');
+            log_message('error', 'Téléphone: ' . $demande['phone'] . ' - Langue: ' . ($isEnglish ? 'EN' : 'FR'));
+        }
+        
+        // Construction du contenu HTML - TON ARTISAN & PREMIUM (multilingue)
+        if ($isEnglish) {
+            // VERSION ANGLAISE
+            $htmlContent = "
+                <p style='font-size: 17px; margin-bottom: 25px;'>
+                    Hello <strong style='color: #0f172a;'>" . esc($demande['name']) . "</strong>,
+                </p>
+                
+                <p style='margin-bottom: 20px; color: #1e293b;'>
+                    We have received your request regarding: 
+                    <strong style='color: #d97706;'>" . esc($demande['subject']) . "</strong>
+                </p>
+                
+                <!-- BLOC DEMANDE -->
+                <div style='
+                    background-color: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 6px;
+                    margin: 25px 0;
+                    border-left: 4px solid #cbd5e1;
+                '>
+                    <p style='
+                        margin: 0 0 10px 0;
+                        color: #64748b;
+                        font-size: 13px;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        font-weight: 600;
+                    '>📩 Your message</p>
+                    <p style='
+                        margin: 0;
+                        color: #475569;
+                        font-style: italic;
+                        line-height: 1.6;
+                    '>" . nl2br(esc($demande['message'])) . "</p>
+                </div>
+                
+                <!-- BLOC RÉPONSE -->
+                <div style='
+                    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+                    padding: 25px;
+                    border-radius: 8px;
+                    margin: 30px 0;
+                    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+                    border: 2px solid #d97706;
+                '>
+                    <p style='
+                        margin: 0 0 15px 0;
+                        color: #d97706;
+                        font-size: 14px;
+                        text-transform: uppercase;
+                        letter-spacing: 2px;
+                        font-weight: 700;
+                    '>✦ Our response</p>
+                    <div style='
+                        color: #f1f5f9;
+                        font-size: 16px;
+                        line-height: 1.7;
+                    '>" . nl2br(esc($reply)) . "</div>
+                </div>
+                
+                <p style='margin-top: 30px; color: #1e293b; line-height: 1.6;'>
+                    Our workshop remains at your disposal to refine your project or answer your technical questions.
+                </p>
+                
+                <p style='margin-top: 25px; color: #64748b; font-size: 14px; font-style: italic;'>
+                    Each KAYART piece is designed to combine <strong>performance</strong> and <strong>aesthetics</strong>, 
+                    with the attention to detail typical of artisanal work.
+                </p>
+            ";
+            
+            $emailTitle = 'Your KAYART project – our response';
+            $ctaText = 'Contact the workshop';
+        } else {
+            // VERSION FRANÇAISE
+            $htmlContent = "
+                <p style='font-size: 17px; margin-bottom: 25px;'>
+                    Bonjour <strong style='color: #0f172a;'>" . esc($demande['name']) . "</strong>,
+                </p>
+                
+                <p style='margin-bottom: 20px; color: #1e293b;'>
+                    Nous avons bien reçu votre demande concernant : 
+                    <strong style='color: #d97706;'>" . esc($demande['subject']) . "</strong>
+                </p>
+                
+                <!-- BLOC DEMANDE -->
+                <div style='
+                    background-color: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 6px;
+                    margin: 25px 0;
+                    border-left: 4px solid #cbd5e1;
+                '>
+                    <p style='
+                        margin: 0 0 10px 0;
+                        color: #64748b;
+                        font-size: 13px;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        font-weight: 600;
+                    '>📩 Votre message</p>
+                    <p style='
+                        margin: 0;
+                        color: #475569;
+                        font-style: italic;
+                        line-height: 1.6;
+                    '>" . nl2br(esc($demande['message'])) . "</p>
+                </div>
+                
+                <!-- BLOC RÉPONSE -->
+                <div style='
+                    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+                    padding: 25px;
+                    border-radius: 8px;
+                    margin: 30px 0;
+                    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+                    border: 2px solid #d97706;
+                '>
+                    <p style='
+                        margin: 0 0 15px 0;
+                        color: #d97706;
+                        font-size: 14px;
+                        text-transform: uppercase;
+                        letter-spacing: 2px;
+                        font-weight: 700;
+                    '>✦ Ce que nous vous proposons</p>
+                    <div style='
+                        color: #f1f5f9;
+                        font-size: 16px;
+                        line-height: 1.7;
+                    '>" . nl2br(esc($reply)) . "</div>
+                </div>
+                
+                <p style='margin-top: 30px; color: #1e293b; line-height: 1.6;'>
+                    Notre atelier reste à votre disposition pour affiner votre projet ou répondre à vos questions techniques.
+                </p>
+                
+                <p style='margin-top: 25px; color: #64748b; font-size: 14px; font-style: italic;'>
+                    Chaque pièce KAYART est pensée pour allier <strong>performance</strong> et <strong>esthétique</strong>, 
+                    avec le soin du détail propre au travail artisanal.
+                </p>
+            ";
+            
+            $emailTitle = 'Votre projet KAYART – notre retour';
+            $ctaText = 'Échanger avec l\'atelier';
+        }
+        
+        // Utiliser le template HTML premium de BaseController
+        $emailBody = $this->getEmailTemplate(
+            $emailTitle,
+            $htmlContent,
+            site_url('contact'),
+            $ctaText
+        );
 
-        log_message('error', 'Message construit (' . strlen($message) . ' caractères)');
+        log_message('error', 'Template HTML généré (' . strlen($emailBody) . ' caractères)');
         
         // En développement : tu peux simuler OU envoyer réellement
         // Pour activer l'envoi réel en dev, passe cette variable à false
@@ -166,7 +313,7 @@ class AdminDemandesController extends BaseController
             log_message('error', '=== CONTENU EMAIL ===');
             log_message('error', 'TO: ' . $demande['email']);
             log_message('error', 'SUBJECT: Re: ' . $demande['subject']);
-            log_message('error', 'BODY: ' . "\n" . $message);
+            log_message('error', 'BODY (HTML): ' . substr($emailBody, 0, 500) . '...');
             log_message('error', '=== FIN EMAIL ===');
             
             // En dev, on considère l'email comme envoyé
@@ -203,7 +350,7 @@ class AdminDemandesController extends BaseController
         $email->setFrom('contact.kayart@gmail.com', 'KayArt - Fabrication Artisanale');
         $email->setTo($demande['email']);
         $email->setSubject('Re: ' . $demande['subject']);
-        $email->setMessage($message);
+        $email->setMessage($emailBody); // Utiliser le template HTML au lieu du texte brut
 
         try {
             $result = $email->send();

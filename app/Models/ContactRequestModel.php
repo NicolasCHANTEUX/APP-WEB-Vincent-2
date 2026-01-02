@@ -15,6 +15,7 @@ class ContactRequestModel extends Model
     protected $allowedFields    = [
         'name',
         'email',
+        'phone',
         'subject',
         'message',
         'status',
