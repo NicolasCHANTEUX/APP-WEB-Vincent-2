@@ -5,18 +5,21 @@ namespace App\Controllers;
 use App\Models\ProductModel;
 use App\Models\CategoryModel;
 use App\Models\ReservationModel;
+use App\Libraries\ImageProcessor;
 
 class ProduitsControler extends BaseController
 {
     protected $productModel;
     protected $categoryModel;
     protected $reservationModel;
+    protected $imageProcessor;
 
     public function __construct()
     {
         $this->productModel = new ProductModel();
         $this->categoryModel = new CategoryModel();
         $this->reservationModel = new ReservationModel();
+        $this->imageProcessor = new ImageProcessor();
     }
 
     public function index()
@@ -195,7 +198,7 @@ class ProduitsControler extends BaseController
      * Formater les produits pour la vue
      */
     /**
-     * Vérifier si une image existe physiquement et retourner le bon chemin
+     * Vérifier si une image existe et retourner le bon chemin (format2 pour miniatures)
      */
     private function getValidImagePath(?string $imagePath): string
     {
@@ -204,16 +207,8 @@ class ProduitsControler extends BaseController
             return base_url('images/default-image.webp');
         }
 
-        // Construire le chemin physique du fichier
-        $physicalPath = FCPATH . ltrim($imagePath, '/');
-        
-        // Vérifier si le fichier existe physiquement
-        if (file_exists($physicalPath) && is_file($physicalPath)) {
-            return base_url($imagePath);
-        }
-        
-        // Fichier introuvable, utiliser l'image par défaut
-        return base_url('images/default-image.webp');
+        // Utiliser ImageProcessor pour obtenir l'URL format2 (miniature 400px)
+        return $this->imageProcessor->getImageUrl($imagePath, 'format2');
     }
 
     /**
@@ -280,7 +275,15 @@ class ProduitsControler extends BaseController
             $discountedPrice = $product['price'] - ($product['price'] * ($product['discount_percent'] / 100));
         }
 
-        // Formatage données
+        // Formatage données avec ImageProcessor pour les images
+        $imageUrl = base_url('images/default-image.webp');
+        $imageOriginalUrl = base_url('images/default-image.webp');
+        
+        if (!empty($product['image'])) {
+            $imageUrl = $this->imageProcessor->getImageUrl($product['image'], 'format1');
+            $imageOriginalUrl = $this->imageProcessor->getImageUrl($product['image'], 'original');
+        }
+
         $formattedProduct = [
             'id' => $product['id'],
             'title' => $product['title'],
@@ -288,8 +291,10 @@ class ProduitsControler extends BaseController
             'description' => $product['description'],
             'price' => $product['price'],
             'discounted_price' => $discountedPrice,
+            'discount_percent' => $product['discount_percent'],
             'stock' => $product['stock'],
-            'image' => $product['image'] ? base_url($product['image']) : base_url('images/default-image.webp'),
+            'image' => $imageUrl,
+            'image_original' => $imageOriginalUrl,
             'category_name' => $product['category_name'] ?? trans('products_category_uncategorized'),
             'category_slug' => $product['category_slug'] ?? '',
             'sku' => $product['sku'],

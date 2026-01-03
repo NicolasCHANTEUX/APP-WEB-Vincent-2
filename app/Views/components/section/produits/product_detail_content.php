@@ -16,6 +16,10 @@ $conditionState = $product['condition_state'] ?? 'new';
 $createdAt = $product['created_at'] ?? null;
 $lang = site_lang();
 
+// URL de l'image originale haute qualité pour la lightbox
+$imageOriginal = $product['image_original'] ?? $image;
+$hasImage = !empty($product['image']) && $product['image'] !== base_url('images/default-image.webp');
+
 // Calculer le prix réduit si réduction en pourcentage
 $finalPrice = $price;
 if ($discountPercent && $discountPercent > 0) {
@@ -75,7 +79,7 @@ $errors = session()->getFlashdata('errors') ?? [];
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
         <!-- Colonne gauche : Image -->
         <div>
-            <div class="aspect-square bg-gray-100 rounded-2xl overflow-hidden">
+            <div class="relative aspect-square bg-gray-100 rounded-2xl overflow-hidden group">
                 <img src="<?= esc($image) ?>" 
                      alt="<?= esc($title) ?>" 
                      width="800"
@@ -85,6 +89,18 @@ $errors = session()->getFlashdata('errors') ?? [];
                      sizes="(max-width: 1024px) 100vw, 50vw"
                      class="w-full h-full object-cover"
                      onerror="this.onerror=null; this.src='<?= base_url('images/default-image.webp') ?>';">
+                
+                <!-- Bouton Zoom (uniquement si image réelle) -->
+                <?php if ($hasImage): ?>
+                <button onclick="openImageLightbox()" 
+                        class="absolute top-4 right-4 bg-white/90 hover:bg-white backdrop-blur-sm text-primary-dark p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
+                        title="Agrandir l'image"
+                        aria-label="Voir l'image en grand">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
+                    </svg>
+                </button>
+                <?php endif; ?>
             </div>
             
             <!-- Informations techniques -->
@@ -369,3 +385,94 @@ $errors = session()->getFlashdata('errors') ?? [];
         </div>
     </div>
 </div>
+
+<!-- Lightbox pour agrandir l'image (uniquement si image réelle) -->
+<?php if ($hasImage): ?>
+<div id="imageLightbox" 
+     class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-sm"
+     onclick="closeImageLightbox()">
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <!-- Bouton fermer -->
+        <button onclick="closeImageLightbox()" 
+                class="absolute top-4 right-4 text-white hover:text-accent-gold transition-colors p-2 bg-black/30 rounded-full"
+                title="Fermer"
+                aria-label="Fermer">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        
+        <!-- Image haute qualité avec zoom -->
+        <div class="max-w-7xl max-h-full overflow-auto" onclick="event.stopPropagation()">
+            <img id="lightboxImage"
+                 src="<?= esc($imageOriginal) ?>" 
+                 alt="<?= esc($title) ?>" 
+                 class="w-full h-full object-contain cursor-zoom-in transition-transform duration-300"
+                 onclick="toggleZoom()"
+                 loading="lazy">
+        </div>
+        
+        <!-- Indication zoom -->
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/70 text-sm bg-black/30 px-4 py-2 rounded-full">
+            <?= trans('product_click_to_zoom') ?? 'Cliquez sur l\'image pour zoomer' ?>
+        </div>
+    </div>
+</div>
+
+<script>
+let isZoomed = false;
+
+function openImageLightbox() {
+    const lightbox = document.getElementById('imageLightbox');
+    const img = document.getElementById('lightboxImage');
+    
+    lightbox.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    
+    // Réinitialiser le zoom
+    isZoomed = false;
+    img.style.transform = 'scale(1)';
+    img.classList.remove('cursor-zoom-out');
+    img.classList.add('cursor-zoom-in');
+}
+
+function closeImageLightbox() {
+    const lightbox = document.getElementById('imageLightbox');
+    const img = document.getElementById('lightboxImage');
+    
+    lightbox.classList.add('hidden');
+    document.body.style.overflow = '';
+    
+    // Réinitialiser le zoom
+    isZoomed = false;
+    img.style.transform = 'scale(1)';
+    img.classList.remove('cursor-zoom-out');
+    img.classList.add('cursor-zoom-in');
+}
+
+function toggleZoom() {
+    const img = document.getElementById('lightboxImage');
+    
+    if (isZoomed) {
+        // Dézoomer
+        img.style.transform = 'scale(1)';
+        img.classList.remove('cursor-zoom-out');
+        img.classList.add('cursor-zoom-in');
+    } else {
+        // Zoomer
+        img.style.transform = 'scale(2)';
+        img.classList.remove('cursor-zoom-in');
+        img.classList.add('cursor-zoom-out');
+    }
+    
+    isZoomed = !isZoomed;
+}
+
+// Fermer avec Échap
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImageLightbox();
+    }
+});
+</script>
+<?php endif; ?>

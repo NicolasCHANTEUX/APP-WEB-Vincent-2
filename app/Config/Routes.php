@@ -37,13 +37,21 @@ $routes->get('cgv', 'PagesController::cgv');
 // Admin
 $routes->get('admin', 'AdminDashboardController::index', ['filter' => 'adminauth']);
 $routes->group('admin', ['filter' => 'adminauth', 'namespace' => 'App\\Controllers'], function ($routes) {
+    // Gestion des Produits
     $routes->get('produits', 'AdminProduitsController::index');
     $routes->get('produits/nouveau', 'AdminProduitsController::nouveau');
+    $routes->post('produits/create', 'AdminProduitsController::create');
+    $routes->get('produits/edit/(:num)', 'AdminProduitsController::edit/$1');
+    $routes->post('produits/update/(:num)', 'AdminProduitsController::update/$1');
+    $routes->post('produits/delete/(:num)', 'AdminProduitsController::delete/$1');
     
-    // Gestion des Demandes de contact/réservation
-    $routes->get('demandes', 'AdminDemandesController::index'); // Liste des demandes
-    $routes->get('demandes/(:num)', 'AdminDemandesController::show/$1'); // Détail d'une demande
-    $routes->post('demandes/(:num)/status', 'AdminDemandesController::updateStatus/$1'); // Mise à jour du statut
+    // Gestion des Réservations
+    $routes->get('reservations', 'AdminReservationsController::index');
+    
+    // Gestion des Demandes de contact
+    $routes->get('demandes', 'AdminDemandesController::index');
+    $routes->get('demandes/(:num)', 'AdminDemandesController::show/$1');
+    $routes->post('demandes/(:num)/status', 'AdminDemandesController::updateStatus/$1');
 });
 
 /**

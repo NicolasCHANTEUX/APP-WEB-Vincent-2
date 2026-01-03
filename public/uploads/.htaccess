@@ -1,0 +1,9 @@
+# Empêcher l'exécution de scripts PHP dans ce dossier
+<Files *.php>
+    deny from all
+</Files>
+
+# Autoriser uniquement les images
+<FilesMatch "\.(webp|jpg|jpeg|png|gif)$">
+    Allow from all
+</FilesMatch>

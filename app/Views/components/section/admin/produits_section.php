@@ -1,53 +1,120 @@
 <?php
 $langQ = '?lang=' . site_lang();
+use App\Libraries\ImageProcessor;
+$imageProcessor = new ImageProcessor();
 ?>
 
-<div class="space-y-6">
-    <div class="bg-primary-dark text-white rounded-2xl shadow-lg border border-white/10 p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+<div class="pt-32 pb-12">
+<div class="container mx-auto px-4 md:px-8">
+    <div class="flex items-center justify-between mb-8">
         <div>
-            <h1 class="text-3xl font-serif font-semibold">Produits</h1>
-            <p class="text-sm text-white/70 mt-1">Gestion de votre catalogue</p>
+            <h1 class="text-3xl font-serif font-bold text-primary-dark">Gestion des Produits</h1>
+            <p class="text-gray-500">Catalogue complet de vos produits</p>
         </div>
-        <a href="<?= site_url('admin/produits/nouveau') . $langQ ?>" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent-gold text-primary-dark font-semibold hover:opacity-90 transition">
-            <i data-lucide="plus" class="w-4 h-4"></i>
+        <a href="<?= site_url('admin/produits/nouveau') . $langQ ?>" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-dark text-white hover:bg-accent-gold hover:text-primary-dark transition font-bold shadow-md">
+            <i data-lucide="plus" class="w-5 h-5"></i>
             Nouveau produit
         </a>
     </div>
 
-    <div class="bg-white rounded-2xl shadow border border-gray-100 overflow-hidden">
+    <?php if (empty($products)): ?>
+    <div class="bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300 p-12 text-center">
+        <i data-lucide="package-x" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Aucun produit</h3>
+        <p class="text-gray-500 mb-6">Commencez par ajouter votre premier produit au catalogue</p>
+        <a href="<?= site_url('admin/produits/nouveau') . $langQ ?>" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-dark text-white hover:bg-accent-gold hover:text-primary-dark transition font-bold">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Créer un produit
+        </a>
+    </div>
+    <?php else: ?>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead class="text-xs uppercase text-gray-500 bg-gray-50">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <th class="text-left px-6 py-3">Produit</th>
-                        <th class="text-left px-6 py-3">Catégorie</th>
-                        <th class="text-right px-6 py-3">Prix</th>
-                        <th class="text-center px-6 py-3">Stock</th>
-                        <th class="text-center px-6 py-3">Actions</th>
+                        <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Produit</th>
+                        <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">SKU</th>
+                        <th class="text-left px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Prix</th>
+                        <th class="text-center px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Stock</th>
+                        <th class="text-center px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">État</th>
+                        <th class="text-center px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    <?php foreach (($products ?? []) as $p): ?>
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 font-medium text-gray-900"><?= esc($p['name'] ?? '') ?></td>
-                            <td class="px-6 py-4 text-gray-600"><?= esc($p['category'] ?? '-') ?></td>
-                            <td class="px-6 py-4 text-right"><?= number_format((float) ($p['price'] ?? 0), 2, '.', ' ') ?> €</td>
-                            <td class="px-6 py-4 text-center">
-                                <span class="inline-flex items-center justify-center min-w-8 px-2 py-0.5 rounded-full text-xs bg-emerald-100 text-emerald-800">
-                                    <?= (int) ($p['stock'] ?? 0) ?>
-                                </span>
+                    <?php foreach ($products as $product): ?>
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <?php if (!empty($product['image'])): ?>
+                                        <img src="<?= $imageProcessor->getImageUrl($product['image'], 'format2') ?>" 
+                                             alt="<?= esc($product['title']) ?>"
+                                             class="w-12 h-12 object-cover rounded-lg border border-gray-200">
+                                    <?php else: ?>
+                                        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                                            <i data-lucide="image-off" class="w-6 h-6 text-gray-400"></i>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div>
+                                        <p class="font-semibold text-gray-900"><?= esc($product['title']) ?></p>
+                                        <p class="text-xs text-gray-500"><?= esc($product['slug']) ?></p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <code class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-mono"><?= esc($product['sku']) ?></code>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold text-gray-900"><?= number_format($product['price'], 2, ',', ' ') ?> €</span>
+                                    <?php if (!empty($product['discount_percent'])): ?>
+                                        <span class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
+                                            -<?= number_format($product['discount_percent'], 0) ?>%
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                             <td class="px-6 py-4 text-center">
-                                <div class="inline-flex items-center gap-1">
-                                    <button class="inline-flex items-center justify-center p-2 rounded-lg hover:bg-gray-100" type="button" aria-label="Éditer le produit">
-                                        <i data-lucide="pencil" class="w-4 h-4" aria-hidden="true"></i>
-                                    </button>
-                                    <button class="inline-flex items-center justify-center p-2 rounded-lg hover:bg-gray-100" type="button" aria-label="Voir les détails du produit">
-                                        <i data-lucide="eye" class="w-4 h-4" aria-hidden="true"></i>
-                                    </button>
-                                    <button class="inline-flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 text-red-600" type="button" aria-label="Supprimer le produit">
-                                        <i data-lucide="trash-2" class="w-4 h-4" aria-hidden="true"></i>
-                                    </button>
+                                <?php if ($product['stock'] > 10): ?>
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                        <?= $product['stock'] ?>
+                                    </span>
+                                <?php elseif ($product['stock'] > 0): ?>
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800">
+                                        <?= $product['stock'] ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                                        Rupture
+                                    </span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <?php if ($product['condition_state'] === 'new'): ?>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                                        <i data-lucide="sparkles" class="w-3 h-3"></i>
+                                        Neuf
+                                    </span>
+                                <?php else: ?>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                                        <i data-lucide="recycle" class="w-3 h-3"></i>
+                                        Occasion
+                                    </span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center justify-center gap-1">
+                                    <a href="<?= site_url('admin/produits/edit/' . $product['id'] . $langQ) ?>" 
+                                       class="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition" 
+                                       title="Éditer">
+                                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                                    </a>
+                                    <a href="<?= site_url('produits/' . $product['slug'] . $langQ) ?>" 
+                                       target="_blank"
+                                       class="p-2 rounded-lg hover:bg-emerald-50 text-emerald-600 transition" 
+                                       title="Voir sur le site">
+                                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -56,6 +123,13 @@ $langQ = '?lang=' . site_lang();
             </table>
         </div>
     </div>
+
+    <div class="mt-6 text-sm text-gray-500 text-center">
+        <?= count($products) ?> produit<?= count($products) > 1 ? 's' : '' ?> au total
+    </div>
+    <?php endif; ?>
 </div>
+</div>
+
 
 
