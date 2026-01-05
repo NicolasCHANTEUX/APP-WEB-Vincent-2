@@ -21,8 +21,55 @@ class AdminProduitsController extends BaseController
 
     public function index()
     {
-        $products = $this->productModel->findAll();
-        return view('pages/admin/produits', ['products' => $products]);
+        // Récupérer les filtres
+        $categoryFilter = $this->request->getGet('category') ?? '';
+        $conditionFilter = $this->request->getGet('condition') ?? '';
+        $stockFilter = $this->request->getGet('stock') ?? '';
+        $searchQuery = trim($this->request->getGet('search') ?? '');
+
+        // Construire la requête avec filtres
+        $builder = $this->productModel;
+
+        // Filtre par catégorie
+        if (!empty($categoryFilter)) {
+            $builder = $builder->where('category_id', $categoryFilter);
+        }
+
+        // Filtre par condition (neuf/occasion)
+        if (!empty($conditionFilter)) {
+            $builder = $builder->where('condition_state', $conditionFilter);
+        }
+
+        // Filtre par stock
+        if ($stockFilter === 'low') {
+            $builder = $builder->where('stock <=', 5);
+        } elseif ($stockFilter === 'high') {
+            $builder = $builder->where('stock >', 5);
+        } elseif ($stockFilter === 'out') {
+            $builder = $builder->where('stock', 0);
+        }
+
+        // Recherche par titre ou SKU
+        if (!empty($searchQuery)) {
+            $builder = $builder->groupStart()
+                ->like('title', $searchQuery)
+                ->orLike('sku', $searchQuery)
+                ->groupEnd();
+        }
+
+        $products = $builder->findAll();
+        $categories = $this->categoryModel->findAll();
+
+        return view('pages/admin/produits', [
+            'products' => $products,
+            'categories' => $categories,
+            'filters' => [
+                'category' => $categoryFilter,
+                'condition' => $conditionFilter,
+                'stock' => $stockFilter,
+                'search' => $searchQuery,
+            ]
+        ]);
     }
 
     public function nouveau()
@@ -183,9 +230,24 @@ class AdminProduitsController extends BaseController
             return redirect()->back()->withInput()->with('errors', $validation->getErrors());
         }
 
+        // Préparer les données
+        $newTitle = $this->request->getPost('title');
+        $newSlug = url_title($newTitle, '-', true);
+        
+        // Si le slug change, vérifier qu'il n'existe pas déjà (sauf pour ce produit)
+        if ($newSlug !== $product['slug']) {
+            $existingProduct = $this->productModel->where('slug', $newSlug)
+                                                  ->where('id !=', $id)
+                                                  ->first();
+            if ($existingProduct) {
+                log_message('error', '[AdminProduits] ✗ Slug existe déjà: ' . $newSlug);
+                return redirect()->back()->withInput()->with('error', 'Ce titre génère un slug qui existe déjà. Veuillez choisir un autre titre.');
+            }
+        }
+
         $data = [
-            'title'            => $this->request->getPost('title'),
-            'slug'             => url_title($this->request->getPost('title'), '-', true),
+            'title'            => $newTitle,
+            'slug'             => $newSlug,
             'description'      => $this->request->getPost('description'),
             'price'            => $this->request->getPost('price'),
             'weight'           => $this->request->getPost('weight'),
@@ -220,8 +282,8 @@ class AdminProduitsController extends BaseController
             }
         }
 
-        // Mise à jour en base de données
-        if ($this->productModel->update($id, $data)) {
+        // Mise à jour en base de données (on désactive la validation automatique car on a déjà vérifié le slug manuellement)
+        if ($this->productModel->skipValidation(true)->update($id, $data)) {
             log_message('error', '[AdminProduits] ✓ Produit mis à jour avec succès');
             return redirect()->to('admin/produits?lang=' . $lang)->with('success', 'Produit mis à jour avec succès !');
         } else {

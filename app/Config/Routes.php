@@ -48,11 +48,38 @@ $routes->group('admin', ['filter' => 'adminauth', 'namespace' => 'App\\Controlle
     // Gestion des Réservations
     $routes->get('reservations', 'AdminReservationsController::index');
     
+    // Gestion des Commandes
+    $routes->get('commandes', 'AdminCommandesController::index');
+    $routes->get('commandes/details/(:num)', 'AdminCommandesController::details/$1');
+    $routes->post('commandes/update-status/(:num)', 'AdminCommandesController::updateStatus/$1');
+    $routes->post('commandes/update-payment-status/(:num)', 'AdminCommandesController::updatePaymentStatus/$1');
+    $routes->get('commandes/download-invoice/(:num)', 'AdminCommandesController::downloadInvoice/$1');
+    $routes->post('commandes/send-invoice/(:num)', 'AdminCommandesController::sendInvoiceEmail/$1');
+    $routes->post('commandes/add-note/(:num)', 'AdminCommandesController::addNote/$1');
+    
     // Gestion des Demandes de contact
     $routes->get('demandes', 'AdminDemandesController::index');
     $routes->get('demandes/(:num)', 'AdminDemandesController::show/$1');
     $routes->post('demandes/(:num)/status', 'AdminDemandesController::updateStatus/$1');
 });
+
+// Routes Panier
+$routes->get('panier', 'CartController::index');
+$routes->post('panier/add', 'CartController::add');
+$routes->post('panier/update', 'CartController::update');
+$routes->post('panier/remove', 'CartController::remove');
+$routes->get('panier/vider', 'CartController::clear');
+$routes->get('panier/count', 'CartController::getCount');
+
+// Routes Checkout (paiement Stripe)
+$routes->get('checkout', 'CheckoutController::index');
+$routes->post('checkout/create-session', 'CheckoutController::createSession');
+$routes->get('checkout/success', 'CheckoutController::success');
+$routes->get('checkout/cancel', 'CheckoutController::cancel');
+$routes->post('webhook/stripe', 'CheckoutController::webhook');
+
+// Routes Alertes de retour en stock
+$routes->post('produits/alert-restock', 'ProduitsControler::alertRestock');
 
 /**
  * Compat : anciennes URLs /fr/... et /en/... (redirections vers la nouvelle structure)

@@ -106,6 +106,15 @@ $langQ = '?lang=' . site_lang();
                             </div>
                         </a>
                         
+                        <a href="<?= site_url('admin/commandes') . $langQ ?>" 
+                           class="flex items-center gap-3 px-6 py-4 rounded-xl bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/20 transition">
+                            <i data-lucide="shopping-cart" class="w-5 h-5 text-white"></i>
+                            <div class="text-left">
+                                <div class="text-sm font-semibold text-white">Commandes</div>
+                                <div class="text-xs text-white/70">Gérer les ventes</div>
+                            </div>
+                        </a>
+                        
                         <a href="<?= site_url('admin/demandes') . $langQ ?>" 
                            class="flex items-center gap-3 px-6 py-4 rounded-xl bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/20 transition">
                             <i data-lucide="mail" class="w-5 h-5 text-white"></i>

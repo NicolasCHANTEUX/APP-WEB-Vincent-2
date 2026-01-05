@@ -58,10 +58,10 @@ class ProduitsControler extends BaseController
         // Pagination : 15 produits par défaut
         $perPage = 15;
 
-        // Récupérer le nombre total de produits selon le filtre
+        // Récupérer les produits selon le filtre (en utilisant la nouvelle logique)
         if ($filterUsed) {
-            // Filtre spécial : uniquement les produits d'occasion
-            $this->productModel->where('condition_state', 'used');
+            // Filtre spécial : uniquement les produits d'occasion AVEC STOCK
+            $this->productModel->where('condition_state', 'used')->where('stock >', 0);
             if (!empty($searchQuery)) {
                 $this->productModel->groupStart()
                     ->like('product.title', $searchQuery)
@@ -71,27 +71,23 @@ class ProduitsControler extends BaseController
             $totalProducts = $this->productModel->countAllResults(false);
             $allProducts = $this->productModel->getAllWithCategory();
         } elseif ($selectedSlug === 'all') {
+            // Utiliser la nouvelle méthode getActiveProducts (cache les occasions vendues)
             if (!empty($searchQuery)) {
-                $this->productModel->groupStart()
-                    ->like('product.title', $searchQuery)
-                    ->orLike('product.description', $searchQuery)
-                    ->groupEnd();
+                $allProducts = $this->productModel->getActiveProducts();
+                $allProducts = array_filter($allProducts, function($p) use ($searchQuery) {
+                    return stripos($p['title'], $searchQuery) !== false || 
+                           stripos($p['description'], $searchQuery) !== false;
+                });
+                $totalProducts = count($allProducts);
+            } else {
+                $allProducts = $this->productModel->getActiveProducts();
+                $totalProducts = count($allProducts);
             }
-            $totalProducts = $this->productModel->countAllResults(false);
-            $allProducts = $this->productModel->getAllWithCategory();
         } else {
-            // Compter les produits de la catégorie
+            // Compter les produits de la catégorie avec la nouvelle logique
             $categoryData = $this->categoryModel->findBySlug($selectedSlug);
             if ($categoryData) {
-                $this->productModel->where('category_id', $categoryData['id']);
-                if (!empty($searchQuery)) {
-                    $this->productModel->groupStart()
-                        ->like('product.title', $searchQuery)
-                        ->orLike('product.description', $searchQuery)
-                        ->groupEnd();
-                }
-                $totalProducts = $this->productModel->countAllResults(false);
-                $allProducts = $this->productModel->getByCategorySlug($selectedSlug);
+                $allProducts = $this->productModel->getActiveProducts($categoryData['id']);
                 
                 // Filtrer par recherche si nécessaire
                 if (!empty($searchQuery)) {
@@ -99,8 +95,8 @@ class ProduitsControler extends BaseController
                         return stripos($p['title'], $searchQuery) !== false || 
                                stripos($p['description'], $searchQuery) !== false;
                     });
-                    $totalProducts = count($allProducts);
                 }
+                $totalProducts = count($allProducts);
             } else {
                 $totalProducts = 0;
                 $allProducts = [];
@@ -143,23 +139,32 @@ class ProduitsControler extends BaseController
         $categorySlug = $this->request->getGet('categorie') ?: 'all';
         $filterUsed = ($this->request->getGet('occasion') === '1');
 
-        // --- 1. Récupération des données (Logique existante conservée) ---
+        // --- 1. Récupération des données avec filtrage du stock ---
         if ($filterUsed) {
-            // Filtre spécial : uniquement les produits d'occasion
-            $totalProducts = $this->productModel->where('condition_state', 'used')->countAllResults(false);
-            $allProducts = $this->productModel->where('condition_state', 'used')->getAllWithCategory();
-        } elseif ($categorySlug === 'all') {
+            // Filtre spécial : uniquement les produits d'occasion avec stock > 0
+            // (les produits d'occasion avec stock=0 sont cachés automatiquement)
+            $this->productModel->where('condition_state', 'used')
+                               ->where('stock >', 0);
             $totalProducts = $this->productModel->countAllResults(false);
+            
+            $this->productModel->where('condition_state', 'used')
+                               ->where('stock >', 0);
             $allProducts = $this->productModel->getAllWithCategory();
+        } elseif ($categorySlug === 'all') {
+            // Utiliser la nouvelle méthode qui filtre automatiquement les occasions vendues
+            $allProducts = $this->productModel->getActiveProducts();
+            $totalProducts = count($allProducts);
         } else {
-            // Compter les produits de la catégorie
+            // Récupérer la catégorie
             $categoryData = $this->categoryModel->findBySlug($categorySlug);
             if ($categoryData) {
-                $totalProducts = $this->productModel->where('category_id', $categoryData['id'])->countAllResults(false);
+                // Utiliser la nouvelle méthode qui filtre automatiquement
+                $allProducts = $this->productModel->getActiveProducts($categoryData['id']);
+                $totalProducts = count($allProducts);
             } else {
                 $totalProducts = 0;
+                $allProducts = [];
             }
-            $allProducts = $this->productModel->getByCategorySlug($categorySlug);
         }
 
         // Paginer les produits
@@ -393,6 +398,101 @@ class ProduitsControler extends BaseController
         }
 
         return redirect()->to('produits/' . $slug . '?lang=' . $lang)->withInput()->with('error', trans('reservation_error'));
+    }
+    
+    /**
+     * Inscription à l'alerte de retour en stock (produits neufs uniquement)
+     */
+    public function alertRestock()
+    {
+        helper('form');
+        
+        // Charger le modèle des alertes
+        $alertModel = new \App\Models\RestockAlertModel();
+        
+        // Récupérer les données du formulaire
+        $productId = (int) $this->request->getPost('product_id');
+        $email = trim($this->request->getPost('email'));
+        $slug = $this->request->getPost('slug');
+        
+        // Validation
+        if (!$productId || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return redirect()->back()->with('error', 'Veuillez saisir une adresse email valide.');
+        }
+        
+        // Vérifier que le produit existe et est notifiable
+        $product = $this->productModel->find($productId);
+        
+        if (!$product) {
+            return redirect()->back()->with('error', 'Produit introuvable.');
+        }
+        
+        // Vérifier que c'est un produit neuf en rupture
+        if (!$this->productModel->isNotifiable($productId)) {
+            return redirect()->back()->with('error', 'Ce produit ne peut pas faire l\'objet d\'une alerte de retour en stock.');
+        }
+        
+        // Vérifier si l'email n'est pas déjà inscrit
+        if ($alertModel->isAlreadySubscribed($productId, $email)) {
+            return redirect()->back()->with('info', 'Vous êtes déjà inscrit(e) pour recevoir une alerte pour ce produit.');
+        }
+        
+        // Enregistrer l'alerte
+        $alertModel->save([
+            'product_id' => $productId,
+            'email'      => $email,
+        ]);
+        
+        // Envoyer un email à l'administrateur pour le notifier de la demande
+        $this->notifyAdminOfRestockRequest($product, $email);
+        
+        // Message de confirmation
+        return redirect()->back()->with('success', 'Merci ! Vous serez averti(e) par email dès que ce produit sera de nouveau disponible.');
+    }
+    
+    /**
+     * Notifier l'administrateur qu'un client souhaite être alerté
+     */
+    private function notifyAdminOfRestockRequest(array $product, string $customerEmail): void
+    {
+        try {
+            $alertModel = new \App\Models\RestockAlertModel();
+            $waitingCount = $alertModel->countWaitingCustomers($product['id']);
+            
+            $emailService = \Config\Services::email();
+            $emailService->setFrom('contact.kayart@gmail.com', 'KayArt - Système d\'alertes');
+            $emailService->setTo('contact.kayart@gmail.com'); // Email admin
+            $emailService->setSubject('⚠️ Opportunité de vente : Client en attente de stock');
+            
+            $message = "
+                <h2>Un client souhaite être alerté du retour en stock</h2>
+                
+                <p><strong>Produit :</strong> {$product['title']} (Réf: {$product['sku']})</p>
+                <p><strong>Email du client :</strong> {$customerEmail}</p>
+                <p><strong>Nombre total de clients en attente :</strong> {$waitingCount}</p>
+                
+                <hr>
+                
+                <p>💡 <strong>Action recommandée :</strong></p>
+                <ul>
+                    <li>Vérifier votre stock</li>
+                    <li>Lancer une production si nécessaire</li>
+                    <li>Mettre à jour le stock dans l'administration</li>
+                </ul>
+                
+                <p>Les clients en attente seront automatiquement notifiés lorsque vous remettrez le produit en stock.</p>
+                
+                <p><a href='" . site_url('admin/produits/modifier/' . $product['id']) . "' style='display:inline-block;padding:10px 20px;background:#4a5568;color:white;text-decoration:none;border-radius:5px;'>Gérer ce produit</a></p>
+            ";
+            
+            $emailService->setMessage($message);
+            $emailService->send();
+            
+            log_message('info', '[RestockAlert] Admin notifié : ' . $waitingCount . ' client(s) en attente pour le produit #' . $product['id']);
+            
+        } catch (\Exception $e) {
+            log_message('error', '[RestockAlert] Erreur envoi email admin: ' . $e->getMessage());
+        }
     }
     
     // (J'ai dû abréger la méthode loadMore et formatProducts pour que ça rentre,

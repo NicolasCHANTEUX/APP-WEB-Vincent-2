@@ -197,7 +197,7 @@ return [
     'footer_contact_title'    => 'NOUS CONTACTER',
     'footer_contact_address'  => 'La Buronniere, 72400 St Aubin des Coudrais',
     'footer_contact_phone'    => '07 55 66 50 84',
-    'footer_contact_email'    => 'vincent.chanteux@orange.fr',
+    'footer_contact_email'    => 'contact.kayart@gmail.com',
     'footer_social_title'     => 'NOS RÉSEAUX',
     'footer_social_instagram' => 'INSTAGRAM',
     'footer_social_facebook'  => 'FACEBOOK',

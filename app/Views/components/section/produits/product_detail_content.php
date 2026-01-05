@@ -38,6 +38,7 @@ if ($createdAt) {
 // Messages flash
 $success = session()->getFlashdata('success');
 $error = session()->getFlashdata('error');
+$info = session()->getFlashdata('info');
 $errors = session()->getFlashdata('errors') ?? [];
 ?>
 
@@ -61,6 +62,17 @@ $errors = session()->getFlashdata('errors') ?? [];
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <p class="font-medium"><?= esc($error) ?></p>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($info): ?>
+        <div class="mb-8 bg-blue-50 border border-blue-200 text-blue-800 px-6 py-4 rounded-lg">
+            <div class="flex items-center">
+                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="font-medium"><?= esc($info) ?></p>
             </div>
         </div>
     <?php endif; ?>
@@ -336,25 +348,64 @@ $errors = session()->getFlashdata('errors') ?? [];
             </div>
             
             <?php else: ?>
-                <!-- PRODUIT NEUF: Paiement par carte (à venir) -->
-                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 border-2 border-gray-300">
-                    <div class="text-center">
-                        <div class="inline-flex items-center justify-center w-16 h-16 bg-accent-gold rounded-full mb-4">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                            </svg>
-                        </div>
+                <!-- PRODUIT NEUF: Ajouter au panier -->
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 border-2 border-blue-300">
+                    <h2 class="font-serif text-2xl font-bold text-primary-dark uppercase mb-4">
+                        <?= trans('payment_card_title') ?? 'Achat en ligne' ?>
+                    </h2>
+                    
+                    <?php if ($stock > 0): ?>
+                        <form id="add-to-cart-form" class="space-y-4">
+                            <input type="hidden" name="product_id" value="<?= $id ?>">
+                            
+                            <!-- Quantité -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                    Quantité
+                                </label>
+                                <div class="flex items-center gap-3">
+                                    <button type="button" onclick="decrementQuantity()" 
+                                            class="w-10 h-10 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition">
+                                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                        </svg>
+                                    </button>
+                                    <input type="number" id="quantity" name="quantity" value="1" min="1" max="<?= $stock ?>"
+                                           class="w-20 text-center px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <button type="button" onclick="incrementQuantity()" 
+                                            class="w-10 h-10 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition">
+                                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                    </button>
+                                    <span class="text-sm text-gray-600">/ <?= $stock ?> disponible<?= $stock > 1 ? 's' : '' ?></span>
+                                </div>
+                            </div>
+                            
+                            <!-- Boutons -->
+                            <div class="space-y-3">
+                                <button type="submit" id="add-cart-btn"
+                                        class="w-full bg-accent-gold text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-accent-gold/90 border-2 border-accent-gold transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                    </svg>
+                                    Ajouter au panier
+                                </button>
+                                
+                                <a href="/checkout" 
+                                   class="w-full bg-primary-dark text-white py-3 px-6 rounded-lg font-semibold text-base hover:bg-primary-dark/90 border-2 border-primary-dark transition-all flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                    </svg>
+                                    Acheter maintenant
+                                </a>
+                            </div>
+                        </form>
                         
-                        <h2 class="font-serif text-2xl font-bold text-primary-dark uppercase mb-3">
-                            <?= trans('payment_card_title') ?>
-                        </h2>
-                        
-                        <p class="text-gray-600 mb-6">
-                            <?= trans('payment_card_coming_soon') ?>
-                        </p>
-                        
-                        <div class="bg-white rounded-lg p-6 shadow-sm mb-6">
-                            <div class="flex items-center justify-center gap-4 mb-4">
+                        <!-- Paiement sécurisé -->
+                        <div class="mt-6 bg-white rounded-lg p-4">
+                            <p class="text-sm font-semibold text-gray-900 mb-2">Paiement sécurisé</p>
+                            <div class="flex items-center justify-center gap-4">
                                 <svg class="w-12 h-8" viewBox="0 0 48 32" fill="none">
                                     <rect width="48" height="32" rx="4" fill="#1434CB"/>
                                     <rect x="8" y="12" width="32" height="8" rx="1" fill="white"/>
@@ -364,23 +415,107 @@ $errors = session()->getFlashdata('errors') ?? [];
                                     <circle cx="20" cy="16" r="8" fill="#FF5F00"/>
                                     <circle cx="28" cy="16" r="8" fill="#F79E1B"/>
                                 </svg>
+                                <span class="text-sm text-gray-600">Stripe</span>
                             </div>
-                            <p class="text-sm text-gray-500">
-                                <?= trans('payment_card_methods') ?>
-                            </p>
                         </div>
-                        
-                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                            <p class="text-sm text-amber-800">
-                                <span class="font-semibold"><?= trans('payment_temporary_alternative') ?></span><br>
-                                <?= trans('payment_contact_us') ?>: 
-                                <a href="<?= base_url('contact?lang=' . $lang) ?>" class="underline font-medium hover:text-accent-gold">
-                                    <?= trans('nav_contact') ?>
-                                </a>
-                            </p>
+                    <?php else: ?>
+                        <!-- RUPTURE DE STOCK -->
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                            <div class="text-center mb-4">
+                                <svg class="w-12 h-12 text-red-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <p class="font-semibold text-red-800 mb-2">Rupture de stock</p>
+                                <p class="text-sm text-red-700">Ce produit n'est actuellement pas disponible.</p>
+                            </div>
+                            
+                            <!-- Formulaire d'alerte de retour en stock -->
+                            <div class="bg-white rounded-lg p-4 mt-4">
+                                <h3 class="font-semibold text-gray-900 mb-2">📬 Être notifié du retour en stock</h3>
+                                <p class="text-sm text-gray-600 mb-3">Laissez votre email pour être averti dès que ce produit sera de nouveau disponible.</p>
+                                
+                                <form action="<?= site_url('produits/alert-restock') ?>" method="POST" class="space-y-3">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="product_id" value="<?= $id ?>">
+                                    <input type="hidden" name="slug" value="<?= $slug ?>">
+                                    
+                                    <div>
+                                        <input type="email" name="email" required
+                                               placeholder="votre@email.com"
+                                               class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    
+                                    <button type="submit" 
+                                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-700 transition">
+                                        M'avertir du retour en stock
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
                 </div>
+                
+                <script>
+                function decrementQuantity() {
+                    const input = document.getElementById('quantity');
+                    if (parseInt(input.value) > parseInt(input.min)) {
+                        input.value = parseInt(input.value) - 1;
+                    }
+                }
+                
+                function incrementQuantity() {
+                    const input = document.getElementById('quantity');
+                    if (parseInt(input.value) < parseInt(input.max)) {
+                        input.value = parseInt(input.value) + 1;
+                    }
+                }
+                
+                document.getElementById('add-to-cart-form')?.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const btn = document.getElementById('add-cart-btn');
+                    const originalText = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<svg class="w-6 h-6 animate-spin mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>';
+                    
+                    try {
+                        const formData = new FormData(e.target);
+                        
+                        const response = await fetch('/panier/add', {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            // Animation succès
+                            btn.innerHTML = '<svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Ajouté !';
+                            btn.classList.add('bg-green-600', 'border-green-600');
+                            btn.classList.remove('bg-accent-gold', 'border-accent-gold');
+                            
+                            setTimeout(() => {
+                                btn.innerHTML = originalText;
+                                btn.classList.remove('bg-green-600', 'border-green-600');
+                                btn.classList.add('bg-accent-gold', 'border-accent-gold');
+                                btn.disabled = false;
+                            }, 2000);
+                        } else {
+                            alert(data.message || 'Erreur lors de l\'ajout au panier');
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }
+                    } catch (error) {
+                        console.error('Erreur:', error);
+                        alert('Une erreur est survenue');
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
+                });
+                </script>
             <?php endif; ?>
         </div>
     </div>

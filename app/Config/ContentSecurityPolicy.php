@@ -22,7 +22,7 @@ class ContentSecurityPolicy extends BaseConfig
     /**
      * Default CSP report context
      */
-    public bool $reportOnly = false;
+    public bool $reportOnly = true;
 
     /**
      * Specifies a URL where a browser will send reports
@@ -54,21 +54,21 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
-    public $scriptSrc = 'self';
+    public $scriptSrc = ['self', 'https://js.stripe.com', 'https://m.stripe.network', 'unsafe-inline'];
 
     /**
      * Lists allowed stylesheets' URLs.
      *
      * @var list<string>|string
      */
-    public $styleSrc = 'self';
+    public $styleSrc = ['self', 'unsafe-inline'];
 
     /**
      * Defines the origins from which images can be loaded.
      *
      * @var list<string>|string
      */
-    public $imageSrc = 'self';
+    public $imageSrc = ['self', 'data:', 'https:'];
 
     /**
      * Restricts the URLs that can appear in a page's `<base>` element.
@@ -92,14 +92,14 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
-    public $connectSrc = 'self';
+    public $connectSrc = ['self', 'https://api.stripe.com', 'https://m.stripe.network'];
 
     /**
      * Specifies the origins that can serve web fonts.
      *
      * @var list<string>|string
      */
-    public $fontSrc;
+    public $fontSrc = ['self', 'data:'];
 
     /**
      * Lists valid endpoints for submission from `<form>` tags.
@@ -124,7 +124,7 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string|null
      */
-    public $frameSrc;
+    public $frameSrc = ['self', 'https://js.stripe.com', 'https://hooks.stripe.com', 'https://m.stripe.network'];
 
     /**
      * Restricts the origins allowed to deliver video and audio.

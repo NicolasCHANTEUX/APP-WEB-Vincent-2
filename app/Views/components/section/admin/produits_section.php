@@ -2,6 +2,8 @@
 $langQ = '?lang=' . site_lang();
 use App\Libraries\ImageProcessor;
 $imageProcessor = new ImageProcessor();
+$filters = $filters ?? ['category' => '', 'condition' => '', 'stock' => '', 'search' => ''];
+$categories = $categories ?? [];
 ?>
 
 <div class="pt-32 pb-12">
@@ -17,15 +19,107 @@ $imageProcessor = new ImageProcessor();
         </a>
     </div>
 
+    <!-- Filtres -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <form method="get" action="<?= site_url('admin/produits') ?>" class="space-y-4">
+            <input type="hidden" name="lang" value="<?= site_lang() ?>">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Recherche -->
+                <div class="lg:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i data-lucide="search" class="w-4 h-4 inline mr-1"></i>
+                        Recherche
+                    </label>
+                    <input type="text" 
+                           name="search" 
+                           value="<?= esc($filters['search']) ?>"
+                           placeholder="Nom du produit ou SKU..."
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-dark focus:border-transparent">
+                </div>
+
+                <!-- Catégorie -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i data-lucide="folder" class="w-4 h-4 inline mr-1"></i>
+                        Catégorie
+                    </label>
+                    <select name="category" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-dark focus:border-transparent">
+                        <option value="">Toutes</option>
+                        <?php foreach ($categories as $cat): ?>
+                            <option value="<?= $cat['id'] ?>" <?= $filters['category'] == $cat['id'] ? 'selected' : '' ?>>
+                                <?= esc($cat['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <!-- État -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i data-lucide="tag" class="w-4 h-4 inline mr-1"></i>
+                        État
+                    </label>
+                    <select name="condition" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-dark focus:border-transparent">
+                        <option value="">Tous</option>
+                        <option value="new" <?= $filters['condition'] === 'new' ? 'selected' : '' ?>>Neuf</option>
+                        <option value="used" <?= $filters['condition'] === 'used' ? 'selected' : '' ?>>Occasion</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Stock -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i data-lucide="package" class="w-4 h-4 inline mr-1"></i>
+                        Stock
+                    </label>
+                    <select name="stock" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-dark focus:border-transparent">
+                        <option value="">Tous</option>
+                        <option value="out" <?= $filters['stock'] === 'out' ? 'selected' : '' ?>>Rupture (0)</option>
+                        <option value="low" <?= $filters['stock'] === 'low' ? 'selected' : '' ?>>Faible (≤ 5)</option>
+                        <option value="high" <?= $filters['stock'] === 'high' ? 'selected' : '' ?>>Disponible (> 5)</option>
+                    </select>
+                </div>
+
+                <!-- Boutons -->
+                <div class="flex items-end gap-2">
+                    <button type="submit" class="flex-1 px-6 py-2.5 bg-primary-dark text-white rounded-lg hover:bg-accent-gold hover:text-primary-dark transition font-semibold">
+                        <i data-lucide="filter" class="w-4 h-4 inline mr-2"></i>
+                        Filtrer
+                    </button>
+                    <a href="<?= site_url('admin/produits') . $langQ ?>" class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-semibold">
+                        <i data-lucide="x" class="w-4 h-4 inline mr-2"></i>
+                        Réinitialiser
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
     <?php if (empty($products)): ?>
     <div class="bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300 p-12 text-center">
         <i data-lucide="package-x" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
-        <h3 class="text-lg font-semibold text-gray-700 mb-2">Aucun produit</h3>
-        <p class="text-gray-500 mb-6">Commencez par ajouter votre premier produit au catalogue</p>
-        <a href="<?= site_url('admin/produits/nouveau') . $langQ ?>" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-dark text-white hover:bg-accent-gold hover:text-primary-dark transition font-bold">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-            Créer un produit
-        </a>
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Aucun produit trouvé</h3>
+        <p class="text-gray-500 mb-6">
+            <?php if (!empty($filters['search']) || !empty($filters['category']) || !empty($filters['condition']) || !empty($filters['stock'])): ?>
+                Aucun produit ne correspond à vos critères de recherche
+            <?php else: ?>
+                Commencez par ajouter votre premier produit au catalogue
+            <?php endif; ?>
+        </p>
+        <?php if (!empty($filters['search']) || !empty($filters['category']) || !empty($filters['condition']) || !empty($filters['stock'])): ?>
+            <a href="<?= site_url('admin/produits') . $langQ ?>" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gray-700 text-white hover:bg-gray-800 transition font-bold">
+                <i data-lucide="x" class="w-4 h-4"></i>
+                Réinitialiser les filtres
+            </a>
+        <?php else: ?>
+            <a href="<?= site_url('admin/produits/nouveau') . $langQ ?>" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-dark text-white hover:bg-accent-gold hover:text-primary-dark transition font-bold">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Créer un produit
+            </a>
+        <?php endif; ?>
     </div>
     <?php else: ?>
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

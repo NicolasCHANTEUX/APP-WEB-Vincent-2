@@ -174,4 +174,79 @@ class ProductModel extends Model
             ->orderBy('product.created_at', 'DESC')
             ->findAll();
     }
+
+    /**
+     * Récupérer les produits actifs pour le site (Front-End)
+     * RÈGLE : On affiche le produit SI :
+     * - Il est NEUF (peu importe le stock, on affichera "Rupture" si stock = 0)
+     * - OU il est OCCASION ET il a du stock (> 0)
+     * 
+     * Résultat : Les produits d'occasion vendus (stock 0) sont automatiquement cachés
+     */
+    public function getActiveProducts(?int $categoryId = null): array
+    {
+        $builder = $this->select('product.*, category.name as category_name, category.slug as category_slug')
+            ->join('category', 'category.id = product.category_id', 'left');
+
+        // RÈGLE D'OR : Afficher NEUF quel que soit le stock OU OCCASION avec stock > 0
+        $builder->groupStart()
+            ->where('product.condition_state', 'new')
+            ->orWhere('product.stock >', 0)
+        ->groupEnd();
+
+        // Filtrer par catégorie si demandé
+        if ($categoryId !== null) {
+            $builder->where('product.category_id', $categoryId);
+        }
+
+        return $builder->orderBy('product.created_at', 'DESC')->findAll();
+    }
+
+    /**
+     * Récupérer les produits actifs par slug de catégorie (Front-End)
+     */
+    public function getActiveProductsByCategorySlug(string $categorySlug): array
+    {
+        $builder = $this->select('product.*, category.name as category_name, category.slug as category_slug')
+            ->join('category', 'category.id = product.category_id', 'left')
+            ->where('category.slug', $categorySlug);
+
+        // Appliquer la règle d'affichage
+        $builder->groupStart()
+            ->where('product.condition_state', 'new')
+            ->orWhere('product.stock >', 0)
+        ->groupEnd();
+
+        return $builder->orderBy('product.created_at', 'DESC')->findAll();
+    }
+
+    /**
+     * Vérifier si un produit est disponible à l'achat
+     */
+    public function isAvailableForPurchase(int $productId): bool
+    {
+        $product = $this->find($productId);
+        
+        if (!$product) {
+            return false;
+        }
+
+        return $product['stock'] > 0;
+    }
+
+    /**
+     * Vérifier si un produit est en rupture mais notifiable (neuf uniquement)
+     */
+    public function isNotifiable(int $productId): bool
+    {
+        $product = $this->find($productId);
+        
+        if (!$product) {
+            return false;
+        }
+
+        // Seuls les produits neufs en rupture sont notifiables
+        return $product['condition_state'] === 'new' && $product['stock'] == 0;
+    }
 }
+
