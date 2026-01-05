@@ -328,7 +328,7 @@ class AdminDemandesController extends BaseController
             'protocol'    => 'smtp',
             'SMTPHost'    => 'smtp.gmail.com',
             'SMTPUser'    => 'contact.kayart@gmail.com',
-            'SMTPPass'    => 'czmwtikqyyvuorck',
+            'SMTPPass'    => 'miefiofukotndgwn',
             'SMTPPort'    => 587,
             'SMTPCrypto'  => 'tls',
             'SMTPTimeout' => 30,

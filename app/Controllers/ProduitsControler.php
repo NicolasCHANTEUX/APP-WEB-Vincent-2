@@ -351,8 +351,8 @@ class ProduitsControler extends BaseController
             // --- ENVOI DE L'EMAIL ADMINISTRATEUR (NOUVEAU STYLE) ---
             
             $emailService = \Config\Services::email();
-            $emailService->setFrom('no-reply@kayart.fr', 'Kayart Demandes');
-            $emailService->setTo('contact@kayart.fr'); // TON EMAIL ADMIN
+            $emailService->setFrom('contact.kayart@gmail.com', 'Kayart Demandes');
+            $emailService->setTo('contact.kayart@gmail.com'); // TON EMAIL ADMIN
             $emailService->setReplyTo($data['customer_email'], $data['customer_name']);
 
             $subject = "Intérêt pour : " . $product['title'] . " (Ref: " . $product['sku'] . ")";
@@ -437,11 +437,18 @@ class ProduitsControler extends BaseController
             return redirect()->back()->with('info', 'Vous êtes déjà inscrit(e) pour recevoir une alerte pour ce produit.');
         }
         
+        // Générer un token unique pour l'annulation
+        $cancelToken = $alertModel->generateCancelToken();
+        
         // Enregistrer l'alerte
         $alertModel->save([
-            'product_id' => $productId,
-            'email'      => $email,
+            'product_id'   => $productId,
+            'email'        => $email,
+            'cancel_token' => $cancelToken,
         ]);
+        
+        // Envoyer un email de confirmation au client
+        $this->sendRestockAlertConfirmation($product, $email, $cancelToken);
         
         // Envoyer un email à l'administrateur pour le notifier de la demande
         $this->notifyAdminOfRestockRequest($product, $email);
@@ -463,6 +470,7 @@ class ProduitsControler extends BaseController
             $emailService->setFrom('contact.kayart@gmail.com', 'KayArt - Système d\'alertes');
             $emailService->setTo('contact.kayart@gmail.com'); // Email admin
             $emailService->setSubject('⚠️ Opportunité de vente : Client en attente de stock');
+            $emailService->setMailType('html'); // Définir le type HTML
             
             $message = "
                 <h2>Un client souhaite être alerté du retour en stock</h2>
@@ -482,7 +490,7 @@ class ProduitsControler extends BaseController
                 
                 <p>Les clients en attente seront automatiquement notifiés lorsque vous remettrez le produit en stock.</p>
                 
-                <p><a href='" . site_url('admin/produits/modifier/' . $product['id']) . "' style='display:inline-block;padding:10px 20px;background:#4a5568;color:white;text-decoration:none;border-radius:5px;'>Gérer ce produit</a></p>
+                <p><a href='" . site_url('admin/produits/edit/' . $product['id']) . "' style='display:inline-block;padding:10px 20px;background:#4a5568;color:white;text-decoration:none;border-radius:5px;'>Gérer ce produit</a></p>
             ";
             
             $emailService->setMessage($message);
@@ -494,7 +502,113 @@ class ProduitsControler extends BaseController
             log_message('error', '[RestockAlert] Erreur envoi email admin: ' . $e->getMessage());
         }
     }
-    
-    // (J'ai dû abréger la méthode loadMore et formatProducts pour que ça rentre,
-    // mais tu n'as pas besoin de les modifier, garde celles que tu avais avant !)
+
+    /**
+     * Envoie un email de confirmation au client avec le lien d'annulation
+     */
+    private function sendRestockAlertConfirmation(array $product, string $customerEmail, string $cancelToken): void
+    {
+        try {
+            $emailService = \Config\Services::email();
+            $emailService->setFrom('contact.kayart@gmail.com', 'KayArt');
+            $emailService->setTo($customerEmail);
+            $emailService->setSubject('✅ Confirmation de votre alerte de stock - ' . $product['title']);
+            $emailService->setMailType('html');
+            
+            $cancelUrl = site_url('produits/cancel-alert/' . $cancelToken);
+            
+            $message = "
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='UTF-8'>
+                    <style>
+                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                        .header { background: #4a5568; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+                        .content { padding: 30px; background: #f7fafc; border-radius: 0 0 5px 5px; }
+                        .product-box { background: white; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #48bb78; }
+                        .button { display: inline-block; padding: 12px 30px; background: #4299e1; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+                        .cancel-link { display: inline-block; padding: 10px 20px; background: #fc8181; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-size: 14px; }
+                        .footer { text-align: center; padding: 20px; color: #718096; font-size: 14px; }
+                    </style>
+                </head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <h1>✅ Alerte enregistrée !</h1>
+                        </div>
+                        
+                        <div class='content'>
+                            <p>Bonjour,</p>
+                            
+                            <p>Votre demande d'alerte a bien été enregistrée pour le produit suivant :</p>
+                            
+                            <div class='product-box'>
+                                <h3 style='margin-top:0;'>{$product['title']}</h3>
+                                <p style='color: #718096;'>Référence : {$product['sku']}</p>
+                            </div>
+                            
+                            <p><strong>📧 Vous recevrez un email automatiquement</strong> dès que ce produit sera de nouveau en stock.</p>
+                            
+                            <p>En attendant, n'hésitez pas à découvrir nos autres créations artisanales :</p>
+                            
+                            <a href='" . site_url('produits') . "' class='button'>Voir tous nos produits</a>
+                            
+                            <hr style='margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;'>
+                            
+                            <p style='font-size: 14px; color: #718096;'>
+                                <strong>Vous ne souhaitez plus recevoir cette alerte ?</strong><br>
+                                Vous pouvez annuler votre demande à tout moment :
+                            </p>
+                            
+                            <a href='{$cancelUrl}' class='cancel-link'>❌ Annuler cette alerte</a>
+                        </div>
+                        
+                        <div class='footer'>
+                            <p>Merci de votre intérêt,<br>
+                            L'équipe KayArt<br>
+                            <a href='mailto:contact.kayart@gmail.com'>contact.kayart@gmail.com</a></p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            ";
+            
+            $emailService->setMessage($message);
+            $emailService->send();
+            
+            log_message('info', '[RestockAlert] Email de confirmation envoyé à ' . $customerEmail);
+            
+        } catch (\Exception $e) {
+            log_message('error', '[RestockAlert] Erreur envoi email confirmation client: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Annule une alerte de stock via le token
+     */
+    public function cancelAlert(string $token = null)
+    {
+        if (!$token) {
+            return redirect()->to('/')->with('error', 'Lien d\'annulation invalide.');
+        }
+
+        $alertModel = new \App\Models\RestockAlertModel();
+        $alert = $alertModel->findByToken($token);
+
+        if (!$alert) {
+            return redirect()->to('/')->with('error', 'Cette alerte n\'existe plus ou a déjà été annulée.');
+        }
+
+        // Récupérer les infos du produit pour affichage
+        $product = $this->productModel->find($alert['product_id']);
+
+        if ($alertModel->cancelAlert($token)) {
+            $message = 'Votre alerte pour "' . ($product['title'] ?? 'ce produit') . '" a bien été annulée.';
+            return redirect()->to('/')->with('success', $message);
+        }
+
+        return redirect()->to('/')->with('error', 'Une erreur s\'est produite lors de l\'annulation.');
+    }
 }

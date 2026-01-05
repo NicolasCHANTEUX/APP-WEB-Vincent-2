@@ -162,13 +162,6 @@ CREATE TABLE IF NOT EXISTS `reservation` (
 -- DONNÉES DE DÉMONSTRATION
 -- ============================================================
 
--- Insertion d'un utilisateur admin par défaut
--- Username: admin
--- Email: admin@kayart.com
--- Password: Admin123! (à changer en production)
-INSERT INTO `user` (`username`, `email`, `password_hash`, `role`) VALUES
-('admin', 'admin@kayart.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
-
 -- Insertion des catégories
 INSERT INTO `category` (`name`, `slug`, `description`) VALUES
 ('Pagaies', 'pagaies', 'Pagaies artisanales en carbone, bois et fibre de verre'),

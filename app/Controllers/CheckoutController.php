@@ -369,9 +369,12 @@ class CheckoutController extends BaseController
             // Créer la facture
             $invoiceId = $this->invoiceModel->createFromOrder($orderId);
 
-            // Envoyer l'email de confirmation (commenté temporairement car timeout SMTP)
-            // TODO: Vérifier config Gmail - app password, port 587, TLS
-            $this->sendOrderConfirmationEmail($orderId, $customerData);
+            // Récupérer le chemin de la facture PDF
+            $invoice = $this->invoiceModel->find($invoiceId);
+            $pdfPath = WRITEPATH . 'uploads/invoices/' . $invoice['pdf_filename'];
+
+            // Envoyer l'email de confirmation avec la facture
+            $this->sendOrderConfirmationEmail($orderId, $customerData, $pdfPath);
 
             log_message('error', '[Checkout] Commande #' . $orderId . ' complète avec ' . count($this->cart->getItems()) . ' articles');
 
@@ -386,7 +389,7 @@ class CheckoutController extends BaseController
     /**
      * Envoie un email de confirmation au client
      */
-    private function sendOrderConfirmationEmail(int $orderId, array $customerData): void
+    private function sendOrderConfirmationEmail(int $orderId, array $customerData, string $pdfPath = null): void
     {
         try {
             // Charger les détails de la commande
@@ -408,7 +411,14 @@ class CheckoutController extends BaseController
             $email->setFrom('contact.kayart@gmail.com', 'KayArt');
             $email->setTo($customerData['email']);
             $email->setSubject('Confirmation de votre commande ' . $order['reference']);
+            $email->setMailType('html'); // Définir le type HTML
             $email->setMessage($message);
+
+            // Attacher la facture PDF si disponible
+            if ($pdfPath && file_exists($pdfPath)) {
+                $email->attach($pdfPath);
+                log_message('info', '[Checkout] Facture PDF attachée : ' . basename($pdfPath));
+            }
 
             // Envoyer
             if ($email->send()) {

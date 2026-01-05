@@ -56,8 +56,8 @@ class ContactControler extends BaseController
         // --- ENVOI DE L'EMAIL ADMINISTRATEUR (NOUVEAU STYLE) ---
         
         $emailService = \Config\Services::email();
-        $emailService->setFrom('no-reply@kayart.fr', 'Site Web Kayart');
-        $emailService->setTo('contact@kayart.fr'); // REMPLACE PAR TON EMAIL ADMIN
+        $emailService->setFrom('contact.kayart@gmail.com', 'Site Web Kayart');
+        $emailService->setTo('contact.kayart@gmail.com'); // REMPLACE PAR TON EMAIL ADMIN
         $emailService->setReplyTo($data['email'], $data['name']);
 
         $subject = "Nouvelle prise de contact : " . $data['subject'];

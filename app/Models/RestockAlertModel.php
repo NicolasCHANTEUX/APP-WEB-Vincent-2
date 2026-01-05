@@ -15,6 +15,7 @@ class RestockAlertModel extends Model
     protected $allowedFields    = [
         'product_id',
         'email',
+        'cancel_token',
         'status',
         'notified_at',
     ];
@@ -102,4 +103,39 @@ class RestockAlertModel extends Model
             ->get()
             ->getResultArray();
     }
+
+    /**
+     * Génère un token unique pour l'annulation
+     */
+    public function generateCancelToken(): string
+    {
+        return bin2hex(random_bytes(32));
+    }
+
+    /**
+     * Trouve une alerte par son token d'annulation
+     */
+    public function findByToken(string $token): ?array
+    {
+        $result = $this->where('cancel_token', $token)
+                       ->where('status', 'pending')
+                       ->first();
+        
+        return $result ?: null;
+    }
+
+    /**
+     * Annule une alerte
+     */
+    public function cancelAlert(string $token): bool
+    {
+        $alert = $this->findByToken($token);
+        
+        if (!$alert) {
+            return false;
+        }
+
+        return $this->delete($alert['id']);
+    }
 }
+

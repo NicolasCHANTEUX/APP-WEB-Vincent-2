@@ -285,6 +285,12 @@ class AdminProduitsController extends BaseController
         // Mise à jour en base de données (on désactive la validation automatique car on a déjà vérifié le slug manuellement)
         if ($this->productModel->skipValidation(true)->update($id, $data)) {
             log_message('error', '[AdminProduits] ✓ Produit mis à jour avec succès');
+            
+            // Vérifier si le stock est passé de 0 à >0 pour notifier les clients en attente
+            if ($product['stock'] == 0 && $data['stock'] > 0) {
+                $this->notifyWaitingCustomers($id);
+            }
+            
             return redirect()->to('admin/produits?lang=' . $lang)->with('success', 'Produit mis à jour avec succès !');
         } else {
             log_message('error', '[AdminProduits] ✗ Échec mise à jour BDD: ' . json_encode($this->productModel->errors()));
@@ -321,6 +327,124 @@ class AdminProduitsController extends BaseController
         } else {
             log_message('error', '[AdminProduits] ✗ Échec suppression BDD');
             return redirect()->to('admin/produits?lang=' . $lang)->with('error', 'Erreur lors de la suppression du produit.');
+        }
+    }
+
+    /**
+     * Notifie tous les clients en attente qu'un produit est de retour en stock
+     */
+    private function notifyWaitingCustomers(int $productId): void
+    {
+        try {
+            $alertModel = new \App\Models\RestockAlertModel();
+            $pendingAlerts = $alertModel->getPendingAlerts($productId);
+            
+            if (empty($pendingAlerts)) {
+                log_message('info', '[AdminProduits] Aucun client en attente pour le produit #' . $productId);
+                return;
+            }
+
+            $product = $this->productModel->find($productId);
+            $productUrl = site_url('produit/' . $product['slug']);
+            $notifiedCount = 0;
+
+            foreach ($pendingAlerts as $alert) {
+                if ($this->sendRestockNotification($alert, $product, $productUrl)) {
+                    // Marquer l'alerte comme notifiée
+                    $alertModel->markAsNotified($alert['id']);
+                    $notifiedCount++;
+                }
+            }
+
+            log_message('info', '[AdminProduits] ' . $notifiedCount . ' client(s) notifié(s) pour le produit #' . $productId);
+
+        } catch (\Exception $e) {
+            log_message('error', '[AdminProduits] Erreur notification clients: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Envoie un email de notification à un client que le produit est de retour
+     */
+    private function sendRestockNotification(array $alert, array $product, string $productUrl): bool
+    {
+        try {
+            $emailService = \Config\Services::email();
+            $emailService->setFrom('contact.kayart@gmail.com', 'KayArt');
+            $emailService->setTo($alert['email']);
+            $emailService->setSubject('🎉 ' . $product['title'] . ' est de retour en stock !');
+            $emailService->setMailType('html');
+
+            $price = number_format($product['price'], 2, ',', ' ') . ' €';
+            
+            $message = "
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='UTF-8'>
+                    <style>
+                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                        .header { background: #48bb78; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+                        .content { padding: 30px; background: #f7fafc; border-radius: 0 0 5px 5px; }
+                        .product-box { background: white; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #48bb78; }
+                        .cta-button { display: inline-block; padding: 15px 40px; background: #48bb78; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; font-size: 16px; }
+                        .stock-badge { display: inline-block; padding: 5px 15px; background: #48bb78; color: white; border-radius: 20px; font-size: 14px; margin: 10px 0; }
+                        .footer { text-align: center; padding: 20px; color: #718096; font-size: 14px; }
+                    </style>
+                </head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <h1>🎉 Bonne nouvelle !</h1>
+                        </div>
+                        
+                        <div class='content'>
+                            <p>Bonjour,</p>
+                            
+                            <p>Le produit que vous attendiez est <strong>enfin de retour en stock</strong> !</p>
+                            
+                            <div class='product-box'>
+                                <h2 style='margin-top:0; color: #2d3748;'>{$product['title']}</h2>
+                                <p style='color: #718096;'>Référence : {$product['sku']}</p>
+                                <span class='stock-badge'>✅ En stock</span>
+                                <p style='font-size: 24px; color: #2d3748; margin: 15px 0;'><strong>{$price}</strong></p>
+                            </div>
+                            
+                            <p><strong>⚡ Ne tardez pas !</strong> Nos produits artisanaux sont souvent en quantité limitée.</p>
+                            
+                            <div style='text-align: center;'>
+                                <a href='{$productUrl}' class='cta-button'>Voir le produit</a>
+                            </div>
+                            
+                            <p style='margin-top: 30px; font-size: 14px; color: #718096;'>
+                                Vous recevez cet email car vous avez demandé à être alerté(e) du retour en stock de ce produit.
+                            </p>
+                        </div>
+                        
+                        <div class='footer'>
+                            <p>Merci de votre fidélité,<br>
+                            L'équipe KayArt<br>
+                            <a href='mailto:contact.kayart@gmail.com'>contact.kayart@gmail.com</a></p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            ";
+
+            $emailService->setMessage($message);
+            
+            if ($emailService->send()) {
+                log_message('info', '[AdminProduits] Email de retour en stock envoyé à ' . $alert['email']);
+                return true;
+            } else {
+                log_message('error', '[AdminProduits] Échec envoi email à ' . $alert['email']);
+                return false;
+            }
+
+        } catch (\Exception $e) {
+            log_message('error', '[AdminProduits] Erreur envoi email notification: ' . $e->getMessage());
+            return false;
         }
     }
 }

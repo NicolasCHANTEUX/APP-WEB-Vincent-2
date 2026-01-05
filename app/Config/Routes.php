@@ -80,6 +80,7 @@ $routes->post('webhook/stripe', 'CheckoutController::webhook');
 
 // Routes Alertes de retour en stock
 $routes->post('produits/alert-restock', 'ProduitsControler::alertRestock');
+$routes->get('produits/cancel-alert/(:any)', 'ProduitsControler::cancelAlert/$1');
 
 /**
  * Compat : anciennes URLs /fr/... et /en/... (redirections vers la nouvelle structure)
