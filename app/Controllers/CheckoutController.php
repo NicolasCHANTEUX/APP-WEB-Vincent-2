@@ -371,7 +371,7 @@ class CheckoutController extends BaseController
 
             // Envoyer l'email de confirmation (commenté temporairement car timeout SMTP)
             // TODO: Vérifier config Gmail - app password, port 587, TLS
-            // $this->sendOrderConfirmationEmail($orderId, $customerData);
+            $this->sendOrderConfirmationEmail($orderId, $customerData);
 
             log_message('error', '[Checkout] Commande #' . $orderId . ' complète avec ' . count($this->cart->getItems()) . ' articles');
 
