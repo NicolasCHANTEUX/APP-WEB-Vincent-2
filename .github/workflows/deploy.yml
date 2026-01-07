@@ -47,6 +47,14 @@ jobs:
         sudo chmod -R 777 writable
         sudo chmod -R 777 public/uploads
 
+        sudo chmod -R 777 /var/www/kayart/writable
+        sudo mkdir -p /var/www/kayart/public/writable/session
+        sudo chmod -R 777 /var/www/kayart/public/writable
+
+        sudo mkdir -p /var/www/kayart/writable/invoices
+        sudo chown -R www-data:www-data /var/www/kayart/writable/invoices
+        sudo chmod -R 777 /var/www/kayart/writable/invoices
+
     - name: 🗄️ Migration Base de Données
       run: |
         cd /var/www/kayart
