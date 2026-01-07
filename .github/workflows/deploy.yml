@@ -26,12 +26,14 @@ jobs:
     - name: 🔧 Permissions (Dossier Writable)
       run: |
         cd /var/www/kayart
-        # Donne la permission à Apache d'écrire dans 'writable' (cache, logs, uploads)
+        # On donne la propriété à Apache
         sudo chown -R www-data:www-data writable
-        sudo chmod -R 775 writable
-        # Idem pour le dossier uploads public si tu stockes des images
         sudo chown -R www-data:www-data public/uploads
-        sudo chmod -R 775 public/uploads
+        
+        # SUPER IMPORTANT : On met les droits en 777 (Lecture/Écriture pour TOUT LE MONDE)
+        # Cela permet à ton utilisateur de lancer les migrations sans être bloqué
+        sudo chmod -R 777 writable
+        sudo chmod -R 777 public/uploads
 
     - name: 🗄️ Migration Base de Données
       run: |
