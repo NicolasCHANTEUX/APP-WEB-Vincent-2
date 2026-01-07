@@ -1,0 +1,40 @@
+name: Deploy to Home Server
+on:
+  push:
+    branches: [ "main" ] # Vérifie si ta branche s'appelle 'main' ou 'master'
+
+jobs:
+  deploy:
+    runs-on: self-hosted # C'est ça qui cible TON vieux PC
+    
+    steps:
+    - name: 🚚 Récupération du code
+      uses: actions/checkout@v3
+
+    - name: 📂 Copie des fichiers
+      run: |
+        # Copie tout le contenu du repo vers le dossier web
+        # On exclut .git et le .env pour ne pas écraser ta config serveur
+        rsync -av --exclude='.git' --exclude='.env' ./ /var/www/kayart/
+
+    - name: 📦 Installation des dépendances (Composer)
+      run: |
+        cd /var/www/kayart
+        # Installe les librairies PHP sans les outils de dev
+        composer install --no-dev --optimize-autoloader
+
+    - name: 🔧 Permissions (Dossier Writable)
+      run: |
+        cd /var/www/kayart
+        # Donne la permission à Apache d'écrire dans 'writable' (cache, logs, uploads)
+        sudo chown -R www-data:www-data writable
+        sudo chmod -R 775 writable
+        # Idem pour le dossier uploads public si tu stockes des images
+        sudo chown -R www-data:www-data public/uploads
+        sudo chmod -R 775 public/uploads
+
+    - name: 🗄️ Migration Base de Données
+      run: |
+        cd /var/www/kayart
+        # Met à jour la structure de la BDD automatiquement
+        php spark migrate
