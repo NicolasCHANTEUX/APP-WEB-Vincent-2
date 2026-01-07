@@ -1,42 +1,47 @@
 name: Deploy to Home Server
 on:
   push:
-    branches: [ "main" ] # Vérifie si ta branche s'appelle 'main' ou 'master'
+    branches: [ "main" ]
 
 jobs:
   deploy:
-    runs-on: self-hosted # C'est ça qui cible TON vieux PC
+    runs-on: self-hosted
     
     steps:
     - name: 🚚 Récupération du code
       uses: actions/checkout@v3
 
+    # --- NOUVEAU : On installe Node et on compile Tailwind ---
+    - name: 🏗️ Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18' # Version standard actuelle
+
+    - name: 📦 Install NPM & Build
+      run: |
+        npm install
+        npm run build 
+    # ---------------------------------------------------------
+
     - name: 📂 Copie des fichiers
       run: |
-        # Copie tout le contenu du repo vers le dossier web
-        # On exclut .git et le .env pour ne pas écraser ta config serveur
+        # On copie tout (y compris le dossier public/build généré par npm run build)
         sudo rsync -av --exclude='.git' --exclude='.env' ./ /var/www/kayart/
 
     - name: 📦 Installation des dépendances (Composer)
       run: |
         cd /var/www/kayart
-        # Installe les librairies PHP sans les outils de dev
         composer install --no-dev --optimize-autoloader
 
-    - name: 🔧 Permissions (Dossier Writable)
+    - name: 🔧 Permissions
       run: |
         cd /var/www/kayart
-        # On donne la propriété à Apache
         sudo chown -R www-data:www-data writable
         sudo chown -R www-data:www-data public/uploads
-        
-        # SUPER IMPORTANT : On met les droits en 777 (Lecture/Écriture pour TOUT LE MONDE)
-        # Cela permet à ton utilisateur de lancer les migrations sans être bloqué
         sudo chmod -R 777 writable
         sudo chmod -R 777 public/uploads
 
     - name: 🗄️ Migration Base de Données
       run: |
         cd /var/www/kayart
-        # Met à jour la structure de la BDD automatiquement
         php spark migrate
