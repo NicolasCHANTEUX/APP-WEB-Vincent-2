@@ -15,7 +15,7 @@ jobs:
       run: |
         # Copie tout le contenu du repo vers le dossier web
         # On exclut .git et le .env pour ne pas écraser ta config serveur
-        rsync -av --exclude='.git' --exclude='.env' ./ /var/www/kayart/
+        sudo rsync -av --exclude='.git' --exclude='.env' ./ /var/www/kayart/
 
     - name: 📦 Installation des dépendances (Composer)
       run: |
