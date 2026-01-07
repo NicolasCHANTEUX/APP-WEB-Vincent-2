@@ -19,9 +19,15 @@ jobs:
 
     - name: 📦 Install NPM & Build
       run: |
+        # On supprime node_modules pour forcer une réinstallation propre (optionnel mais conseillé)
+        rm -rf node_modules
+        
         npm install
-        npm run build 
-    # ---------------------------------------------------------
+        
+        # LA CORRECTION EST ICI : On donne le droit d'exécution au binaire Tailwind
+        chmod +x node_modules/.bin/tailwindcss
+        
+        npm run build
 
     - name: 📂 Copie des fichiers
       run: |
