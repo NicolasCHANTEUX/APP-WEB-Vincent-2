@@ -94,8 +94,8 @@ $paymentMethodLabels = [
                                         <div class="flex items-center">
                                             <?php if (!empty($snapshot['image'])): ?>
                                                 <img src="<?= base_url('uploads/format2/' . esc($snapshot['image'])) ?>" 
-                                                     alt="<?= esc($snapshot['title']) ?>" 
-                                                     class="w-12 h-12 object-cover rounded mr-3">
+                                                     alt="<?= esc($snapshot['title']) ?>"                                                      width="80"
+                                                     height="80"                                                     class="w-12 h-12 object-cover rounded mr-3">
                                             <?php endif; ?>
                                             <div>
                                                 <div class="text-sm font-medium text-gray-900"><?= esc($snapshot['title']) ?></div>

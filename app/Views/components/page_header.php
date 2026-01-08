@@ -5,7 +5,7 @@
                 <?= esc($title) ?>
             </h1>
             <?php if (! empty($subtitle)): ?>
-                <p class="text-xl text-gray-300 max-w-2xl mx-auto">
+                <p class="text-xl text-gray-200 max-w-2xl mx-auto">
                     <?= esc($subtitle) ?>
                 </p>
             <?php endif; ?>

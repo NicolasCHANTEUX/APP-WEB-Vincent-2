@@ -25,7 +25,7 @@ $totals = $totals ?? ['subtotal' => 0, 'ht' => 0, 'tva' => 0, 'total' => 0, 'cou
     <?php if ($isEmpty): ?>
         <!-- Panier vide -->
         <div class="bg-white rounded-lg shadow-md p-8 text-center">
-            <svg class="mx-auto h-24 w-24 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="mx-auto h-24 w-24 text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
             </svg>
             <h2 class="text-2xl font-semibold text-gray-700 mb-2">Votre panier est vide</h2>

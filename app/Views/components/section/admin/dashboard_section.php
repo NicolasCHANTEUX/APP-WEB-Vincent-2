@@ -204,7 +204,7 @@ $langQ = '?lang=' . site_lang();
                             <tr>
                                 <td colspan="4" class="px-6 py-8 text-center text-gray-500">
                                     <div class="flex flex-col items-center gap-2">
-                                        <i data-lucide="inbox" class="w-8 h-8 text-gray-400"></i>
+                                        <i data-lucide="inbox" class="w-8 h-8 text-gray-500"></i>
                                         <p class="text-sm font-medium">Aucun produit récent</p>
                                     </div>
                                 </td>

@@ -116,8 +116,8 @@ $stripePublicKey = $stripePublicKey ?? 'pk_test_...';
                         <div class="flex items-center gap-3 pb-3 border-b border-gray-200">
                             <?php if (!empty($item['image']) && file_exists(FCPATH . 'uploads/format2/' . $item['image'])): ?>
                                 <img src="/uploads/format2/<?= esc($item['image']) ?>" 
-                                     alt="<?= esc($item['title']) ?>"
-                                     class="w-16 h-16 object-cover rounded">
+                                     alt="<?= esc($item['title']) ?>"                                     width="100"
+                                     height="100"                                     class="w-16 h-16 object-cover rounded">
                             <?php else: ?>
                                 <div class="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
                                     <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

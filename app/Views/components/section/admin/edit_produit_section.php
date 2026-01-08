@@ -159,6 +159,8 @@ $imageProcessor = new ImageProcessor();
                     <div class="flex items-start gap-4">
                         <img src="<?= $imageProcessor->getImageUrl($product['image'], 'format2') ?>" 
                              alt="<?= esc($product['title']) ?>"
+                             width="128"
+                             height="128"
                              class="w-32 h-32 object-cover rounded-lg border-2 border-gray-200">
                         <div class="flex-1">
                             <p class="text-sm text-gray-600"><strong>Fichier :</strong> <?= esc($product['image']) ?></p>

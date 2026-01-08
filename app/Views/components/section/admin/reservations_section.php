@@ -69,7 +69,7 @@ $statusConfig = [
             <?php if (empty($demandes)): ?>
                 <div class="p-12 text-center">
                     <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-                        <i data-lucide="inbox" class="w-8 h-8 text-gray-400"></i>
+                        <i data-lucide="inbox" class="w-8 h-8 text-gray-500"></i>
                     </div>
                     <p class="text-gray-500 font-medium">Aucune demande pour le moment</p>
                 </div>

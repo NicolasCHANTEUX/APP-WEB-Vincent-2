@@ -13,7 +13,7 @@
                         height="48"
                         class="mb-4 opacity-90"
                     >
-                    <p class="text-sm text-gray-300 italic tracking-wide leading-relaxed">
+                    <p class="text-sm text-gray-200 italic tracking-wide leading-relaxed">
                         <?= trans('footer_tagline') ?>
                     </p>
                 </div>
@@ -62,7 +62,7 @@
                     <h3 class="text-lg font-semibold mb-4 uppercase tracking-wider">
                         <?= trans('footer_contact_title') ?>
                     </h3>
-                    <ul class="space-y-3 text-sm text-gray-300">
+                    <ul class="space-y-3 text-sm text-gray-200">
                         <li class="flex items-start">
                             <svg class="w-4 h-4 mr-3 mt-0.5 flex-shrink-0 text-accent-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
@@ -145,7 +145,7 @@
 
     <!-- Barre copyright -->
     <div class="bg-black bg-opacity-30 border-t border-white border-opacity-5 py-4 px-6">
-        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-400">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-300">
             
             <div class="text-center md:text-left">
                 <p>&copy; <?= date('Y') ?> KAYART. <?= trans('footer_all_rights_reserved') ?: 'Tous droits réservés.' ?></p>

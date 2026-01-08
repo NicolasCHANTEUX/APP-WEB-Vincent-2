@@ -9,7 +9,7 @@
         </p>
     </div>
     <div class="md:w-1/2">
-        <img src="<?= base_url('images/kayart_image1.webp') ?>" alt="Image KAYART" class="w-full h-auto rounded-lg shadow-lg">
+        <img src="<?= base_url('images/kayart_image1.webp') ?>" alt="Image KAYART" width="800" height="600" class="w-full h-auto rounded-lg shadow-lg">
     </div>
 </div>
 

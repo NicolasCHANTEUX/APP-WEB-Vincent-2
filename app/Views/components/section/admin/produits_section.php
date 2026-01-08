@@ -100,7 +100,7 @@ $categories = $categories ?? [];
 
     <?php if (empty($products)): ?>
     <div class="bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300 p-12 text-center">
-        <i data-lucide="package-x" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
+        <i data-lucide="package-x" class="w-16 h-16 text-gray-500 mx-auto mb-4"></i>
         <h3 class="text-lg font-semibold text-gray-700 mb-2">Aucun produit trouvé</h3>
         <p class="text-gray-500 mb-6">
             <?php if (!empty($filters['search']) || !empty($filters['category']) || !empty($filters['condition']) || !empty($filters['stock'])): ?>
@@ -143,10 +143,12 @@ $categories = $categories ?? [];
                                     <?php if (!empty($product['image'])): ?>
                                         <img src="<?= $imageProcessor->getImageUrl($product['image'], 'format2') ?>" 
                                              alt="<?= esc($product['title']) ?>"
+                                             width="48"
+                                             height="48"
                                              class="w-12 h-12 object-cover rounded-lg border border-gray-200">
                                     <?php else: ?>
                                         <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                                            <i data-lucide="image-off" class="w-6 h-6 text-gray-400"></i>
+                                            <i data-lucide="image-off" class="w-6 h-6 text-gray-500"></i>
                                         </div>
                                     <?php endif; ?>
                                     <div>
