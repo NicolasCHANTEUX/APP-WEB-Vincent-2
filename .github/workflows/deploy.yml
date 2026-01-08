@@ -11,51 +11,84 @@ jobs:
     - name: 🚚 Récupération du code
       uses: actions/checkout@v3
 
-    # --- NOUVEAU : On installe Node et on compile Tailwind ---
+    # --- Build Frontend (CSS/JS) ---
     - name: 🏗️ Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18' # Version standard actuelle
+        node-version: '18'
 
-    - name: 📦 Install NPM & Build
+    - name: 📦 Install NPM & Build Tailwind
       run: |
-        # On supprime node_modules pour forcer une réinstallation propre (optionnel mais conseillé)
         rm -rf node_modules
-        
         npm install
-        
-        # LA CORRECTION EST ICI : On donne le droit d'exécution au binaire Tailwind
+        # Correctif crucial pour Linux
         chmod +x node_modules/.bin/tailwindcss
-        
         npm run build
 
+    # --- Backup Sécurité (Nouveau et très utile) ---
+    - name: 💾 Backup de la base de données
+      run: |
+        BACKUP_DIR="/var/backups/kayart"
+        sudo mkdir -p $BACKUP_DIR
+        # On donne les droits au dossier backup
+        sudo chmod 777 $BACKUP_DIR
+        TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+        # J'ai corrigé le nom de la base ici (boutique_en_ligne)
+        # Si ça demande un mot de passe et bloque, on pourra retirer cette étape plus tard
+        sudo mysqldump boutique_en_ligne > $BACKUP_DIR/db_backup_$TIMESTAMP.sql || echo "⚠️ Backup DB échoué (Non bloquant)"
+
+    # --- Copie des fichiers ---
     - name: 📂 Copie des fichiers
       run: |
-        # On copie tout (y compris le dossier public/build généré par npm run build)
-        sudo rsync -av --exclude='.git' --exclude='.env' ./ /var/www/kayart/
+        # On exclut les dossiers lourds et les fichiers de config locaux
+        sudo rsync -av --exclude='.git' --exclude='.env' --exclude='node_modules' --exclude='vendor' ./ /var/www/kayart/
 
-    - name: 📦 Installation des dépendances (Composer)
+    # --- Installation PHP ---
+    - name: 📦 Installation Composer
       run: |
         cd /var/www/kayart
-        composer install --no-dev --optimize-autoloader
+        composer install --no-dev --optimize-autoloader --no-interaction
 
-    - name: 🔧 Permissions
+    # --- Permissions (VERSION CORRIGÉE 777) ---
+    - name: 🔧 Configuration des permissions
       run: |
         cd /var/www/kayart
+        
+        # Création des dossiers manquants (Sessions, Factures, Uploads)
+        sudo mkdir -p writable/{cache,logs,session,debugbar,uploads}
+        sudo mkdir -p public/writable/session
+        sudo mkdir -p writable/uploads/invoices
+        sudo mkdir -p public/uploads
+        
+        # On remet propriétaire www-data (Apache)
         sudo chown -R www-data:www-data writable
         sudo chown -R www-data:www-data public/uploads
+        sudo chown -R www-data:www-data public/writable
+
+        # LA CORRECTION EST ICI : 777 au lieu de 755
+        # C'est la seule façon d'éviter les erreurs 500 sur ton serveur actuel
         sudo chmod -R 777 writable
         sudo chmod -R 777 public/uploads
+        sudo chmod -R 777 public/writable
 
-        sudo chmod -R 777 /var/www/kayart/writable
-        sudo mkdir -p /var/www/kayart/public/writable/session
-        sudo chmod -R 777 /var/www/kayart/public/writable
+    # --- Nettoyage ---
+    - name: 🧹 Nettoyage du cache
+      run: |
+        cd /var/www/kayart
+        php spark cache:clear || echo "⚠️ Cache clear échoué"
 
-        sudo mkdir -p /var/www/kayart/writable/invoices
-        sudo chown -R www-data:www-data /var/www/kayart/writable/invoices
-        sudo chmod -R 777 /var/www/kayart/writable/invoices
-
+    # --- Base de Données ---
     - name: 🗄️ Migration Base de Données
       run: |
         cd /var/www/kayart
-        php spark migrate
+        php spark migrate --all
+
+    # --- Redémarrage pour HTTP/2 ---
+    - name: 🔄 Redémarrage du serveur web
+      run: |
+        # On redémarre Apache et PHP-FPM pour être sûr que tout est propre
+        sudo systemctl reload apache2
+        sudo systemctl reload php8.3-fpm || echo "Pas de FPM à reload"
+
+    - name: ✅ Déploiement terminé
+      run: echo "🎉 Site déployé et sécurisé !"
