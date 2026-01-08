@@ -46,6 +46,8 @@ jobs:
     # --- Installation PHP ---
     - name: 📦 Installation Composer
       run: |
+        sudo chown -R $USER:$USER /var/www/kayart
+        
         cd /var/www/kayart
         composer install --no-dev --optimize-autoloader --no-interaction
 

@@ -536,7 +536,7 @@ $imageProcessor = new ImageProcessor();
 
         <!-- Actions -->
         <div class="flex items-center justify-between">
-            <form method="post" action="<?= site_url('admin/produits/delete/' . $product['id'] . $langQ) ?>" 
+            <form method="post" action="<?= site_url('admin/produits/delete/' . $product['id']) . $langQ ?>" 
                   onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible.');">
                 <?= csrf_field() ?>
                 <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition font-medium border border-red-200">

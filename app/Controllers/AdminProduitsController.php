@@ -29,6 +29,7 @@ class AdminProduitsController extends BaseController
         $conditionFilter = $this->request->getGet('condition') ?? '';
         $stockFilter = $this->request->getGet('stock') ?? '';
         $searchQuery = trim($this->request->getGet('search') ?? '');
+        $perPage = 15; // Nombre de produits par page
 
         // Construire la requête avec filtres
         $builder = $this->productModel;
@@ -60,7 +61,12 @@ class AdminProduitsController extends BaseController
                 ->groupEnd();
         }
 
-        $products = $builder->findAll();
+        // Trier du plus récent au plus ancien
+        $builder = $builder->orderBy('created_at', 'DESC');
+
+        // Pagination
+        $products = $builder->paginate($perPage, 'default');
+        $pager = $this->productModel->pager;
         
         // Récupérer les images primaires pour chaque produit
         foreach ($products as &$product) {
@@ -73,6 +79,7 @@ class AdminProduitsController extends BaseController
         return view('pages/admin/produits', [
             'products' => $products,
             'categories' => $categories,
+            'pager' => $pager,
             'filters' => [
                 'category' => $categoryFilter,
                 'condition' => $conditionFilter,
@@ -343,12 +350,27 @@ class AdminProduitsController extends BaseController
             return redirect()->to('admin/produits?lang=' . $lang)->with('error', 'Produit introuvable.');
         }
 
-        // Supprimer les images
-        if (!empty($product['image'])) {
-            $sku = str_replace('.webp', '', $product['image']);
-            $this->imageProcessor->deleteProductImage($sku);
-            log_message('error', '[AdminProduits] Images supprimées pour SKU: ' . $sku);
+        // Supprimer toutes les images du système multi-images
+        $productImageModel = new \App\Models\ProductImageModel();
+        $images = $productImageModel->getProductImages($id);
+        
+        foreach ($images as $image) {
+            // Extraire le SKU et le numéro de l'image
+            if (preg_match('/^(.+?)-format\d+-(\d+)\.webp$/', $image['filename'], $matches)) {
+                $sku = $matches[1];
+                $imageNumber = $matches[2];
+                $this->imageProcessor->deleteProductImageSet($sku, $imageNumber);
+                log_message('error', '[AdminProduits] Image #' . $imageNumber . ' supprimée pour SKU: ' . $sku);
+            } else {
+                // Ancien format
+                $sku = str_replace('.webp', '', $image['filename']);
+                $this->imageProcessor->deleteProductImage($sku);
+                log_message('error', '[AdminProduits] Image (ancien format) supprimée pour SKU: ' . $sku);
+            }
         }
+        
+        // Supprimer les entrées de la table product_images (CASCADE le fera automatiquement, mais soyons explicite)
+        $productImageModel->where('product_id', $id)->delete();
 
         // Supprimer le produit
         if ($this->productModel->delete($id)) {

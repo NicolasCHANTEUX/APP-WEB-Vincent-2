@@ -227,9 +227,52 @@ $categories = $categories ?? [];
         </div>
     </div>
 
-    <div class="mt-6 text-sm text-gray-500 text-center">
-        <?= count($products) ?> produit<?= count($products) > 1 ? 's' : '' ?> au total
+    <!-- Pagination -->
+    <?php if (isset($pager) && $pager->getPageCount() > 1): ?>
+    <div class="mt-8">
+        <nav class="flex items-center justify-center gap-2">
+            <?php if ($pager->hasPrevious()): ?>
+            <a href="<?= $pager->getFirst() . '&' . http_build_query($filters) . '&lang=' . site_lang() ?>" 
+               class="px-3 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition text-sm font-medium text-gray-700">
+                <i data-lucide="chevrons-left" class="w-4 h-4"></i>
+            </a>
+            <a href="<?= $pager->getPrevious() . '&' . http_build_query($filters) . '&lang=' . site_lang() ?>" 
+               class="px-3 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition text-sm font-medium text-gray-700">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </a>
+            <?php endif; ?>
+
+            <?php foreach ($pager->links() as $link): ?>
+                <?php if ($link['active']): ?>
+                    <span class="px-4 py-2 rounded-lg bg-primary-dark text-white font-semibold text-sm">
+                        <?= $link['title'] ?>
+                    </span>
+                <?php else: ?>
+                    <a href="<?= $link['uri'] . '&' . http_build_query($filters) . '&lang=' . site_lang() ?>" 
+                       class="px-4 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition text-sm font-medium text-gray-700">
+                        <?= $link['title'] ?>
+                    </a>
+                <?php endif; ?>
+            <?php endforeach; ?>
+
+            <?php if ($pager->hasNext()): ?>
+            <a href="<?= $pager->getNext() . '&' . http_build_query($filters) . '&lang=' . site_lang() ?>" 
+               class="px-3 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition text-sm font-medium text-gray-700">
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </a>
+            <a href="<?= $pager->getLast() . '&' . http_build_query($filters) . '&lang=' . site_lang() ?>" 
+               class="px-3 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition text-sm font-medium text-gray-700">
+                <i data-lucide="chevrons-right" class="w-4 h-4"></i>
+            </a>
+            <?php endif; ?>
+        </nav>
+        
+        <p class="text-center text-sm text-gray-600 mt-4">
+            Page <?= $pager->getCurrentPage() ?> sur <?= $pager->getPageCount() ?> 
+            (<?= $pager->getTotal() ?> produit<?= $pager->getTotal() > 1 ? 's' : '' ?> au total)
+        </p>
     </div>
+    <?php endif; ?>
     <?php endif; ?>
 </div>
 </div>
