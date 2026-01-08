@@ -45,6 +45,13 @@ $routes->group('admin', ['filter' => 'adminauth', 'namespace' => 'App\\Controlle
     $routes->post('produits/update/(:num)', 'AdminProduitsController::update/$1');
     $routes->post('produits/delete/(:num)', 'AdminProduitsController::delete/$1');
     
+    // API Multi-images
+    $routes->get('produits/(:num)/images', 'AdminProduitsController::getImages/$1');
+    $routes->post('produits/(:num)/images/upload', 'AdminProduitsController::uploadImages/$1');
+    $routes->put('produits/images/(:num)/set-primary', 'AdminProduitsController::setPrimaryImage/$1');
+    $routes->put('produits/(:num)/images/reorder', 'AdminProduitsController::reorderImages/$1');
+    $routes->delete('produits/images/(:num)', 'AdminProduitsController::deleteImage/$1');
+    
     // Gestion des Réservations
     $routes->get('reservations', 'AdminReservationsController::index');
     

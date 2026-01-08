@@ -1,6 +1,7 @@
 <?php
 $langQ = '?lang=' . site_lang();
 use App\Libraries\ImageProcessor;
+
 $imageProcessor = new ImageProcessor();
 $filters = $filters ?? ['category' => '', 'condition' => '', 'stock' => '', 'search' => ''];
 $categories = $categories ?? [];
@@ -136,12 +137,18 @@ $categories = $categories ?? [];
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    <?php foreach ($products as $product): ?>
+                    <?php foreach ($products as $product): 
+                        // Utiliser l'image passée par le contrôleur
+                        $imageUrl = null;
+                        if (!empty($product['primary_image'])) {
+                            $imageUrl = $imageProcessor->getImageUrl($product['primary_image'], 'format2');
+                        }
+                    ?>
                         <tr class="hover:bg-gray-50 transition">
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <?php if (!empty($product['image'])): ?>
-                                        <img src="<?= $imageProcessor->getImageUrl($product['image'], 'format2') ?>" 
+                                    <?php if ($imageUrl): ?>
+                                        <img src="<?= $imageUrl ?>" 
                                              alt="<?= esc($product['title']) ?>"
                                              width="48"
                                              height="48"

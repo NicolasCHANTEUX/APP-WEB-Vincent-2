@@ -6,9 +6,11 @@ $price = (float) ($p['price'] ?? 0);
 $discountedPrice = isset($p['discounted_price']) ? (float) $p['discounted_price'] : null;
 $discountPercent = isset($p['discount_percent']) ? (float) $p['discount_percent'] : null;
 $stock = (int) ($p['stock'] ?? 0);
-$img = (string) ($p['image'] ?? base_url('images/default-image.webp'));
 $slug = (string) ($p['slug'] ?? '');
 $productId = (int) ($p['id'] ?? 0);
+
+// L'image est déjà passée par le contrôleur
+$img = $p['image'] ?? base_url('images/default-image.webp');
 
 // Détection de l'état (Neuf ou Occasion)
 $conditionState = (string) ($p['condition_state'] ?? 'new');

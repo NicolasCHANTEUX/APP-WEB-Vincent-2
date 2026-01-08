@@ -65,8 +65,7 @@ jobs:
         sudo chown -R www-data:www-data public/uploads
         sudo chown -R www-data:www-data public/writable
 
-        # LA CORRECTION EST ICI : 777 au lieu de 755
-        # C'est la seule façon d'éviter les erreurs 500 sur ton serveur actuel
+        # C'est la seule façon d'éviter les erreurs 500 sur le serveur actuel
         sudo chmod -R 777 writable
         sudo chmod -R 777 public/uploads
         sudo chmod -R 777 public/writable

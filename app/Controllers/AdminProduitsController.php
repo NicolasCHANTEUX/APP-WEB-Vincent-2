@@ -4,18 +4,21 @@ namespace App\Controllers;
 
 use App\Models\ProductModel;
 use App\Models\CategoryModel;
+use App\Models\ProductImageModel;
 use App\Libraries\ImageProcessor;
 
 class AdminProduitsController extends BaseController
 {
     protected $productModel;
     protected $categoryModel;
+    protected $productImageModel;
     protected $imageProcessor;
 
     public function __construct()
     {
         $this->productModel = new ProductModel();
         $this->categoryModel = new CategoryModel();
+        $this->productImageModel = new ProductImageModel();
         $this->imageProcessor = new ImageProcessor();
     }
 
@@ -58,6 +61,13 @@ class AdminProduitsController extends BaseController
         }
 
         $products = $builder->findAll();
+        
+        // Récupérer les images primaires pour chaque produit
+        foreach ($products as &$product) {
+            $primaryImage = $this->productImageModel->getPrimaryImage($product['id']);
+            $product['primary_image'] = $primaryImage ? $primaryImage['filename'] : $product['image'];
+        }
+        
         $categories = $this->categoryModel->findAll();
 
         return view('pages/admin/produits', [
@@ -168,13 +178,18 @@ class AdminProduitsController extends BaseController
         log_message('error', '[AdminProduits] Données produit: ' . json_encode($data));
 
         // Traitement de l'image
+        $hasImage = false;
+        $imageFilename = null;
+        
         if ($imageFile && $imageFile->isValid() && !$imageFile->hasMoved()) {
             log_message('error', '[AdminProduits] Image détectée, lancement traitement...');
             
-            $result = $this->imageProcessor->processProductImage($imageFile, $data['sku']);
+            $result = $this->imageProcessor->processProductImage($imageFile, $data['sku'], 1);
             
             if ($result['success']) {
                 $data['image'] = $result['filename'];
+                $imageFilename = $result['filename'];
+                $hasImage = true;
                 log_message('error', '[AdminProduits] ✓ Image traitée: ' . $result['filename']);
             } else {
                 log_message('error', '[AdminProduits] ✗ Erreur traitement image: ' . $result['message']);
@@ -187,7 +202,22 @@ class AdminProduitsController extends BaseController
 
         // Insertion en base de données
         if ($this->productModel->insert($data)) {
-            log_message('error', '[AdminProduits] ✓ Produit créé avec succès (ID: ' . $this->productModel->getInsertID() . ')');
+            $productId = $this->productModel->getInsertID();
+            log_message('error', '[AdminProduits] ✓ Produit créé avec succès (ID: ' . $productId . ')');
+            
+            // Créer l'entrée dans product_images si une image a été uploadée
+            if ($hasImage) {
+                $productImageModel = new \App\Models\ProductImageModel();
+                $imageData = [
+                    'product_id' => $productId,
+                    'filename' => $imageFilename,
+                    'position' => 1,
+                    'is_primary' => 1
+                ];
+                $productImageModel->insert($imageData);
+                log_message('error', '[AdminProduits] ✓ Entrée product_images créée');
+            }
+            
             return redirect()->to('admin/produits?lang=' . $lang)->with('success', 'Produit créé avec succès !');
         } else {
             log_message('error', '[AdminProduits] ✗ Échec insertion BDD: ' . json_encode($this->productModel->errors()));
@@ -447,6 +477,236 @@ class AdminProduitsController extends BaseController
             return false;
         }
     }
-}
 
+    // ========== GESTION MULTI-IMAGES ==========
+
+    /**
+     * API: Récupérer toutes les images d'un produit
+     * 
+     * GET /admin/produits/{productId}/images
+     */
+    public function getImages($productId)
+    {
+        $product = $this->productModel->find($productId);
+        if (!$product) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Produit introuvable.'])->setStatusCode(404);
+        }
+
+        $productImageModel = new \App\Models\ProductImageModel();
+        $images = $productImageModel->getProductImages($productId);
+
+        // Vérifier qu'une seule image est marquée comme principale
+        $primaryCount = 0;
+        $firstImageId = null;
+        foreach ($images as $image) {
+            if ($image['is_primary'] == 1) {
+                $primaryCount++;
+            }
+            if ($firstImageId === null) {
+                $firstImageId = $image['id'];
+            }
+        }
+        
+        // Si plusieurs images principales ou aucune, corriger
+        if ($primaryCount !== 1 && !empty($images)) {
+            // Réinitialiser toutes à 0
+            $db = \Config\Database::connect();
+            $db->table('product_images')
+                ->where('product_id', $productId)
+                ->update(['is_primary' => 0]);
+            
+            // Définir la première comme principale
+            $db->table('product_images')
+                ->where('id', $firstImageId)
+                ->update(['is_primary' => 1]);
+            
+            // Recharger les images
+            $images = $productImageModel->getProductImages($productId);
+        }
+
+        // Construire les URLs complètes
+        foreach ($images as &$image) {
+            $image['url'] = $this->imageProcessor->getImageUrl($image['filename'], 'format1');
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'images' => $images
+        ]);
+    }
+
+    /**
+     * API: Upload une ou plusieurs images pour un produit
+     * 
+     * POST /admin/produits/{id}/images/upload
+     * Accepts: multipart/form-data with 'images[]' field
+     * Returns: JSON with uploaded image IDs
+     */
+    public function uploadImages($productId)
+    {
+        log_message('error', '[AdminProduits] === UPLOAD MULTI-IMAGES PRODUIT #' . $productId . ' ===');
+        
+        $product = $this->productModel->find($productId);
+        if (!$product) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Produit introuvable.'])->setStatusCode(404);
+        }
+
+        $productImageModel = new \App\Models\ProductImageModel();
+        
+        // Vérifier combien d'images existent déjà
+        $existingCount = $productImageModel->countProductImages($productId);
+        
+        $files = $this->request->getFileMultiple('images');
+        if (empty($files)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Aucun fichier reçu.'])->setStatusCode(400);
+        }
+
+        $uploaded = [];
+        $errors = [];
+        
+        foreach ($files as $file) {
+            // Vérifier la limite de 6 images
+            if ($existingCount >= 6) {
+                $errors[] = $file->getName() . ' : Limite de 6 images atteinte.';
+                continue;
+            }
+            
+            if ($file->isValid() && !$file->hasMoved()) {
+                // Obtenir le prochain numéro d'image
+                $nextPosition = $productImageModel->getNextPosition($productId);
+                
+                // Traiter l'image avec numérotation
+                $result = $this->imageProcessor->processProductImage($file, $product['sku'], $nextPosition);
+                
+                if ($result['success']) {
+                    // Sauvegarder en base de données
+                    $imageData = [
+                        'product_id' => $productId,
+                        'filename' => $result['filename'],
+                        'position' => $nextPosition,
+                        'is_primary' => $existingCount === 0 ? 1 : 0 // Première image = primary
+                    ];
+                    
+                    $imageId = $productImageModel->insert($imageData);
+                    if ($imageId) {
+                        $uploaded[] = [
+                            'id' => $imageId,
+                            'filename' => $result['filename'],
+                            'url' => $this->imageProcessor->getImageUrl($result['filename'], 'format1'),
+                            'position' => $nextPosition,
+                            'is_primary' => $existingCount === 0
+                        ];
+                        $existingCount++;
+                        log_message('error', '[AdminProduits] ✓ Image #' . $nextPosition . ' uploadée: ' . $result['filename']);
+                    } else {
+                        $errors[] = $file->getName() . ' : Erreur sauvegarde BDD.';
+                    }
+                } else {
+                    $errors[] = $file->getName() . ' : ' . $result['message'];
+                }
+            } else {
+                $errors[] = $file->getName() . ' : Fichier invalide.';
+            }
+        }
+
+        return $this->response->setJSON([
+            'success' => count($uploaded) > 0,
+            'uploaded' => $uploaded,
+            'errors' => $errors,
+            'total_images' => $existingCount
+        ]);
+    }
+
+    /**
+     * API: Définir une image comme principale
+     * 
+     * PUT /admin/produits/images/{imageId}/set-primary
+     */
+    public function setPrimaryImage($imageId)
+    {
+        log_message('error', '[AdminProduits] === SET PRIMARY IMAGE #' . $imageId . ' ===');
+        
+        $productImageModel = new \App\Models\ProductImageModel();
+        
+        if ($productImageModel->setPrimaryImage($imageId)) {
+            log_message('error', '[AdminProduits] ✓ Image principale définie');
+            return $this->response->setJSON(['success' => true, 'message' => 'Image principale définie.']);
+        } else {
+            return $this->response->setJSON(['success' => false, 'message' => 'Erreur lors de la définition de l\'image principale.'])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * API: Réorganiser les images par drag & drop
+     * 
+     * PUT /admin/produits/{productId}/images/reorder
+     * Body: { "positions": [{"id": 1, "position": 2}, {"id": 2, "position": 1}] }
+     */
+    public function reorderImages($productId)
+    {
+        log_message('error', '[AdminProduits] === REORDER IMAGES PRODUIT #' . $productId . ' ===');
+        
+        $positions = $this->request->getJSON(true)['positions'] ?? [];
+        
+        if (empty($positions)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Aucune position fournie.'])->setStatusCode(400);
+        }
+
+        $productImageModel = new \App\Models\ProductImageModel();
+        
+        if ($productImageModel->updatePositions($positions)) {
+            log_message('error', '[AdminProduits] ✓ Positions mises à jour');
+            return $this->response->setJSON(['success' => true, 'message' => 'Ordre des images mis à jour.']);
+        } else {
+            return $this->response->setJSON(['success' => false, 'message' => 'Erreur lors de la réorganisation.'])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * API: Supprimer une image spécifique
+     * 
+     * DELETE /admin/produits/images/{imageId}
+     */
+    public function deleteImage($imageId)
+    {
+        log_message('error', '[AdminProduits] === DELETE IMAGE #' . $imageId . ' ===');
+        
+        $productImageModel = new \App\Models\ProductImageModel();
+        $image = $productImageModel->find($imageId);
+        
+        if (!$image) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Image introuvable.'])->setStatusCode(404);
+        }
+
+        // Récupérer le produit pour obtenir le SKU
+        $product = $this->productModel->find($image['product_id']);
+        if (!$product) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Produit introuvable.'])->setStatusCode(404);
+        }
+
+        // Extraire le numéro d'image du filename (SKU-format1-X.webp)
+        preg_match('/-(\d+)\.webp$/', $image['filename'], $matches);
+        $imageNumber = isset($matches[1]) ? (int)$matches[1] : 1;
+        
+        // Supprimer les fichiers physiques (3 formats)
+        $this->imageProcessor->deleteProductImageSet($product['sku'], $imageNumber);
+        
+        // Supprimer de la BDD
+        if ($productImageModel->delete($imageId)) {
+            log_message('error', '[AdminProduits] ✓ Image supprimée (BDD + fichiers)');
+            
+            // Si c'était l'image principale, définir la première image restante comme principale
+            if ($image['is_primary'] == 1) {
+                $remainingImages = $productImageModel->getProductImages($image['product_id']);
+                if (!empty($remainingImages)) {
+                    $productImageModel->setPrimaryImage($remainingImages[0]['id']);
+                }
+            }
+            
+            return $this->response->setJSON(['success' => true, 'message' => 'Image supprimée avec succès.']);
+        } else {
+            return $this->response->setJSON(['success' => false, 'message' => 'Erreur lors de la suppression.'])->setStatusCode(500);
+        }
+    }
+}
 

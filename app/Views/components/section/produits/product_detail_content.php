@@ -1,4 +1,6 @@
 <?php
+use App\Libraries\ImageProcessor;
+
 $product = $product ?? [];
 $id = $product['id'] ?? 0;
 $title = $product['title'] ?? '';
@@ -6,7 +8,6 @@ $description = $product['description'] ?? '';
 $price = $product['price'] ?? 0;
 $discountPercent = $product['discount_percent'] ?? null;
 $stock = $product['stock'] ?? 0;
-$image = $product['image'] ?? base_url('images/default-image.webp');
 $categoryName = $product['category_name'] ?? '';
 $sku = $product['sku'] ?? '';
 $weight = $product['weight'] ?? null;
@@ -16,9 +17,12 @@ $conditionState = $product['condition_state'] ?? 'new';
 $createdAt = $product['created_at'] ?? null;
 $lang = site_lang();
 
-// URL de l'image originale haute qualité pour la lightbox
+// Les images sont déjà passées par le contrôleur
+$imageProcessor = new ImageProcessor();
+$images = $product['images'] ?? [];
+$image = $product['image'] ?? base_url('images/default-image.webp');
 $imageOriginal = $product['image_original'] ?? $image;
-$hasImage = !empty($product['image']) && $product['image'] !== base_url('images/default-image.webp');
+$hasImage = !empty($images) || ($image !== base_url('images/default-image.webp'));
 
 // Calculer le prix réduit si réduction en pourcentage
 $finalPrice = $price;
@@ -89,22 +93,23 @@ $errors = session()->getFlashdata('errors') ?? [];
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        <!-- Colonne gauche : Image -->
+        <!-- Colonne gauche : Image et Galerie -->
         <div>
+            <!-- Image principale -->
             <div class="relative aspect-square bg-gray-100 rounded-2xl overflow-hidden group">
-                <img src="<?= esc($image) ?>" 
+                <img id="main-product-image"
+                     src="<?= esc($image) ?>" 
                      alt="<?= esc($title) ?>" 
                      width="800"
                      height="800"
                      loading="lazy"
-                     srcset="<?= esc($image) ?> 400w, <?= esc($image) ?> 800w, <?= esc($image) ?> 1200w"
-                     sizes="(max-width: 1024px) 100vw, 50vw"
-                     class="w-full h-full object-cover"
+                     class="w-full h-full object-cover transition-opacity duration-300"
                      onerror="this.onerror=null; this.src='<?= base_url('images/default-image.webp') ?>';">
                 
                 <!-- Bouton Zoom (uniquement si image réelle) -->
                 <?php if ($hasImage): ?>
-                <button onclick="openImageLightbox()" 
+                <button id="zoom-button" 
+                        data-original-url="<?= $imageOriginal ?>"
                         class="absolute top-4 right-4 bg-white/90 hover:bg-white backdrop-blur-sm text-primary-dark p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
                         title="Agrandir l'image"
                         aria-label="Voir l'image en grand">
@@ -114,6 +119,120 @@ $errors = session()->getFlashdata('errors') ?? [];
                 </button>
                 <?php endif; ?>
             </div>
+
+            <!-- Galerie de miniatures (si plusieurs images) -->
+            <?php if (!empty($images) && count($images) > 1): ?>
+            <div class="mt-4 flex gap-3 overflow-x-auto pb-2">
+                <?php foreach ($images as $img): 
+                    $thumbUrl = $imageProcessor->getImageUrl($img['filename'], 'format2');
+                    $fullUrl = $imageProcessor->getImageUrl($img['filename'], 'format1');
+                    $originalUrl = $imageProcessor->getImageUrl($img['filename'], 'original');
+                ?>
+                <img src="<?= esc($thumbUrl) ?>" 
+                     alt="Image <?= $img['position'] ?>"
+                     width="80"
+                     height="80"
+                     class="thumbnail-image w-20 h-20 flex-shrink-0 object-cover rounded-lg cursor-pointer border-2 <?= $img['is_primary'] ? 'border-accent-gold' : 'border-gray-200 hover:border-accent-gold' ?> transition"
+                     data-full-url="<?= esc($fullUrl) ?>"
+                     data-original-url="<?= esc($originalUrl) ?>">
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+            
+            <script>
+            (function() {
+                console.log('Script de zoom chargé');
+                
+                // Event listeners pour les miniatures
+                document.addEventListener('DOMContentLoaded', function() {
+                    const zoomButton = document.getElementById('zoom-button');
+                    const mainImage = document.getElementById('main-product-image');
+                    const thumbnails = document.querySelectorAll('.thumbnail-image');
+                    
+                    console.log('DOM loaded - Zoom button:', zoomButton ? 'trouvé' : 'non trouvé');
+                    console.log('Thumbnails found:', thumbnails.length);
+                    
+                    // Fonction pour changer l'image principale
+                    function changeMainImage(fullUrl, originalUrl) {
+                        if (mainImage) {
+                            mainImage.style.opacity = '0.5';
+                            mainImage.src = fullUrl;
+                            // Mettre à jour l'URL du bouton zoom
+                            if (zoomButton) {
+                                zoomButton.setAttribute('data-original-url', originalUrl);
+                                console.log('Zoom button updated with:', originalUrl);
+                            }
+                            console.log('Image changed to:', originalUrl);
+                            mainImage.onload = () => mainImage.style.opacity = '1';
+                        }
+                    }
+                    
+                    // Event listeners pour les miniatures
+                    thumbnails.forEach(thumb => {
+                        thumb.addEventListener('click', function() {
+                            const fullUrl = this.getAttribute('data-full-url');
+                            const originalUrl = this.getAttribute('data-original-url');
+                            if (fullUrl && originalUrl) {
+                                changeMainImage(fullUrl, originalUrl);
+                            }
+                        });
+                    });
+                    
+                    // Event listener pour le bouton zoom
+                    if (zoomButton) {
+                        console.log('Attaching click listener to zoom button');
+                        zoomButton.addEventListener('click', function(e) {
+                            console.log('Zoom button clicked!');
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            const imageToShow = this.getAttribute('data-original-url');
+                            console.log('Opening lightbox with:', imageToShow);
+                            
+                            if (!imageToShow) {
+                                console.error('No image URL found!');
+                                return;
+                            }
+                            
+                            const lightbox = document.createElement('div');
+                            lightbox.id = 'image-lightbox';
+                            lightbox.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; display: flex !important; align-items: center !important; justify-content: center !important; background-color: rgba(0, 0, 0, 0.95) !important; padding: 1rem !important;';
+                            lightbox.innerHTML = `
+                                <button class="close-lightbox absolute top-4 right-4 text-white hover:text-accent-gold transition p-2">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                                <img src="${imageToShow}" alt="Image agrandie" class="max-w-full max-h-full object-contain">
+                            `;
+                            
+                            // Event listener pour fermer
+                            const closeBtn = lightbox.querySelector('.close-lightbox');
+                            closeBtn.addEventListener('click', function() {
+                                console.log('Closing lightbox');
+                                lightbox.remove();
+                                document.body.style.overflow = '';
+                            });
+                            
+                            // Fermer en cliquant sur le fond
+                            lightbox.addEventListener('click', function(e) {
+                                if (e.target === lightbox) {
+                                    console.log('Closing lightbox (background click)');
+                                    lightbox.remove();
+                                    document.body.style.overflow = '';
+                                }
+                            });
+                            
+                            console.log('Appending lightbox to body');
+                            document.body.appendChild(lightbox);
+                            document.body.style.overflow = 'hidden';
+                        });
+                    } else {
+                        console.error('Zoom button not found!');
+                    }
+                });
+            })();
+            </script>
             
             <!-- Informations techniques -->
             <div class="mt-6 bg-gray-50 rounded-xl p-6 space-y-3">

@@ -144,48 +144,395 @@ $imageProcessor = new ImageProcessor();
             </div>
         </div>
 
-        <!-- Image -->
+        <!-- Galerie d'images (max 6) -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-lg font-semibold text-primary-dark mb-4 flex items-center gap-2">
-                <i data-lucide="image" class="w-5 h-5 text-accent-gold"></i>
-                Image du produit
+                <i data-lucide="images" class="w-5 h-5 text-accent-gold"></i>
+                Galerie d'images
+                <span class="text-xs font-normal text-gray-500 ml-auto">(<span id="image-count">0</span>/6 images)</span>
             </h3>
 
-            <div class="space-y-4">
-                <!-- Image actuelle -->
-                <?php if (!empty($product['image'])): ?>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Image actuelle</label>
-                    <div class="flex items-start gap-4">
-                        <img src="<?= $imageProcessor->getImageUrl($product['image'], 'format2') ?>" 
-                             alt="<?= esc($product['title']) ?>"
-                             width="128"
-                             height="128"
-                             class="w-32 h-32 object-cover rounded-lg border-2 border-gray-200">
-                        <div class="flex-1">
-                            <p class="text-sm text-gray-600"><strong>Fichier :</strong> <?= esc($product['image']) ?></p>
-                            <p class="text-xs text-gray-500 mt-1">3 versions générées (original, détail, miniature)</p>
+            <div class="space-y-6">
+                <!-- Zone d'upload drag & drop -->
+                <div id="upload-zone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-accent-gold hover:bg-accent-gold/5 transition cursor-pointer">
+                    <input type="file" id="image-upload" multiple accept="image/jpeg,image/png,image/webp" class="hidden">
+                    
+                    <div id="upload-prompt">
+                        <i data-lucide="upload-cloud" class="w-12 h-12 mx-auto text-gray-400 mb-3"></i>
+                        <p class="text-sm font-medium text-gray-700 mb-1">Glissez-déposez vos images ici</p>
+                        <p class="text-xs text-gray-500">ou cliquez pour parcourir</p>
+                        <p class="text-xs text-gray-400 mt-3">JPEG, PNG, WebP • Max 10 MB par image • Max 6 images</p>
+                    </div>
+
+                    <div id="upload-progress" class="hidden">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-gold mx-auto mb-3"></div>
+                        <p class="text-sm text-gray-600">Upload en cours...</p>
+                    </div>
+                </div>
+
+                <!-- Grille des images uploadées (avec drag & drop pour réordonner) -->
+                <div id="images-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <!-- Les images seront ajoutées ici dynamiquement -->
+                </div>
+
+                <!-- Message d'aide -->
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="info" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"></i>
+                        <div class="text-sm text-blue-800">
+                            <p class="font-semibold mb-1">💡 Conseils pour vos images</p>
+                            <ul class="list-disc list-inside space-y-1 text-xs">
+                                <li>Cliquez sur l'étoile pour définir l'image principale (affichée en premier)</li>
+                                <li>Glissez-déposez les images pour les réorganiser</li>
+                                <li>Chaque image génère automatiquement 3 versions (original, détail, miniature)</li>
+                                <li>Privilégiez des photos nettes avec un bon éclairage</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-                <?php endif; ?>
-
-                <!-- Nouvelle image -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        <?= !empty($product['image']) ? 'Remplacer l\'image' : 'Ajouter une image' ?>
-                    </label>
-                    <input type="file" name="image" accept="image/jpeg,image/png,image/webp"
-                           class="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent-gold file:text-primary-dark hover:file:bg-accent-gold/90 cursor-pointer">
-                    <p class="text-xs text-gray-500 mt-2">
-                        <strong>Formats acceptés :</strong> JPEG, PNG, WebP<br>
-                        <strong>Taille max :</strong> 10 MB<br>
-                        <?= !empty($product['image']) ? '<strong class="text-orange-600">Attention :</strong> Les 3 versions existantes seront supprimées et remplacées<br>' : '' ?>
-                        <strong>Traitement automatique :</strong> Conversion WebP et redimensionnement en 3 versions
-                    </p>
-                </div>
             </div>
         </div>
+
+        <script>
+        // Variables globales pour la gestion des images
+        let productId = <?= $product['id'] ?>;
+        let productSku = '<?= $product['sku'] ?>';
+        let images = [];
+
+        // Charger les images existantes au chargement de la page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadExistingImages();
+            initializeUploadZone();
+            lucide.createIcons(); // Re-créer les icônes Lucide après chargement
+        });
+
+        // Charger les images existantes depuis la BDD
+        async function loadExistingImages() {
+            try {
+                const response = await fetch(`/admin/produits/${productId}/images`);
+                const data = await response.json();
+                
+                if (data.success && data.images) {
+                    images = data.images;
+                    console.log('Images chargées:', images); // Debug
+                    console.log('Images principales:', images.filter(img => img.is_primary == 1)); // Debug
+                    renderImages();
+                }
+            } catch (error) {
+                console.error('Erreur chargement images:', error);
+            }
+        }
+
+        // Initialiser la zone d'upload (drag & drop + clic)
+        function initializeUploadZone() {
+            const uploadZone = document.getElementById('upload-zone');
+            const fileInput = document.getElementById('image-upload');
+
+            // Clic pour sélectionner des fichiers
+            uploadZone.addEventListener('click', () => {
+                if (images.length >= 6) {
+                    alert('Limite de 6 images atteinte. Supprimez une image pour en ajouter une nouvelle.');
+                    return;
+                }
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+            });
+
+            // Drag & drop
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('border-accent-gold', 'bg-accent-gold/10', 'scale-105');
+                uploadZone.style.borderWidth = '4px';
+            });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('border-accent-gold', 'bg-accent-gold/10', 'scale-105');
+                uploadZone.style.borderWidth = '2px';
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('border-accent-gold', 'bg-accent-gold/10', 'scale-105');
+                uploadZone.style.borderWidth = '2px';
+                
+                if (images.length >= 6) {
+                    alert('Limite de 6 images atteinte.');
+                    return;
+                }
+                
+                handleFiles(e.dataTransfer.files);
+            });
+        }
+
+        // Traiter les fichiers sélectionnés
+        async function handleFiles(files) {
+            const filesArray = Array.from(files);
+            const remainingSlots = 6 - images.length;
+            
+            if (filesArray.length > remainingSlots) {
+                alert(`Vous ne pouvez ajouter que ${remainingSlots} image(s) supplémentaire(s).`);
+                return;
+            }
+
+            const formData = new FormData();
+            filesArray.forEach(file => formData.append('images[]', file));
+
+            // Afficher le loader
+            document.getElementById('upload-prompt').classList.add('hidden');
+            document.getElementById('upload-progress').classList.remove('hidden');
+
+            try {
+                const response = await fetch(`/admin/produits/${productId}/images/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.uploaded) {
+                    images.push(...data.uploaded);
+                    renderImages();
+                    
+                    if (data.errors && data.errors.length > 0) {
+                        alert('Certaines images n\'ont pas pu être uploadées:\\n' + data.errors.join('\\n'));
+                    }
+                } else {
+                    alert('Erreur lors de l\'upload: ' + (data.message || 'Erreur inconnue'));
+                }
+            } catch (error) {
+                console.error('Erreur upload:', error);
+                alert('Erreur lors de l\'upload des images.');
+            } finally {
+                // Masquer le loader
+                document.getElementById('upload-prompt').classList.remove('hidden');
+                document.getElementById('upload-progress').classList.add('hidden');
+                document.getElementById('image-upload').value = ''; // Reset input
+            }
+        }
+
+        // Afficher toutes les images dans la grille
+        function renderImages() {
+            const grid = document.getElementById('images-grid');
+            grid.innerHTML = '';
+
+            // Trier par position
+            images.sort((a, b) => a.position - b.position);
+
+            images.forEach((image, index) => {
+                const imageCard = createImageCard(image, index);
+                grid.appendChild(imageCard);
+            });
+
+            // Mettre à jour le compteur
+            document.getElementById('image-count').textContent = images.length;
+
+            // Re-initialiser les icônes Lucide
+            lucide.createIcons();
+
+            // Initialiser le drag & drop sur les images
+            initializeDragAndDrop();
+        }
+
+        // Créer une carte image
+        function createImageCard(image, index) {
+            const card = document.createElement('div');
+            card.className = 'relative group bg-white rounded-lg border-2 border-gray-200 overflow-hidden transition hover:shadow-md';
+            card.dataset.imageId = image.id;
+            card.dataset.position = image.position;
+            card.draggable = true;
+            
+            // Convertir is_primary en nombre pour la comparaison
+            const isPrimary = parseInt(image.is_primary) === 1;
+
+            card.innerHTML = `
+                <!-- Image principale -->
+                <img src="${image.url}" alt="Image ${index + 1}" class="w-full h-48 object-cover">
+                
+                <!-- Badge principal -->
+                ${isPrimary ? '<div class="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1"><i data-lucide="star" class="w-3 h-3 fill-current"></i> Principale</div>' : ''}
+                
+                <!-- Bouton étoile (définir comme principal) -->
+                <button type="button" onclick="setPrimaryImage(${image.id})" 
+                        class="absolute top-2 right-2 bg-white/90 hover:bg-white p-2 rounded-full shadow transition ${isPrimary ? 'hidden' : ''}"
+                        title="Définir comme image principale">
+                    <i data-lucide="star" class="w-4 h-4 text-gray-600"></i>
+                </button>
+                
+                <!-- Bouton supprimer -->
+                <button type="button" onclick="deleteImage(${image.id})" 
+                        class="absolute bottom-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow transition"
+                        title="Supprimer cette image">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+                
+                <!-- Handle de drag -->
+                <div class="absolute bottom-2 left-2 bg-white/90 p-2 rounded-full shadow cursor-move" title="Glisser pour réorganiser">
+                    <i data-lucide="grip-vertical" class="w-4 h-4 text-gray-600"></i>
+                </div>
+                
+                <!-- Position -->
+                <div class="absolute top-2 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full">
+                    ${index + 1}
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Définir une image comme principale
+        async function setPrimaryImage(imageId) {
+            // Convertir en nombre pour éviter les problèmes de comparaison
+            imageId = parseInt(imageId);
+            
+            try {
+                const response = await fetch(`/admin/produits/images/${imageId}/set-primary`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Mettre à jour localement avec conversion en nombre
+                    images.forEach(img => {
+                        img.is_primary = (parseInt(img.id) === imageId) ? 1 : 0;
+                    });
+                    renderImages();
+                } else {
+                    alert('Erreur: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erreur setPrimary:', error);
+                alert('Erreur lors de la définition de l\'image principale.');
+            }
+        }
+
+        // Supprimer une image
+        async function deleteImage(imageId) {
+            if (!confirm('Voulez-vous vraiment supprimer cette image ?')) return;
+
+            try {
+                const response = await fetch(`/admin/produits/images/${imageId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    images = images.filter(img => img.id !== imageId);
+                    renderImages();
+                } else {
+                    alert('Erreur: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erreur delete:', error);
+                alert('Erreur lors de la suppression.');
+            }
+        }
+
+        // Initialiser le drag & drop pour réorganiser
+        function initializeDragAndDrop() {
+            const imageCards = document.querySelectorAll('#images-grid > div');
+            let draggedElement = null;
+
+            imageCards.forEach(card => {
+                card.addEventListener('dragstart', (e) => {
+                    draggedElement = card;
+                    card.classList.add('opacity-50');
+                });
+
+                card.addEventListener('dragend', () => {
+                    card.classList.remove('opacity-50');
+                });
+
+                card.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const afterElement = getDragAfterElement(e.clientY);
+                    const grid = document.getElementById('images-grid');
+                    
+                    if (afterElement == null) {
+                        grid.appendChild(draggedElement);
+                    } else {
+                        grid.insertBefore(draggedElement, afterElement);
+                    }
+                });
+
+                card.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    updatePositions();
+                });
+            });
+        }
+
+        // Trouver l'élément après lequel insérer
+        function getDragAfterElement(y) {
+            const draggableElements = [...document.querySelectorAll('#images-grid > div:not(.opacity-50)')];
+
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        // Mettre à jour les positions après drag & drop
+        async function updatePositions() {
+            const imageCards = document.querySelectorAll('#images-grid > div');
+            const positions = [];
+
+            imageCards.forEach((card, index) => {
+                positions.push({
+                    id: parseInt(card.dataset.imageId),
+                    position: index + 1
+                });
+            });
+
+            try {
+                const response = await fetch(`/admin/produits/${productId}/images/reorder`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ positions })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Mettre à jour les positions localement
+                    positions.forEach(pos => {
+                        const img = images.find(i => i.id === pos.id);
+                        if (img) img.position = pos.position;
+                    });
+                    renderImages();
+                } else {
+                    alert('Erreur lors de la réorganisation: ' + data.message);
+                    renderImages(); // Restaurer l'ordre précédent
+                }
+            } catch (error) {
+                console.error('Erreur reorder:', error);
+                renderImages(); // Restaurer l'ordre précédent
+            }
+        }
+        </script>
 
         <!-- Actions -->
         <div class="flex items-center justify-between">

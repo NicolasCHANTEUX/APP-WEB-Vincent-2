@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\ProductModel;
 use App\Models\CategoryModel;
 use App\Models\ReservationModel;
+use App\Models\ProductImageModel;
 use App\Libraries\ImageProcessor;
 
 class ProduitsControler extends BaseController
@@ -12,6 +13,7 @@ class ProduitsControler extends BaseController
     protected $productModel;
     protected $categoryModel;
     protected $reservationModel;
+    protected $productImageModel;
     protected $imageProcessor;
 
     public function __construct()
@@ -19,6 +21,7 @@ class ProduitsControler extends BaseController
         $this->productModel = new ProductModel();
         $this->categoryModel = new CategoryModel();
         $this->reservationModel = new ReservationModel();
+        $this->productImageModel = new ProductImageModel();
         $this->imageProcessor = new ImageProcessor();
     }
 
@@ -224,6 +227,10 @@ class ProduitsControler extends BaseController
         $formattedProducts = [];
 
         foreach ($products as $product) {
+            // Récupérer l'image primaire
+            $primaryImage = $this->productImageModel->getPrimaryImage($product['id']);
+            $imageFilename = $primaryImage ? $primaryImage['filename'] : ($product['image'] ?? null);
+            
             // Générer l'excerpt
             $excerpt = $product['description'] 
                 ? (mb_strlen($product['description']) > 100 
@@ -251,7 +258,7 @@ class ProduitsControler extends BaseController
                 // On utilise la variable calculée ci-dessus
                 'discounted_price' => $discountedPrice, 
                 'stock' => $product['stock'],
-                'image' => $this->getValidImagePath($product['image']),
+                'image' => $this->getValidImagePath($imageFilename),
                 'category_name' => $product['category_name'] ?? trans('products_category_uncategorized'),
                 'category_slug' => $product['category_slug'] ?? '',
                 'sku' => $product['sku'],
@@ -274,6 +281,10 @@ class ProduitsControler extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Produit introuvable');
         }
 
+        // Récupérer toutes les images du produit
+        $images = $this->productImageModel->getProductImages($product['id']);
+        $primaryImage = $this->productImageModel->getPrimaryImage($product['id']);
+        
         // Calcul prix remisé
         $discountedPrice = null;
         if (!empty($product['discount_percent']) && $product['discount_percent'] > 0) {
@@ -284,7 +295,10 @@ class ProduitsControler extends BaseController
         $imageUrl = base_url('images/default-image.webp');
         $imageOriginalUrl = base_url('images/default-image.webp');
         
-        if (!empty($product['image'])) {
+        if ($primaryImage) {
+            $imageUrl = $this->imageProcessor->getImageUrl($primaryImage['filename'], 'format1');
+            $imageOriginalUrl = $this->imageProcessor->getImageUrl($primaryImage['filename'], 'original');
+        } elseif (!empty($product['image'])) {
             $imageUrl = $this->imageProcessor->getImageUrl($product['image'], 'format1');
             $imageOriginalUrl = $this->imageProcessor->getImageUrl($product['image'], 'original');
         }
@@ -300,6 +314,7 @@ class ProduitsControler extends BaseController
             'stock' => $product['stock'],
             'image' => $imageUrl,
             'image_original' => $imageOriginalUrl,
+            'images' => $images, // Toutes les images du produit
             'category_name' => $product['category_name'] ?? trans('products_category_uncategorized'),
             'category_slug' => $product['category_slug'] ?? '',
             'sku' => $product['sku'],
