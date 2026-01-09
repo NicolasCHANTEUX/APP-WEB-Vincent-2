@@ -250,6 +250,23 @@ $langQ = '?lang=' . site_lang();
                 }
                 selectedFiles.push(file);
             }
+            
+            // Vérifier la taille totale
+            const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+            const totalMB = (totalSize / (1024 * 1024)).toFixed(2);
+            
+            if (totalSize > 80 * 1024 * 1024) { // 80 MB max total
+                alert(`⚠️ Taille totale trop importante (${totalMB} MB).\n\nConseils :\n• Compressez vos images avant upload\n• Maximum recommandé : 80 MB au total\n• Certaines images ne seront pas uploadées.`);
+                // Garder seulement les images qui passent sous 80 MB
+                let currentSize = 0;
+                selectedFiles = selectedFiles.filter(file => {
+                    if (currentSize + file.size <= 80 * 1024 * 1024) {
+                        currentSize += file.size;
+                        return true;
+                    }
+                    return false;
+                });
+            }
 
             renderPreviews();
             updateFileInput();
@@ -364,6 +381,204 @@ $langQ = '?lang=' . site_lang();
             });
             
             fileInput.files = dataTransfer.files;
+        }
+        </script>
+
+        <!-- Overlay de progression -->
+        <div id="creation-overlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+                <div class="text-center">
+                    <!-- Animation de chargement -->
+                    <div class="relative w-20 h-20 mx-auto mb-6">
+                        <div class="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
+                        <div class="absolute inset-0 border-4 border-accent-gold rounded-full border-t-transparent animate-spin"></div>
+                        <div class="absolute inset-2 bg-accent-gold/10 rounded-full flex items-center justify-center">
+                            <i data-lucide="package" class="w-8 h-8 text-accent-gold"></i>
+                        </div>
+                    </div>
+
+                    <!-- Message d'étape -->
+                    <h3 class="text-xl font-bold text-primary-dark mb-2">Création en cours...</h3>
+                    <p id="progress-message" class="text-gray-600 mb-6">Préparation...</p>
+
+                    <!-- Barre de progression -->
+                    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden mb-2">
+                        <div id="progress-bar" class="bg-gradient-to-r from-accent-gold to-primary-dark h-full rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
+                    </div>
+                    <p id="progress-percent" class="text-sm text-gray-500">0%</p>
+
+                    <!-- Détails de progression -->
+                    <div id="progress-details" class="mt-4 text-xs text-gray-500 space-y-1">
+                        <!-- Détails dynamiques -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        // Gestion de la soumission du formulaire avec progression
+        document.getElementById('create-product-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const form = this;
+            const formData = new FormData(form);
+            const imageCount = selectedFiles.length;
+            
+            // Afficher l'overlay
+            showProgressOverlay();
+            
+            // Simuler la progression en fonction du nombre d'images
+            simulateProgress(imageCount);
+            
+            // Soumettre le formulaire via AJAX
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                // Vérifier si c'est du JSON ou une redirection
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    // Si ce n'est pas JSON, c'est probablement un succès avec redirection HTML
+                    return { success: true };
+                }
+            })
+            .then(data => {
+                // Attendre que la progression atteigne au moins 93%
+                waitForCompletion().then(() => {
+                    // Succès final
+                    updateProgress(100, '✅ Produit créé avec succès !', 'Redirection...');
+                    
+                    setTimeout(() => {
+                        // Utiliser l'URL de redirection fournie ou l'URL par défaut
+                        const redirectUrl = data.redirect || '<?= site_url('admin/produits' . $langQ) ?>';
+                        window.location.href = redirectUrl;
+                    }, 800);
+                });
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                hideProgressOverlay();
+                alert('Une erreur est survenue lors de la création du produit.');
+            });
+        });
+
+        function showProgressOverlay() {
+            const overlay = document.getElementById('creation-overlay');
+            overlay.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function hideProgressOverlay() {
+            const overlay = document.getElementById('creation-overlay');
+            overlay.classList.add('hidden');
+        }
+
+        function updateProgress(percent, message, details = '') {
+            document.getElementById('progress-bar').style.width = percent + '%';
+            document.getElementById('progress-percent').textContent = Math.round(percent) + '%';
+            document.getElementById('progress-message').textContent = message;
+            
+            if (details) {
+                const detailsDiv = document.getElementById('progress-details');
+                const p = document.createElement('p');
+                p.className = 'text-left';
+                p.innerHTML = `<span class="text-accent-gold">•</span> ${details}`;
+                detailsDiv.appendChild(p);
+                
+                // Limiter à 5 dernières lignes
+                while (detailsDiv.children.length > 5) {
+                    detailsDiv.removeChild(detailsDiv.firstChild);
+                }
+            }
+        }
+
+        let currentProgress = 0;
+        let progressInterval;
+        let isServerDone = false;
+
+        function simulateProgress(imageCount) {
+            currentProgress = 0;
+            isServerDone = false;
+            
+            // Calculer la durée totale estimée (plus réaliste)
+            const estimatedTime = 2000 + (imageCount * 1200); // Base 2s + 1.2s par image
+            
+            const steps = [
+                { percent: 5, message: '📤 Upload des images...', delay: 400 },
+                { percent: 15, message: '🔍 Validation des fichiers...', delay: 500 }
+            ];
+
+            // Ajouter des étapes pour chaque image (50% du total)
+            for (let i = 1; i <= imageCount; i++) {
+                const basePercent = 15 + (i * 50 / imageCount);
+                const stepDelay = 600 + (imageCount * 100); // Plus d'images = plus de temps
+                steps.push({
+                    percent: basePercent,
+                    message: `🖼️ Traitement image ${i}/${imageCount}...`,
+                    details: `Génération des versions WebP (original, détail, miniature)`,
+                    delay: stepDelay
+                });
+            }
+
+            // Étapes finales plus lentes
+            steps.push(
+                { percent: 70, message: '💾 Enregistrement en base de données...', details: 'Création du produit', delay: 800 },
+                { percent: 80, message: '🔗 Liaison des images...', details: 'Association des fichiers', delay: 700 },
+                { percent: 88, message: '✨ Optimisation des données...', details: 'Indexation et cache', delay: 600 },
+                { percent: 93, message: '🔄 Finalisation...', details: 'Vérification des fichiers', delay: 500 }
+            );
+
+            let stepIndex = 0;
+
+            function nextStep() {
+                if (stepIndex < steps.length) {
+                    const step = steps[stepIndex];
+                    currentProgress = step.percent;
+                    updateProgress(step.percent, step.message, step.details || '');
+                    stepIndex++;
+                    
+                    setTimeout(nextStep, step.delay);
+                } else {
+                    // Après toutes les étapes, progression lente jusqu'à 99%
+                    slowProgressToEnd();
+                }
+            }
+
+            nextStep();
+        }
+
+        function slowProgressToEnd() {
+            // Progression très lente de 93% à 99% en attendant le serveur
+            const slowInterval = setInterval(() => {
+                if (isServerDone) {
+                    clearInterval(slowInterval);
+                    return;
+                }
+                
+                if (currentProgress < 99) {
+                    currentProgress += 0.5; // Progression très lente
+                    updateProgress(currentProgress, '⏳ Traitement final en cours...', 'Veuillez patienter...');
+                } else {
+                    // Bloqué à 99% en attendant
+                    updateProgress(99, '⏳ Finalisation côté serveur...', 'Presque terminé...');
+                }
+            }, 400); // Toutes les 400ms
+        }
+
+        function waitForCompletion() {
+            return new Promise((resolve) => {
+                // Attendre au minimum 1 seconde pour que la progression soit visible
+                const minDelay = setTimeout(() => {
+                    isServerDone = true;
+                    resolve();
+                }, 1000);
+            });
         }
         </script>
 

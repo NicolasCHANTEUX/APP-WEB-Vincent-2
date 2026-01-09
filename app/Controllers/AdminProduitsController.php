@@ -245,9 +245,29 @@ class AdminProduitsController extends BaseController
                 }
             }
             
-            return redirect()->to('admin/produits?lang=' . $lang)->with('success', 'Produit créé avec succès !');
+            // Répondre en JSON si requête AJAX, sinon rediriger
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Produit créé avec succès !',
+                    'product_id' => $productId,
+                    'redirect' => site_url('admin/produits?lang=' . $lang . '&created=' . $productId)
+                ]);
+            }
+            
+            return redirect()->to('admin/produits?lang=' . $lang . '&created=' . $productId)->with('success', 'Produit créé avec succès !');
         } else {
             log_message('error', '[AdminProduits] ✗ Échec insertion BDD: ' . json_encode($this->productModel->errors()));
+            
+            // Répondre en JSON si requête AJAX, sinon rediriger
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Erreur lors de la création du produit.',
+                    'errors' => $this->productModel->errors()
+                ])->setStatusCode(400);
+            }
+            
             return redirect()->back()->withInput()->with('error', 'Erreur lors de la création du produit.');
         }
     }

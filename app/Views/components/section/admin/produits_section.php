@@ -137,14 +137,20 @@ $categories = $categories ?? [];
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    <?php foreach ($products as $product): 
+                    <?php 
+                    $createdId = isset($_GET['created']) ? $_GET['created'] : null;
+                    foreach ($products as $product): 
                         // Utiliser l'image passée par le contrôleur
                         $imageUrl = null;
                         if (!empty($product['primary_image'])) {
                             $imageUrl = $imageProcessor->getImageUrl($product['primary_image'], 'format2');
                         }
+                        
+                        // Highlight si c'est le produit qui vient d'être créé
+                        $isNew = ($createdId && $product['id'] == $createdId);
+                        $rowClass = $isNew ? 'bg-accent-gold/10 border-l-4 border-accent-gold' : 'hover:bg-gray-50';
                     ?>
-                        <tr class="hover:bg-gray-50 transition">
+                        <tr class="<?= $rowClass ?> transition">
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <?php if ($imageUrl): ?>
