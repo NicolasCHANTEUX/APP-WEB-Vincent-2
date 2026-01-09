@@ -129,16 +129,16 @@ class AdminProduitsController extends BaseController
         $lang = site_lang();
         $validation = \Config\Services::validation();
 
-        // Vérifier si un fichier a été uploadé
-        $imageFile = $this->request->getFile('image');
-        log_message('error', '[AdminProduits] Fichier image reçu: ' . ($imageFile ? 'OUI' : 'NON'));
-        if ($imageFile) {
-            log_message('error', '[AdminProduits] - Nom: ' . $imageFile->getName());
-            log_message('error', '[AdminProduits] - Taille: ' . $imageFile->getSize());
-            log_message('error', '[AdminProduits] - Type: ' . $imageFile->getMimeType());
-            log_message('error', '[AdminProduits] - Est valide: ' . ($imageFile->isValid() ? 'OUI' : 'NON'));
-            log_message('error', '[AdminProduits] - A bougé: ' . ($imageFile->hasMoved() ? 'OUI' : 'NON'));
-            log_message('error', '[AdminProduits] - Erreur: ' . $imageFile->getError());
+        // Vérifier si des fichiers ont été uploadés
+        $imageFiles = $this->request->getFileMultiple('images');
+        log_message('error', '[AdminProduits] Fichiers images reçus: ' . count($imageFiles));
+        
+        if ($imageFiles && count($imageFiles) > 0) {
+            foreach ($imageFiles as $index => $file) {
+                if ($file->isValid()) {
+                    log_message('error', '[AdminProduits] - Image #' . ($index + 1) . ': ' . $file->getName() . ' (' . $file->getSize() . ' bytes)');
+                }
+            }
         }
 
         // Règles de validation
@@ -154,11 +154,6 @@ class AdminProduitsController extends BaseController
             'condition_state' => 'required|in_list[new,used]',
             'discount_percent' => 'permit_empty|decimal|less_than_equal_to[100]',
         ];
-
-        // Ajouter la validation d'image seulement si un fichier est présent
-        if ($imageFile && $imageFile->isValid() && !$imageFile->hasMoved()) {
-            $rules['image'] = 'uploaded[image]|max_size[image,10240]|is_image[image]';
-        }
 
         log_message('error', '[AdminProduits] Règles de validation: ' . json_encode(array_keys($rules)));
 
@@ -184,26 +179,54 @@ class AdminProduitsController extends BaseController
 
         log_message('error', '[AdminProduits] Données produit: ' . json_encode($data));
 
-        // Traitement de l'image
-        $hasImage = false;
-        $imageFilename = null;
+        // Traitement des images (multi-upload)
+        $uploadedImages = [];
+        $imageFiles = $this->request->getFileMultiple('images');
+        $primaryImageIndex = (int)$this->request->getPost('primary_image_index') ?: 0;
         
-        if ($imageFile && $imageFile->isValid() && !$imageFile->hasMoved()) {
-            log_message('error', '[AdminProduits] Image détectée, lancement traitement...');
+        if ($imageFiles && count($imageFiles) > 0) {
+            log_message('error', '[AdminProduits] ' . count($imageFiles) . ' image(s) détectée(s)');
             
-            $result = $this->imageProcessor->processProductImage($imageFile, $data['sku'], 1);
+            foreach ($imageFiles as $index => $imageFile) {
+                // Vérifier que le fichier est valide
+                if (!$imageFile->isValid() || $imageFile->hasMoved()) {
+                    log_message('error', '[AdminProduits] Image #' . ($index + 1) . ' invalide, ignorée');
+                    continue;
+                }
+                
+                // Traiter l'image
+                $imageNumber = $index + 1;
+                $result = $this->imageProcessor->processProductImage($imageFile, $data['sku'], $imageNumber);
+                
+                if ($result['success']) {
+                    $uploadedImages[] = [
+                        'filename' => $result['filename'],
+                        'position' => $index + 1,
+                        'is_primary' => ($index === $primaryImageIndex) ? 1 : 0
+                    ];
+                    log_message('error', '[AdminProduits] ✓ Image #' . $imageNumber . ' traitée: ' . $result['filename']);
+                } else {
+                    log_message('error', '[AdminProduits] ✗ Erreur traitement image #' . $imageNumber . ': ' . $result['message']);
+                }
+            }
             
-            if ($result['success']) {
-                $data['image'] = $result['filename'];
-                $imageFilename = $result['filename'];
-                $hasImage = true;
-                log_message('error', '[AdminProduits] ✓ Image traitée: ' . $result['filename']);
+            // Si aucune image n'a été traitée avec succès
+            if (empty($uploadedImages)) {
+                log_message('error', '[AdminProduits] Aucune image traitée avec succès');
             } else {
-                log_message('error', '[AdminProduits] ✗ Erreur traitement image: ' . $result['message']);
-                return redirect()->back()->withInput()->with('error', $result['message']);
+                // Utiliser la première image (ou l'image principale) pour le champ legacy 'image'
+                $primaryImage = null;
+                foreach ($uploadedImages as $img) {
+                    if ($img['is_primary'] == 1) {
+                        $primaryImage = $img['filename'];
+                        break;
+                    }
+                }
+                $data['image'] = $primaryImage ?: $uploadedImages[0]['filename'];
+                log_message('error', '[AdminProduits] Image principale définie: ' . $data['image']);
             }
         } else {
-            log_message('error', '[AdminProduits] Aucune image valide uploadée, création sans image');
+            log_message('error', '[AdminProduits] Aucune image uploadée, création sans image');
             $data['image'] = null;
         }
 
@@ -212,17 +235,14 @@ class AdminProduitsController extends BaseController
             $productId = $this->productModel->getInsertID();
             log_message('error', '[AdminProduits] ✓ Produit créé avec succès (ID: ' . $productId . ')');
             
-            // Créer l'entrée dans product_images si une image a été uploadée
-            if ($hasImage) {
+            // Créer les entrées dans product_images pour chaque image uploadée
+            if (!empty($uploadedImages)) {
                 $productImageModel = new \App\Models\ProductImageModel();
-                $imageData = [
-                    'product_id' => $productId,
-                    'filename' => $imageFilename,
-                    'position' => 1,
-                    'is_primary' => 1
-                ];
-                $productImageModel->insert($imageData);
-                log_message('error', '[AdminProduits] ✓ Entrée product_images créée');
+                foreach ($uploadedImages as $imageData) {
+                    $imageData['product_id'] = $productId;
+                    $productImageModel->insert($imageData);
+                    log_message('error', '[AdminProduits] ✓ Image enregistrée en BDD: ' . $imageData['filename']);
+                }
             }
             
             return redirect()->to('admin/produits?lang=' . $lang)->with('success', 'Produit créé avec succès !');

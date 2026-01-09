@@ -30,7 +30,7 @@ $langQ = '?lang=' . site_lang();
     </div>
     <?php endif; ?>
 
-    <form method="post" action="<?= site_url('admin/produits/create' . $langQ) ?>" enctype="multipart/form-data" class="space-y-6">
+    <form id="create-product-form" method="post" action="<?= site_url('admin/produits/create' . $langQ) ?>" enctype="multipart/form-data" class="space-y-6">
         <?= csrf_field() ?>
 
         <!-- Informations de base -->
@@ -143,41 +143,229 @@ $langQ = '?lang=' . site_lang();
             </div>
         </div>
 
-        <!-- Image -->
+        <!-- Galerie d'images multi-upload -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-lg font-semibold text-primary-dark mb-4 flex items-center gap-2">
-                <i data-lucide="image" class="w-5 h-5 text-accent-gold"></i>
-                Image du produit
+                <i data-lucide="images" class="w-5 h-5 text-accent-gold"></i>
+                Galerie d'images
+                <span class="text-xs font-normal text-gray-500 ml-auto">(<span id="image-count">0</span>/6 images)</span>
             </h3>
 
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Photo du produit</label>
-                    <input type="file" name="image" accept="image/jpeg,image/png,image/webp"
-                           class="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent-gold file:text-primary-dark hover:file:bg-accent-gold/90 cursor-pointer">
-                    <p class="text-xs text-gray-500 mt-2">
-                        <strong>Formats acceptés :</strong> JPEG, PNG, WebP<br>
-                        <strong>Taille max :</strong> 10 MB<br>
-                        <strong>Traitement automatique :</strong> L'image sera convertie en WebP et redimensionnée en 3 versions (original, détail, miniature)
-                    </p>
+            <div class="space-y-6">
+                <!-- Zone d'upload drag & drop -->
+                <div id="upload-zone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-accent-gold hover:bg-accent-gold/5 transition cursor-pointer">
+                    <input type="file" id="image-upload" name="images[]" multiple accept="image/jpeg,image/png,image/webp" class="hidden">
+                    
+                    <div id="upload-prompt">
+                        <i data-lucide="upload-cloud" class="w-12 h-12 mx-auto text-gray-400 mb-3"></i>
+                        <p class="text-sm font-medium text-gray-700 mb-1">Glissez-déposez vos images ici</p>
+                        <p class="text-xs text-gray-500">ou cliquez pour parcourir</p>
+                        <p class="text-xs text-gray-400 mt-3">JPEG, PNG, WebP • Max 10 MB par image • Max 6 images</p>
+                    </div>
                 </div>
 
-                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                <!-- Grille des images sélectionnées -->
+                <div id="images-preview-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <!-- Les previews seront ajoutées ici dynamiquement -->
+                </div>
+
+                <!-- Champ caché pour l'image principale -->
+                <input type="hidden" id="primary-image-index" name="primary_image_index" value="0">
+
+                <!-- Message d'aide -->
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
                     <div class="flex items-start gap-3">
                         <i data-lucide="info" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"></i>
-                        <div class="text-sm text-blue-700">
-                            <strong>Nommage automatique :</strong> L'image sera renommée avec le SKU du produit.<br>
-                            <strong>3 versions générées :</strong>
-                            <ul class="list-disc list-inside mt-1 ml-2">
-                                <li><strong>Original</strong> (1920px, qualité 90%) - pour zoom</li>
-                                <li><strong>Détail</strong> (800px, qualité 85%) - pour fiche produit</li>
-                                <li><strong>Miniature</strong> (400px, qualité 80%) - pour grilles</li>
+                        <div class="text-sm text-blue-800">
+                            <p class="font-semibold mb-1">💡 Conseils pour vos images</p>
+                            <ul class="list-disc list-inside space-y-1 text-xs">
+                                <li>Ajoutez jusqu'à 6 images par produit</li>
+                                <li>La première image sera définie comme image principale</li>
+                                <li>Cliquez sur l'étoile pour changer l'image principale</li>
+                                <li>Glissez-déposez les images pour les réorganiser</li>
+                                <li>Chaque image génère automatiquement 3 versions (original, détail, miniature)</li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <script>
+        let selectedFiles = [];
+        let primaryIndex = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeUpload();
+            lucide.createIcons();
+        });
+
+        function initializeUpload() {
+            const uploadZone = document.getElementById('upload-zone');
+            const fileInput = document.getElementById('image-upload');
+
+            // Clic pour sélectionner
+            uploadZone.addEventListener('click', () => {
+                if (selectedFiles.length >= 6) {
+                    alert('Limite de 6 images atteinte.');
+                    return;
+                }
+                fileInput.click();
+            });
+
+            // Changement de fichier
+            fileInput.addEventListener('change', (e) => {
+                handleFileSelection(e.target.files);
+            });
+
+            // Drag & drop
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('border-accent-gold', 'bg-accent-gold/10');
+            });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('border-accent-gold', 'bg-accent-gold/10');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('border-accent-gold', 'bg-accent-gold/10');
+                handleFileSelection(e.dataTransfer.files);
+            });
+        }
+
+        function handleFileSelection(files) {
+            const newFiles = Array.from(files).slice(0, 6 - selectedFiles.length);
+            
+            // Valider chaque fichier
+            for (const file of newFiles) {
+                if (!file.type.match('image.*')) {
+                    alert(`${file.name} n'est pas une image valide.`);
+                    continue;
+                }
+                if (file.size > 10 * 1024 * 1024) {
+                    alert(`${file.name} dépasse 10 MB.`);
+                    continue;
+                }
+                selectedFiles.push(file);
+            }
+
+            renderPreviews();
+            updateFileInput();
+        }
+
+        function renderPreviews() {
+            const grid = document.getElementById('images-preview-grid');
+            const countSpan = document.getElementById('image-count');
+            
+            grid.innerHTML = '';
+            countSpan.textContent = selectedFiles.length;
+
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const card = createPreviewCard(e.target.result, file.name, index);
+                    grid.appendChild(card);
+                    lucide.createIcons();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function createPreviewCard(src, name, index) {
+            const div = document.createElement('div');
+            div.className = 'relative group rounded-xl overflow-hidden shadow-sm hover:shadow-md transition border-2 ' + 
+                          (index === primaryIndex ? 'border-accent-gold' : 'border-gray-200');
+            div.draggable = true;
+            div.dataset.index = index;
+
+            // Drag events
+            div.addEventListener('dragstart', (e) => {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', index);
+            });
+
+            div.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            });
+
+            div.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                const toIndex = index;
+                
+                if (fromIndex !== toIndex) {
+                    // Réorganiser
+                    const [movedFile] = selectedFiles.splice(fromIndex, 1);
+                    selectedFiles.splice(toIndex, 0, movedFile);
+                    
+                    // Ajuster l'index de l'image principale
+                    if (primaryIndex === fromIndex) {
+                        primaryIndex = toIndex;
+                    } else if (fromIndex < primaryIndex && toIndex >= primaryIndex) {
+                        primaryIndex--;
+                    } else if (fromIndex > primaryIndex && toIndex <= primaryIndex) {
+                        primaryIndex++;
+                    }
+                    
+                    renderPreviews();
+                    updateFileInput();
+                }
+            });
+
+            div.innerHTML = `
+                <img src="${src}" alt="${name}" class="w-full h-48 object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div class="absolute top-2 right-2 flex gap-2">
+                        <button type="button" onclick="setPrimary(${index})" 
+                                class="p-2 rounded-lg ${index === primaryIndex ? 'bg-accent-gold text-primary-dark' : 'bg-white/90 text-gray-700 hover:bg-accent-gold hover:text-primary-dark'} transition shadow">
+                            <i data-lucide="star" class="w-4 h-4 ${index === primaryIndex ? 'fill-current' : ''}"></i>
+                        </button>
+                        <button type="button" onclick="removeImage(${index})" 
+                                class="p-2 rounded-lg bg-red-500/90 text-white hover:bg-red-600 transition shadow">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                ${index === primaryIndex ? '<div class="absolute bottom-2 left-2 px-2 py-1 bg-accent-gold text-primary-dark text-xs font-bold rounded">Image principale</div>' : ''}
+                <div class="absolute bottom-2 right-2 px-2 py-1 bg-black/60 text-white text-xs rounded">#${index + 1}</div>
+            `;
+
+            return div;
+        }
+
+        function setPrimary(index) {
+            primaryIndex = index;
+            document.getElementById('primary-image-index').value = index;
+            renderPreviews();
+        }
+
+        function removeImage(index) {
+            selectedFiles.splice(index, 1);
+            if (primaryIndex >= index && primaryIndex > 0) {
+                primaryIndex--;
+            }
+            if (primaryIndex >= selectedFiles.length) {
+                primaryIndex = Math.max(0, selectedFiles.length - 1);
+            }
+            document.getElementById('primary-image-index').value = primaryIndex;
+            renderPreviews();
+            updateFileInput();
+        }
+
+        function updateFileInput() {
+            const fileInput = document.getElementById('image-upload');
+            const dataTransfer = new DataTransfer();
+            
+            selectedFiles.forEach(file => {
+                dataTransfer.items.add(file);
+            });
+            
+            fileInput.files = dataTransfer.files;
+        }
+        </script>
 
         <!-- Actions -->
         <div class="flex items-center justify-end gap-4">
