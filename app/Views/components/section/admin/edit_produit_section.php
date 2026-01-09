@@ -32,7 +32,7 @@ $imageProcessor = new ImageProcessor();
     </div>
     <?php endif; ?>
 
-    <form method="post" action="<?= site_url('admin/produits/update/' . $product['id'] . $langQ) ?>" enctype="multipart/form-data" class="space-y-6">
+    <form id="edit-product-form" method="post" action="<?= site_url('admin/produits/update/' . $product['id'] . $langQ) ?>" enctype="multipart/form-data" class="space-y-6">
         <?= csrf_field() ?>
 
         <!-- Informations de base -->
@@ -533,28 +533,31 @@ $imageProcessor = new ImageProcessor();
             }
         }
         </script>
+    </form>
 
         <!-- Actions -->
-        <div class="flex items-center justify-between">
-            <form method="post" action="<?= site_url('admin/produits/delete/' . $product['id']) . $langQ ?>" 
-                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible.');">
-                <?= csrf_field() ?>
-                <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition font-medium border border-red-200">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    Supprimer ce produit
-                </button>
-            </form>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
+            <div class="flex items-center justify-between">
+                <form method="post" action="<?= site_url('admin/produits/delete/' . $product['id']) . $langQ ?>" 
+                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible.');">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition font-medium border border-red-200">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        Supprimer ce produit
+                    </button>
+                </form>
 
-            <div class="flex items-center gap-4">
-                <a href="<?= site_url('admin/produits') . $langQ ?>" class="px-6 py-2.5 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium">
-                    Annuler
-                </a>
-                <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-dark text-white hover:bg-accent-gold hover:text-primary-dark transition font-bold shadow-md">
-                    <i data-lucide="save" class="w-4 h-4"></i>
-                    Enregistrer les modifications
-                </button>
+                <div class="flex items-center gap-4">
+                    <a href="<?= site_url('admin/produits') . $langQ ?>" class="px-6 py-2.5 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium">
+                        Annuler
+                    </a>
+                    <button type="submit" form="edit-product-form" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-dark text-white hover:bg-accent-gold hover:text-primary-dark transition font-bold shadow-md">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        Enregistrer les modifications
+                    </button>
+                </div>
             </div>
         </div>
-    </form>
+
 </div>
 </div>
