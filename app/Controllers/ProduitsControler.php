@@ -471,10 +471,6 @@ class ProduitsControler extends BaseController
         ]);
         
         // Envoyer un email de confirmation au client
-        // 👇 AJOUTE CES 3 LIGNES ICI 👇
-        $emailService->setNewline("\r\n");
-        $emailService->setCRLF("\r\n");
-        $emailService->SMTPTimeout = 10; // On arrête d'attendre après 10s
         $this->sendRestockAlertConfirmation($product, $email, $cancelToken);
         
         // Envoyer un email à l'administrateur pour le notifier de la demande
