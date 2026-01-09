@@ -407,6 +407,12 @@ class ProduitsControler extends BaseController
             $emailService->setMessage($body);
             $emailService->setNewline("\r\n");
             $emailService->setCRLF("\r\n");
+
+            // 👇 AJOUTE CES 3 LIGNES ICI 👇
+            $emailService->setNewline("\r\n");
+            $emailService->setCRLF("\r\n");
+            $emailService->SMTPTimeout = 10; // On arrête d'attendre après 10s
+
             $emailService->send();
             
             // -------------------------------------------------------
@@ -465,6 +471,10 @@ class ProduitsControler extends BaseController
         ]);
         
         // Envoyer un email de confirmation au client
+        // 👇 AJOUTE CES 3 LIGNES ICI 👇
+        $emailService->setNewline("\r\n");
+        $emailService->setCRLF("\r\n");
+        $emailService->SMTPTimeout = 10; // On arrête d'attendre après 10s
         $this->sendRestockAlertConfirmation($product, $email, $cancelToken);
         
         // Envoyer un email à l'administrateur pour le notifier de la demande
@@ -511,6 +521,10 @@ class ProduitsControler extends BaseController
             ";
             
             $emailService->setMessage($message);
+            // 👇 AJOUTE CES 3 LIGNES ICI 👇
+            $emailService->setNewline("\r\n");
+            $emailService->setCRLF("\r\n");
+            $emailService->SMTPTimeout = 10; // On arrête d'attendre après 10s
             $emailService->send();
             
             log_message('info', '[RestockAlert] Admin notifié : ' . $waitingCount . ' client(s) en attente pour le produit #' . $product['id']);
@@ -593,6 +607,10 @@ class ProduitsControler extends BaseController
             ";
             
             $emailService->setMessage($message);
+            // 👇 AJOUTE CES 3 LIGNES ICI 👇
+            $emailService->setNewline("\r\n");
+            $emailService->setCRLF("\r\n");
+            $emailService->SMTPTimeout = 10; // On arrête d'attendre après 10s
             $emailService->send();
             
             log_message('info', '[RestockAlert] Email de confirmation envoyé à ' . $customerEmail);
