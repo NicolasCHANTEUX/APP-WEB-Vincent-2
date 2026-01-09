@@ -124,6 +124,12 @@ class AdminProduitsController extends BaseController
      */
     public function create()
     {
+        // Augmenter les limites PHP pour les uploads multiples
+        @ini_set('upload_max_filesize', '50M');
+        @ini_set('post_max_size', '100M');
+        @ini_set('max_execution_time', '300');
+        @ini_set('memory_limit', '256M');
+        
         log_message('error', '[AdminProduits] === CRÉATION PRODUIT ===');
         
         $lang = site_lang();
