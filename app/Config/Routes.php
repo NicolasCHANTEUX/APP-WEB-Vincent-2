@@ -29,6 +29,9 @@ $routes->get('deconnexion', 'AuthController::logout');
 // Test logging
 $routes->get('test-log', 'TestLog::index');
 
+// Test session database
+$routes->get('test-session', 'SessionTest::index');
+
 // Pages légales
 $routes->get('mentions-legales', 'PagesController::mentionsLegales');
 $routes->get('politique-confidentialite', 'PagesController::privacy');

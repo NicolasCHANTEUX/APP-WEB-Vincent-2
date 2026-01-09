@@ -1,9 +1,18 @@
-# Empêcher l'exécution de scripts PHP dans ce dossier
-<Files *.php>
-    deny from all
-</Files>
+# ----------------------------------------------------------------------
+# SÉCURITÉ UPLOADS : MODE LISTE BLANCHE
+# ----------------------------------------------------------------------
 
-# Autoriser uniquement les images
-<FilesMatch "\.(webp|jpg|jpeg|png|gif)$">
+# 1. On interdit l'accès à TOUS les fichiers par défaut
+Order Deny,Allow
+Deny from all
+
+# 2. On autorise explicitement les images (et PDF si besoin de factures publiques)
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|svg)$">
+    Order Deny,Allow
     Allow from all
 </FilesMatch>
+
+# 3. Sécurité supplémentaire : On désactive l'exécution de scripts (si mod_php est actif)
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
