@@ -405,6 +405,8 @@ class ProduitsControler extends BaseController
             $body = $this->getEmailTemplate('Nouvelle Demande Produit', $htmlContent, $adminLink, 'Traiter la demande');
 
             $emailService->setMessage($body);
+            $emailService->setNewline("\r\n");
+            $emailService->setCRLF("\r\n");
             $emailService->send();
             
             // -------------------------------------------------------
