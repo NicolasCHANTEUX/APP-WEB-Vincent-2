@@ -122,9 +122,9 @@ $langQ = '?lang=' . site_lang();
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Poids (kg)</label>
-                    <input type="number" name="weight" value="<?= old('weight') ?>" step="0.01" min="0"
+                    <input type="number" name="weight" value="<?= old('weight') ?>" step="0.001" min="0"
                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:border-transparent"
-                           placeholder="0.65">
+                           placeholder="1.234">
                 </div>
 
                 <div>
