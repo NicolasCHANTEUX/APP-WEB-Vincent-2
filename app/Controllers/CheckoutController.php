@@ -371,7 +371,14 @@ class CheckoutController extends BaseController
 
             // Récupérer le chemin de la facture PDF
             $invoice = $this->invoiceModel->find($invoiceId);
-            $pdfPath = WRITEPATH . 'uploads/invoices/' . $invoice['pdf_filename'];
+            
+            // On vérifie si la clé existe pour éviter le crash "Undefined array key"
+            $pdfFilename = $invoice['pdf_filename'] ?? null;
+            
+            $pdfPath = null;
+            if ($pdfFilename) {
+                $pdfPath = WRITEPATH . 'uploads/invoices/' . $pdfFilename;
+            }
 
             // Envoyer l'email de confirmation avec la facture
             $this->sendOrderConfirmationEmail($orderId, $customerData, $pdfPath);
@@ -413,6 +420,10 @@ class CheckoutController extends BaseController
             $email->setSubject('Confirmation de votre commande ' . $order['reference']);
             $email->setMailType('html'); // Définir le type HTML
             $email->setMessage($message);
+
+            $email->setNewline("\r\n");
+            $email->setCRLF("\r\n");
+            $email->SMTPTimeout = 20;
 
             // Attacher la facture PDF si disponible
             if ($pdfPath && file_exists($pdfPath)) {
