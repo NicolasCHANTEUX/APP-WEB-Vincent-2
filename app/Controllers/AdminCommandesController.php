@@ -174,6 +174,10 @@ class AdminCommandesController extends BaseController
         $email->setMessage($message);
         $email->attach($filepath);
 
+        $email->setNewline("\r\n");
+        $email->setCRLF("\r\n");
+        $email->SMTPTimeout = 20;
+
         if ($email->send()) {
             // Marquer la facture comme envoyée
             $this->invoiceModel->markAsSent($invoice['id']);
