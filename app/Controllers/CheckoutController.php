@@ -752,8 +752,6 @@ class CheckoutController extends BaseController
                 <div class="customer-name">' . esc($customerData['first_name'] . ' ' . $customerData['last_name']) . '</div>
                 <p style="margin: 5px 0;">' . esc($shippingAddress['address']) . '</p>';
         
-                <p style="margin: 5px 0;">' . esc($shippingAddress['address']) . '</p>';
-        
         // Ajouter le complément d'adresse si présent
         if (!empty($shippingAddress['address_complement'])) {
             $html .= '<p style="margin: 5px 0;">' . esc($shippingAddress['address_complement']) . '</p>';
