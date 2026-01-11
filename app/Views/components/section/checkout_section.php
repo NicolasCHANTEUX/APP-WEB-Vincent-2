@@ -114,10 +114,23 @@ $stripePublicKey = $stripePublicKey ?? 'pk_test_...';
                 <div class="space-y-3 mb-4">
                     <?php foreach ($items as $item): ?>
                         <div class="flex items-center gap-3 pb-3 border-b border-gray-200">
-                            <?php if (!empty($item['image']) && file_exists(FCPATH . 'uploads/format2/' . $item['image'])): ?>
-                                <img src="/uploads/format2/<?= esc($item['image']) ?>" 
-                                     alt="<?= esc($item['title']) ?>"                                     width="100"
-                                     height="100"                                     class="w-16 h-16 object-cover rounded">
+                            <?php if (!empty($item['image'])): 
+                                // Extraire le nom de fichier et remplacer format1 par format2
+                                $imageName = basename($item['image']);
+                                $imageName = str_replace('format1', 'format2', $imageName);
+                                $imagePath = FCPATH . 'uploads/format2/' . $imageName;
+                            ?>
+                                <?php if (file_exists($imagePath)): ?>
+                                    <img src="/uploads/format2/<?= esc($imageName) ?>" 
+                                         alt="<?= esc($item['title']) ?>"                                     width="100"
+                                         height="100"                                     class="w-16 h-16 object-cover rounded">
+                                <?php else: ?>
+                                    <div class="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                <?php endif; ?>
                             <?php else: ?>
                                 <div class="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
                                     <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

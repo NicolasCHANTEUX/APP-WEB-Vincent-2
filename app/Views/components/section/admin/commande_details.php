@@ -92,8 +92,12 @@ $paymentMethodLabels = [
                                 <tr>
                                     <td class="px-4 py-4">
                                         <div class="flex items-center">
-                                            <?php if (!empty($snapshot['image'])): ?>
-                                                <img src="<?= base_url('uploads/format2/' . esc($snapshot['image'])) ?>" 
+                                            <?php if (!empty($snapshot['image'])): 
+                                                // Extraire le nom de fichier et remplacer format1 par format2
+                                                $imageName = basename($snapshot['image']);
+                                                $imageName = str_replace('format1', 'format2', $imageName);
+                                            ?>
+                                                <img src="<?= base_url('uploads/format2/' . esc($imageName)) ?>" 
                                                      alt="<?= esc($snapshot['title']) ?>"                                                      width="80"
                                                      height="80"                                                     class="w-12 h-12 object-cover rounded mr-3">
                                             <?php endif; ?>

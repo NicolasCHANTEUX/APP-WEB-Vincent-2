@@ -616,6 +616,9 @@ $errors = session()->getFlashdata('errors') ?? [];
                             btn.classList.add('bg-green-600', 'border-green-600');
                             btn.classList.remove('bg-accent-gold', 'border-accent-gold');
                             
+                            // Émettre un événement pour rafraîchir le panier flottant
+                            window.dispatchEvent(new CustomEvent('cart-updated'));
+                            
                             setTimeout(() => {
                                 btn.innerHTML = originalText;
                                 btn.classList.remove('bg-green-600', 'border-green-600');

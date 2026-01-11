@@ -80,6 +80,7 @@ $routes->post('panier/update', 'CartController::update');
 $routes->post('panier/remove', 'CartController::remove');
 $routes->get('panier/vider', 'CartController::clear');
 $routes->get('panier/count', 'CartController::getCount');
+$routes->get('panier/data', 'CartController::data');
 
 // Routes Checkout (paiement Stripe)
 $routes->get('checkout', 'CheckoutController::index');

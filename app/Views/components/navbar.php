@@ -100,6 +100,64 @@ $getNavLinkClasses = static function (string $page) use ($activePage): string {
                 </li>
             <?php endif; ?>
             
+            <!-- Panier - Icône intégrée à la navbar -->
+            <li class="relative" id="cart-nav-item">
+                <button 
+                    id="cart-trigger"
+                    type="button"
+                    class="flex items-center text-accent-gold hover:text-white transition-colors duration-200 relative group"
+                    aria-label="Mon panier"
+                >
+                    <!-- Icône panier -->
+                    <svg class="w-6 h-6 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    
+                    <!-- Badge avec nombre d'articles -->
+                    <span id="cart-badge-nav" class="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-primary-dark">
+                        0
+                    </span>
+                    
+                    <span class="hidden md:inline">Panier</span>
+                </button>
+                
+                <!-- Dropdown blanc épuré -->
+                <div id="cart-dropdown-nav" class="absolute top-full right-0 mt-2 w-96 bg-white rounded-lg shadow-2xl border border-gray-200 opacity-0 pointer-events-none transition-all duration-300 transform -translate-y-2 overflow-hidden">
+                    <!-- Petite flèche pointant vers l'icône -->
+                    <div class="absolute -top-2 right-4 w-4 h-4 bg-white border-l border-t border-gray-200 transform rotate-45"></div>
+                    
+                    <!-- En-tête épuré -->
+                    <div class="p-5 border-b border-gray-200">
+                        <h3 class="font-bold text-xl text-primary-dark">Mon Panier</h3>
+                        <p class="text-sm text-gray-600 mt-1">
+                            <span id="cart-count-nav">0</span> article<span id="cart-plural-nav">s</span>
+                        </p>
+                    </div>
+                    
+                    <!-- Liste des articles -->
+                    <div id="cart-items-nav" class="max-h-96 overflow-y-auto">
+                        <p class="text-center text-gray-500 py-8">Chargement...</p>
+                    </div>
+                    
+                    <!-- Footer avec total et bouton -->
+                    <div class="p-5 border-t border-gray-200 bg-gray-50">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-gray-700 font-semibold">Total TTC</span>
+                            <span id="cart-total-nav" class="text-2xl font-bold text-accent-gold">
+                                0,00 €
+                            </span>
+                        </div>
+                        <a href="<?= site_url('panier') . $langQ ?>" 
+                           class="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-accent-gold to-amber-600 hover:from-amber-600 hover:to-accent-gold text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            Voir mon panier
+                        </a>
+                    </div>
+                </div>
+            </li>
+            
             <li class="hidden md:block h-6 w-px bg-accent-gold/50 mx-2"></li>
 
             <li>
@@ -173,5 +231,143 @@ $getNavLinkClasses = static function (string $page) use ($activePage): string {
 
         updateButtonStyle();
         btn.addEventListener('click', toggleLang);
+    })();
+
+    // Gestion du panier dans la navbar
+    (function() {
+        'use strict';
+        
+        const cartNavItem = document.getElementById('cart-nav-item');
+        const cartTrigger = document.getElementById('cart-trigger');
+        const cartDropdown = document.getElementById('cart-dropdown-nav');
+        const cartBadge = document.getElementById('cart-badge-nav');
+        const cartCount = document.getElementById('cart-count-nav');
+        const cartPlural = document.getElementById('cart-plural-nav');
+        const cartTotal = document.getElementById('cart-total-nav');
+        const cartItems = document.getElementById('cart-items-nav');
+        
+        if (!cartNavItem) {
+            return;
+        }
+        
+        let hideTimeout;
+        
+        // Charger le panier
+        function loadCart() {
+            const url = '<?= site_url("panier/data") ?>';
+            
+            fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                cache: 'no-cache'
+            })
+            .then(response => {
+                return response.ok ? response.json() : Promise.reject('Erreur HTTP ' + response.status);
+            })
+            .then(data => {
+                
+                // Convertir l'objet items en tableau
+                let items = data.items || [];
+                if (typeof items === 'object' && !Array.isArray(items)) {
+                    items = Object.values(items);
+                }
+                
+                const itemCount = items.length;
+                
+                // Masquer l'icône si panier vide
+                if (itemCount === 0) {
+                    cartNavItem.style.display = 'none';
+                    return;
+                }
+                
+                cartNavItem.style.display = 'block';
+                
+                // Mettre à jour le badge
+                cartBadge.textContent = itemCount;
+                cartCount.textContent = itemCount;
+                cartPlural.textContent = itemCount > 1 ? 's' : '';
+                
+                // Total
+                const total = (data.totals && data.totals.total) || 0;
+                cartTotal.textContent = total.toLocaleString('fr-FR', { 
+                    style: 'currency', 
+                    currency: 'EUR' 
+                });
+                
+                // Articles
+                if (itemCount > 0) {
+                    const baseUrl = '<?= base_url("uploads/format2/") ?>';
+                    let html = '';
+                    
+                    items.forEach(item => {
+                        const price = item.discount_percent ? 
+                            item.price * (1 - item.discount_percent / 100) : 
+                            item.price;
+                        const subtotal = price * item.quantity;
+                        
+                        // Extraire le nom de fichier de l'image (enlever le chemin si présent)
+                        let imageName = item.image;
+                        if (imageName && imageName.indexOf('/') > -1) {
+                            const parts = imageName.split('/');
+                            imageName = parts[parts.length - 1];
+                        }
+                        // Remplacer 'format1' par 'format2' dans le nom du fichier
+                        if (imageName && imageName.indexOf('format1') > -1) {
+                            imageName = imageName.replace('format1', 'format2');
+                        }
+                        
+                        html += '<div class="flex gap-3 p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0">';
+                        html += '<div class="relative flex-shrink-0">';
+                        html += '<img src="' + baseUrl + imageName + '" alt="' + item.title + '" class="w-16 h-16 object-cover rounded-lg">';
+                        if (item.discount_percent) {
+                            html += '<span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">-' + item.discount_percent + '%</span>';
+                        }
+                        html += '</div>';
+                        html += '<div class="flex-1 min-w-0">';
+                        html += '<h4 class="text-sm font-bold text-gray-900 truncate">' + item.title + '</h4>';
+                        html += '<p class="text-xs text-gray-500 mt-0.5">Qté: ' + item.quantity + '</p>';
+                        html += '<p class="text-sm font-bold text-accent-gold mt-1">' + subtotal.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }) + '</p>';
+                        html += '</div></div>';
+                    });
+                    
+                    cartItems.innerHTML = html;
+                }
+            })
+            .catch(err => {
+                // En cas d'erreur, masquer l'icône
+                cartNavItem.style.display = 'none';
+            });
+        }
+        
+        // Afficher le dropdown au survol
+        cartTrigger.addEventListener('mouseenter', function() {
+            clearTimeout(hideTimeout);
+            cartDropdown.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-2');
+            cartDropdown.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
+        });
+        
+        cartDropdown.addEventListener('mouseenter', function() {
+            clearTimeout(hideTimeout);
+        });
+        
+        function hideDropdown() {
+            hideTimeout = setTimeout(function() {
+                cartDropdown.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
+                cartDropdown.classList.add('opacity-0', 'pointer-events-none', '-translate-y-2');
+            }, 200);
+        }
+        
+        cartTrigger.addEventListener('mouseleave', hideDropdown);
+        cartDropdown.addEventListener('mouseleave', hideDropdown);
+        
+        // Chargement initial
+        loadCart();
+        
+        // Rafraîchir toutes les 5 secondes
+        setInterval(loadCart, 5000);
+        
+        // Écouter l'événement cart-updated
+        window.addEventListener('cart-updated', function() {
+            setTimeout(loadCart, 300);
+        });
     })();
 </script>

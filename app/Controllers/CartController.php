@@ -99,4 +99,26 @@ class CartController extends BaseController
             'total' => $this->cart->getTotal()
         ]);
     }
+
+    /**
+     * Obtenir les données complètes du panier (pour le bouton flottant)
+     */
+    public function data()
+    {
+        $totals = $this->cart->getTotals();
+        
+        return $this->response->setJSON([
+            'items' => $this->cart->getItems(),
+            'totals' => [
+                'subtotal' => $totals['subtotal'] ?? 0,
+                'ht' => $totals['ht'] ?? 0,
+                'tva' => $totals['tva'] ?? 0,
+                'total' => $totals['total'] ?? 0,
+                'final' => $totals['total'] ?? 0, // Alias pour compatibilité
+                'count' => $totals['count'] ?? 0
+            ],
+            'count' => $this->cart->getCount(),
+            'isEmpty' => $this->cart->isEmpty()
+        ]);
+    }
 }

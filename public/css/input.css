@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Animation ping unique pour attirer l'attention */
+@layer utilities {
+  .animate-ping-once::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background-color: currentColor;
+    animation: ping-once 1s cubic-bezier(0, 0, 0.2, 1);
+    pointer-events: none;
+  }
+}
