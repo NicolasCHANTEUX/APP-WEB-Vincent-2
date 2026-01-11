@@ -101,7 +101,7 @@ $getNavLinkClasses = static function (string $page) use ($activePage): string {
             <?php endif; ?>
             
             <!-- Panier - Icône intégrée à la navbar -->
-            <li class="relative" id="cart-nav-item">
+            <li class="relative hidden" id="cart-nav-item">
                 <button 
                     id="cart-trigger"
                     type="button"
@@ -275,11 +275,11 @@ $getNavLinkClasses = static function (string $page) use ($activePage): string {
                 
                 // Masquer l'icône si panier vide
                 if (itemCount === 0) {
-                    cartNavItem.style.display = 'none';
+                    cartNavItem.classList.add('hidden');
                     return;
                 }
                 
-                cartNavItem.style.display = 'block';
+                cartNavItem.classList.remove('hidden');
                 
                 // Mettre à jour le badge
                 cartBadge.textContent = itemCount;
@@ -334,7 +334,7 @@ $getNavLinkClasses = static function (string $page) use ($activePage): string {
             })
             .catch(err => {
                 // En cas d'erreur, masquer l'icône
-                cartNavItem.style.display = 'none';
+                cartNavItem.classList.add('hidden');
             });
         }
         
