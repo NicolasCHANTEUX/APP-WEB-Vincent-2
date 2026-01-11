@@ -66,14 +66,36 @@ class ProductModel extends Model
 
     // Callbacks
     protected $allowCallbacks = true;
-    protected $beforeInsert   = [];
+    protected $beforeInsert   = ['cleanSlug'];
     protected $afterInsert    = [];
-    protected $beforeUpdate   = [];
+    protected $beforeUpdate   = ['cleanSlug'];
     protected $afterUpdate    = [];
     protected $beforeFind     = [];
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+
+    /**
+     * Nettoie automatiquement le slug avant insertion/mise à jour
+     * Transforme "Siège & Kayak" en "siege-kayak"
+     */
+    protected function cleanSlug(array $data)
+    {
+        // Si un titre est fourni, générer automatiquement un slug propre
+        if (isset($data['data']['title'])) {
+            helper('text'); // Charger le helper Text de CodeIgniter
+            
+            // Convertir les accents (é → e, à → a, etc.)
+            // puis transformer en slug (minuscules, tirets au lieu d'espaces)
+            $cleanTitle = convert_accented_characters($data['data']['title']);
+            $slug = url_title($cleanTitle, '-', true);
+            
+            // Enregistrer le slug nettoyé
+            $data['data']['slug'] = $slug;
+        }
+
+        return $data;
+    }
 
     /**
      * Récupérer tous les produits avec leurs catégories
