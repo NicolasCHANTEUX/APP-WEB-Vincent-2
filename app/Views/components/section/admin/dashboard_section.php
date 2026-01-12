@@ -83,6 +83,33 @@ $langQ = '?lang=' . site_lang();
                         </a>
                         
                     </div>
+
+                    <!-- Liens actions rapides -->
+                    <div class="grid grid-cols-2 gap-3 mt-6 max-w-2xl">
+                        <a href="<?= site_url('admin/blog') . $langQ ?>" 
+                           class="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-blue-500/20 hover:border-blue-400/40 transition-all">
+                            <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/30 transition-colors">
+                                <i data-lucide="newspaper" class="w-5 h-5 text-blue-300"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-white">Blog & Actualités</div>
+                                <div class="text-xs text-white/60">Gérer les articles</div>
+                            </div>
+                            <i data-lucide="arrow-right" class="w-4 h-4 text-white/50 group-hover:text-blue-300 group-hover:translate-x-1 transition-all"></i>
+                        </a>
+
+                        <a href="<?= site_url('actualites') . $langQ ?>" target="_blank"
+                           class="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-purple-500/20 hover:border-purple-400/40 transition-all">
+                            <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-500/30 transition-colors">
+                                <i data-lucide="eye" class="w-5 h-5 text-purple-300"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm font-medium text-white">Voir le site</div>
+                                <div class="text-xs text-white/60">Aperçu public</div>
+                            </div>
+                            <i data-lucide="external-link" class="w-4 h-4 text-white/50 group-hover:text-purple-300 transition-colors"></i>
+                        </a>
+                    </div>
                 </div>
 
                 <div class="flex-shrink-0">
