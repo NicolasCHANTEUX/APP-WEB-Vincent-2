@@ -14,10 +14,16 @@ $categories = $categories ?? [];
             <h1 class="text-3xl font-serif font-bold text-primary-dark">Gestion des Produits</h1>
             <p class="text-gray-500">Catalogue complet de vos produits</p>
         </div>
-        <a href="<?= site_url('admin/produits/nouveau') . $langQ ?>" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-dark text-white hover:bg-accent-gold hover:text-primary-dark transition font-bold shadow-md">
-            <i data-lucide="plus" class="w-5 h-5"></i>
-            Nouveau produit
-        </a>
+        <div class="flex gap-3">
+            <button onclick="openCategoryModal()" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-accent-gold to-amber-600 text-white hover:shadow-lg transition font-bold">
+                <i data-lucide="folder-cog" class="w-5 h-5"></i>
+                Gérer les catégories
+            </button>
+            <a href="<?= site_url('admin/produits/nouveau') . $langQ ?>" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-dark text-white hover:bg-accent-gold hover:text-primary-dark transition font-bold shadow-md">
+                <i data-lucide="plus" class="w-5 h-5"></i>
+                Nouveau produit
+            </a>
+        </div>
     </div>
 
     <!-- Filtres -->
@@ -283,5 +289,271 @@ $categories = $categories ?? [];
 </div>
 </div>
 
+<!-- Modal de gestion des catégories -->
+<div id="category-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-accent-gold to-amber-600 text-white px-6 py-4 flex items-center justify-between">
+            <h2 class="text-2xl font-bold flex items-center gap-3">
+                <i data-lucide="folder-cog" class="w-6 h-6"></i>
+                Gestion des Catégories
+            </h2>
+            <button onclick="closeCategoryModal()" class="hover:bg-white/20 p-2 rounded-lg transition">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
 
+        <!-- Contenu -->
+        <div class="p-6 overflow-y-auto max-h-[calc(90vh-8rem)]">
+            <!-- Formulaire d'ajout/modification -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                <h3 class="text-lg font-bold text-primary-dark mb-4" id="form-title">Ajouter une catégorie</h3>
+                <form id="category-form" class="space-y-4">
+                    <input type="hidden" id="category-id" value="">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom de la catégorie *</label>
+                        <input type="text" id="category-name" required 
+                               class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-accent-gold focus:ring-2 focus:ring-accent-gold/20 transition"
+                               placeholder="Ex: Kayaks, Paddles, Accessoires...">
+                    </div>
 
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea id="category-description" rows="2"
+                                  class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-accent-gold focus:ring-2 focus:ring-accent-gold/20 transition"
+                                  placeholder="Description optionnelle..."></textarea>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button type="submit" class="flex-1 bg-gradient-to-r from-accent-gold to-amber-600 text-white px-6 py-2.5 rounded-xl font-bold hover:shadow-lg transition">
+                            <i data-lucide="save" class="w-4 h-4 inline mr-2"></i>
+                            <span id="submit-text">Ajouter</span>
+                        </button>
+                        <button type="button" onclick="resetForm()" class="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-300 transition">
+                            Annuler
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Liste des catégories existantes -->
+            <div>
+                <h3 class="text-lg font-bold text-primary-dark mb-4">Catégories existantes</h3>
+                <div id="categories-list" class="space-y-2">
+                    <!-- Chargement... -->
+                    <div class="text-center py-8 text-gray-500">
+                        <i data-lucide="loader-2" class="w-8 h-8 inline animate-spin"></i>
+                        <p class="mt-2">Chargement...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables globales
+let categories = [];
+let editingCategoryId = null;
+
+// Ouvrir le modal
+function openCategoryModal() {
+    document.getElementById('category-modal').classList.remove('hidden');
+    loadCategories();
+    lucide.createIcons(); // Réinitialiser les icônes
+}
+
+// Fermer le modal
+function closeCategoryModal() {
+    document.getElementById('category-modal').classList.add('hidden');
+    resetForm();
+}
+
+// Charger les catégories
+async function loadCategories() {
+    try {
+        const response = await fetch('<?= site_url('admin/produits/categories-api') ?>', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            categories = data.categories;
+            renderCategories();
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showError('Erreur lors du chargement des catégories');
+    }
+}
+
+// Afficher les catégories
+function renderCategories() {
+    const container = document.getElementById('categories-list');
+    
+    if (categories.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i data-lucide="folder-x" class="w-12 h-12 inline mb-2"></i>
+                <p>Aucune catégorie pour le moment</p>
+            </div>
+        `;
+        lucide.createIcons();
+        return;
+    }
+
+    container.innerHTML = categories.map(cat => `
+        <div class="bg-white border-2 border-gray-200 rounded-xl p-4 flex items-center justify-between hover:border-accent-gold transition">
+            <div class="flex-1">
+                <h4 class="font-bold text-primary-dark">${escapeHtml(cat.name)}</h4>
+                ${cat.description ? `<p class="text-sm text-gray-600 mt-1">${escapeHtml(cat.description)}</p>` : ''}
+                <p class="text-xs text-gray-400 mt-1">Slug: ${escapeHtml(cat.slug)}</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="editCategory(${cat.id}, '${escapeHtml(cat.name)}', '${escapeHtml(cat.description || '')}')"
+                        class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Modifier">
+                    <i data-lucide="pencil" class="w-5 h-5"></i>
+                </button>
+                <button onclick="deleteCategory(${cat.id}, '${escapeHtml(cat.name)}')"
+                        class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Supprimer">
+                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+    
+    lucide.createIcons();
+}
+
+// Éditer une catégorie
+function editCategory(id, name, description) {
+    editingCategoryId = id;
+    document.getElementById('category-id').value = id;
+    document.getElementById('category-name').value = name;
+    document.getElementById('category-description').value = description;
+    document.getElementById('form-title').textContent = 'Modifier la catégorie';
+    document.getElementById('submit-text').textContent = 'Modifier';
+    
+    // Scroll vers le formulaire
+    document.querySelector('#category-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Réinitialiser le formulaire
+function resetForm() {
+    editingCategoryId = null;
+    document.getElementById('category-id').value = '';
+    document.getElementById('category-name').value = '';
+    document.getElementById('category-description').value = '';
+    document.getElementById('form-title').textContent = 'Ajouter une catégorie';
+    document.getElementById('submit-text').textContent = 'Ajouter';
+}
+
+// Soumettre le formulaire
+document.getElementById('category-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const id = document.getElementById('category-id').value;
+    const name = document.getElementById('category-name').value.trim();
+    const description = document.getElementById('category-description').value.trim();
+    
+    if (!name) {
+        showError('Le nom est requis');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('description', description);
+    
+    const url = id 
+        ? `<?= site_url('admin/produits/update-category') ?>/${id}`
+        : '<?= site_url('admin/produits/create-category') ?>';
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess(data.message);
+            resetForm();
+            loadCategories();
+            
+            // Recharger la page pour mettre à jour le filtre
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showError(data.message || 'Erreur lors de la sauvegarde');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showError('Erreur réseau');
+    }
+});
+
+// Supprimer une catégorie
+async function deleteCategory(id, name) {
+    if (!confirm(`Voulez-vous vraiment supprimer la catégorie "${name}" ?\n\nCette action est irréversible.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`<?= site_url('admin/produits/delete-category') ?>/${id}`, {
+            method: 'POST',
+            headers: { 
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-HTTP-Method-Override': 'DELETE'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess(data.message);
+            loadCategories();
+            
+            // Recharger la page pour mettre à jour le filtre
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showError(data.message);
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showError('Erreur réseau');
+    }
+}
+
+// Fonctions utilitaires
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function showSuccess(message) {
+    // Vous pouvez implémenter un système de toast ici
+    alert('✓ ' + message);
+}
+
+function showError(message) {
+    alert('✗ ' + message);
+}
+
+// Fermer avec Echap
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !document.getElementById('category-modal').classList.contains('hidden')) {
+        closeCategoryModal();
+    }
+});
+
+// Fermer en cliquant sur le fond
+document.getElementById('category-modal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'category-modal') {
+        closeCategoryModal();
+    }
+});
+</script>

@@ -55,6 +55,12 @@ $routes->group('admin', ['filter' => 'adminauth', 'namespace' => 'App\\Controlle
     $routes->put('produits/(:num)/images/reorder', 'AdminProduitsController::reorderImages/$1');
     $routes->delete('produits/images/(:num)', 'AdminProduitsController::deleteImage/$1');
     
+    // API Catégories
+    $routes->get('produits/categories-api', 'AdminProduitsController::categoriesApi');
+    $routes->post('produits/create-category', 'AdminProduitsController::createCategory');
+    $routes->post('produits/update-category/(:num)', 'AdminProduitsController::updateCategory/$1');
+    $routes->post('produits/delete-category/(:num)', 'AdminProduitsController::deleteCategory/$1');
+    
     // Gestion des Réservations
     $routes->get('reservations', 'AdminReservationsController::index');
     

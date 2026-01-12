@@ -776,5 +776,137 @@ class AdminProduitsController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Erreur lors de la suppression.'])->setStatusCode(500);
         }
     }
+
+    /**
+     * API: Récupérer toutes les catégories (JSON)
+     */
+    public function categoriesApi()
+    {
+        $categories = $this->categoryModel->findAll();
+        return $this->response->setJSON(['success' => true, 'categories' => $categories]);
+    }
+
+    /**
+     * API: Créer une catégorie
+     */
+    public function createCategory()
+    {
+        if (!$this->request->isAJAX()) {
+            return redirect()->back();
+        }
+
+        $name = $this->request->getPost('name');
+        $description = $this->request->getPost('description');
+
+        // Générer le slug automatiquement
+        helper('text');
+        $slug = url_title(convert_accented_characters($name), '-', true);
+
+        $data = [
+            'name' => $name,
+            'slug' => $slug,
+            'description' => $description
+        ];
+
+        if ($this->categoryModel->insert($data)) {
+            $newCategory = $this->categoryModel->find($this->categoryModel->getInsertID());
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Catégorie créée avec succès',
+                'category' => $newCategory
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'success' => false,
+            'message' => 'Erreur lors de la création',
+            'errors' => $this->categoryModel->errors()
+        ])->setStatusCode(400);
+    }
+
+    /**
+     * API: Modifier une catégorie
+     */
+    public function updateCategory($id)
+    {
+        if (!$this->request->isAJAX()) {
+            return redirect()->back();
+        }
+
+        $category = $this->categoryModel->find($id);
+        if (!$category) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Catégorie introuvable'
+            ])->setStatusCode(404);
+        }
+
+        $name = $this->request->getPost('name');
+        $description = $this->request->getPost('description');
+
+        // Générer le slug automatiquement
+        helper('text');
+        $slug = url_title(convert_accented_characters($name), '-', true);
+
+        $data = [
+            'name' => $name,
+            'slug' => $slug,
+            'description' => $description
+        ];
+
+        if ($this->categoryModel->update($id, $data)) {
+            $updatedCategory = $this->categoryModel->find($id);
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Catégorie modifiée avec succès',
+                'category' => $updatedCategory
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'success' => false,
+            'message' => 'Erreur lors de la modification',
+            'errors' => $this->categoryModel->errors()
+        ])->setStatusCode(400);
+    }
+
+    /**
+     * API: Supprimer une catégorie
+     */
+    public function deleteCategory($id)
+    {
+        if (!$this->request->isAJAX()) {
+            return redirect()->back();
+        }
+
+        $category = $this->categoryModel->find($id);
+        if (!$category) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Catégorie introuvable'
+            ])->setStatusCode(404);
+        }
+
+        // Vérifier si des produits utilisent cette catégorie
+        $productsCount = $this->productModel->where('category_id', $id)->countAllResults();
+        if ($productsCount > 0) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => "Impossible de supprimer : {$productsCount} produit(s) utilisent cette catégorie"
+            ])->setStatusCode(400);
+        }
+
+        if ($this->categoryModel->delete($id)) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Catégorie supprimée avec succès'
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'success' => false,
+            'message' => 'Erreur lors de la suppression'
+        ])->setStatusCode(500);
+    }
 }
 
