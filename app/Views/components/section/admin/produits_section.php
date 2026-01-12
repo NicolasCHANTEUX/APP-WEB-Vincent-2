@@ -291,46 +291,47 @@ $categories = $categories ?? [];
 
 <!-- Modal de gestion des catégories -->
 <div id="category-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+    <div class="bg-white rounded-xl max-w-xl w-full max-h-[70vh] overflow-hidden shadow-2xl">
         <!-- Header -->
-        <div class="bg-gradient-to-r from-accent-gold to-amber-600 text-white px-6 py-4 flex items-center justify-between">
-            <h2 class="text-2xl font-bold flex items-center gap-3">
-                <i data-lucide="folder-cog" class="w-6 h-6"></i>
+        <div class="bg-gradient-to-r from-accent-gold to-amber-600 text-white px-4 py-3 flex items-center justify-between">
+            <h2 class="text-lg font-bold flex items-center gap-2">
+                <i data-lucide="folder-cog" class="w-5 h-5"></i>
                 Gestion des Catégories
             </h2>
-            <button onclick="closeCategoryModal()" class="hover:bg-white/20 p-2 rounded-lg transition">
-                <i data-lucide="x" class="w-6 h-6"></i>
+            <button onclick="closeCategoryModal()" class="hover:bg-white/20 p-1.5 rounded-lg transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
             </button>
         </div>
 
         <!-- Contenu -->
-        <div class="p-6 overflow-y-auto max-h-[calc(90vh-8rem)]">
+        <div class="p-4 overflow-y-auto max-h-[calc(70vh-3.5rem)]">
             <!-- Formulaire d'ajout/modification -->
-            <div class="bg-gray-50 rounded-xl p-6 mb-6">
-                <h3 class="text-lg font-bold text-primary-dark mb-4" id="form-title">Ajouter une catégorie</h3>
-                <form id="category-form" class="space-y-4">
+            <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                <h3 class="text-sm font-bold text-primary-dark mb-3" id="form-title">Ajouter une catégorie</h3>
+                <h3 class="text-sm font-bold text-primary-dark mb-3" id="form-title">Ajouter une catégorie</h3>
+                <form id="category-form" class="space-y-3">
                     <input type="hidden" id="category-id" value="">
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom de la catégorie *</label>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Nom de la catégorie *</label>
                         <input type="text" id="category-name" required 
-                               class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-accent-gold focus:ring-2 focus:ring-accent-gold/20 transition"
-                               placeholder="Ex: Kayaks, Paddles, Accessoires...">
+                               class="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-accent-gold focus:ring-2 focus:ring-accent-gold/20 transition"
+                               placeholder="Ex: Kayaks, Paddles...">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Description</label>
                         <textarea id="category-description" rows="2"
-                                  class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-accent-gold focus:ring-2 focus:ring-accent-gold/20 transition"
+                                  class="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-accent-gold focus:ring-2 focus:ring-accent-gold/20 transition"
                                   placeholder="Description optionnelle..."></textarea>
                     </div>
 
-                    <div class="flex gap-3">
-                        <button type="submit" class="flex-1 bg-gradient-to-r from-accent-gold to-amber-600 text-white px-6 py-2.5 rounded-xl font-bold hover:shadow-lg transition">
-                            <i data-lucide="save" class="w-4 h-4 inline mr-2"></i>
+                    <div class="flex gap-2">
+                        <button type="submit" class="flex-1 bg-gradient-to-r from-accent-gold to-amber-600 text-white px-4 py-2 text-sm rounded-lg font-bold hover:shadow-lg transition">
+                            <i data-lucide="save" class="w-4 h-4 inline mr-1"></i>
                             <span id="submit-text">Ajouter</span>
                         </button>
-                        <button type="button" onclick="resetForm()" class="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-300 transition">
+                        <button type="button" onclick="resetForm()" class="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition">
                             Annuler
                         </button>
                     </div>
@@ -339,12 +340,12 @@ $categories = $categories ?? [];
 
             <!-- Liste des catégories existantes -->
             <div>
-                <h3 class="text-lg font-bold text-primary-dark mb-4">Catégories existantes</h3>
-                <div id="categories-list" class="space-y-2">
+                <h3 class="text-sm font-bold text-primary-dark mb-3">Catégories existantes</h3>
+                <div id="categories-list" class="space-y-2 max-h-60 overflow-y-auto">
                     <!-- Chargement... -->
-                    <div class="text-center py-8 text-gray-500">
-                        <i data-lucide="loader-2" class="w-8 h-8 inline animate-spin"></i>
-                        <p class="mt-2">Chargement...</p>
+                    <div class="text-center py-6 text-gray-500">
+                        <i data-lucide="loader-2" class="w-6 h-6 inline animate-spin"></i>
+                        <p class="mt-2 text-sm">Chargement...</p>
                     </div>
                 </div>
             </div>
@@ -394,9 +395,9 @@ function renderCategories() {
     
     if (categories.length === 0) {
         container.innerHTML = `
-            <div class="text-center py-8 text-gray-500">
-                <i data-lucide="folder-x" class="w-12 h-12 inline mb-2"></i>
-                <p>Aucune catégorie pour le moment</p>
+            <div class="text-center py-6 text-gray-500">
+                <i data-lucide="folder-x" class="w-8 h-8 inline mb-2"></i>
+                <p class="text-sm">Aucune catégorie pour le moment</p>
             </div>
         `;
         lucide.createIcons();
@@ -404,20 +405,20 @@ function renderCategories() {
     }
 
     container.innerHTML = categories.map(cat => `
-        <div class="bg-white border-2 border-gray-200 rounded-xl p-4 flex items-center justify-between hover:border-accent-gold transition">
-            <div class="flex-1">
-                <h4 class="font-bold text-primary-dark">${escapeHtml(cat.name)}</h4>
-                ${cat.description ? `<p class="text-sm text-gray-600 mt-1">${escapeHtml(cat.description)}</p>` : ''}
-                <p class="text-xs text-gray-400 mt-1">Slug: ${escapeHtml(cat.slug)}</p>
+        <div class="bg-white border-2 border-gray-200 rounded-lg p-3 flex items-start justify-between hover:border-accent-gold transition">
+            <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-primary-dark text-sm">${escapeHtml(cat.name)}</h4>
+                ${cat.description ? `<p class="text-xs text-gray-600 mt-1 line-clamp-1">${escapeHtml(cat.description)}</p>` : ''}
+                <p class="text-xs text-gray-400 mt-0.5">Slug: ${escapeHtml(cat.slug)}</p>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-1 ml-2">
                 <button onclick="editCategory(${cat.id}, '${escapeHtml(cat.name)}', '${escapeHtml(cat.description || '')}')"
-                        class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Modifier">
-                    <i data-lucide="pencil" class="w-5 h-5"></i>
+                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition" title="Modifier">
+                    <i data-lucide="pencil" class="w-4 h-4"></i>
                 </button>
                 <button onclick="deleteCategory(${cat.id}, '${escapeHtml(cat.name)}')"
-                        class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Supprimer">
-                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        class="p-1.5 text-red-600 hover:bg-red-50 rounded transition" title="Supprimer">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
                 </button>
             </div>
         </div>
