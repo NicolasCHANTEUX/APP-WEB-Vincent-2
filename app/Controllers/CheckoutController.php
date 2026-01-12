@@ -452,247 +452,83 @@ class CheckoutController extends BaseController
         $shippingAddress = json_decode($order['shipping_address'], true);
         $billingAddress = json_decode($order['billing_address'], true);
         
-        $html = '<!DOCTYPE html>
-<html lang="fr">
+        $html = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6; 
-            color: #1a202c; 
-            margin: 0;
-            padding: 0;
-            background-color: #f7fafc;
-        }
-        .email-wrapper { background-color: #f7fafc; padding: 30px 15px; }
-        .container { 
-            max-width: 600px; 
-            margin: 0 auto; 
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .header { 
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-            color: white; 
-            padding: 40px 20px; 
-            text-align: center; 
-        }
-        .logo { 
-            max-width: 180px; 
-            height: auto; 
-            margin-bottom: 20px;
-        }
-        .header h1 { 
-            margin: 0; 
-            font-size: 28px; 
-            font-weight: 700;
-            background: linear-gradient(to right, #f59e0b, #d97706);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .content { 
-            padding: 30px 25px; 
-            background: white; 
-        }
-        .greeting { 
-            font-size: 18px; 
-            color: #1a202c; 
-            margin-bottom: 15px;
-        }
-        .greeting strong { color: #f59e0b; }
-        .order-info { 
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            padding: 20px; 
-            margin: 20px 0; 
-            border-radius: 8px;
-            border-left: 4px solid #f59e0b;
-        }
-        .order-info p { margin: 8px 0; }
-        .order-info strong { color: #92400e; }
-        .section-title { 
-            color: #1e3a8a; 
-            font-size: 20px; 
-            font-weight: 700;
-            margin: 25px 0 15px 0;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #f59e0b;
-        }
-        .items-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin: 15px 0; 
-        }
-        .items-table th { 
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-            color: white;
-            padding: 12px 10px; 
-            text-align: left;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        .items-table td { 
-            padding: 15px 10px; 
-            border-bottom: 1px solid #e5e7eb; 
-        }
-        .items-table tr:last-child td { border-bottom: none; }
-        .product-cell { display: flex; align-items: center; gap: 12px; }
-        .product-image { 
-            width: 60px; 
-            height: 60px; 
-            object-fit: cover; 
-            border-radius: 8px;
-            border: 2px solid #e5e7eb;
-        }
-        .product-name { 
-            font-weight: 600; 
-            color: #1a202c;
-            font-size: 14px;
-        }
-        .total-section { 
-            background: #f9fafb; 
-            padding: 15px; 
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-        .total-row { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 8px 0;
-            font-size: 15px;
-        }
-        .total-row.final { 
-            font-size: 20px;
-            font-weight: 700;
-            color: #1e3a8a;
-            padding-top: 15px;
-            border-top: 2px solid #d1d5db;
-            margin-top: 10px;
-        }
-        .total-row.final .amount { color: #f59e0b; }
-        .shipping-address { 
-            background: #f9fafb;
-            padding: 20px; 
-            margin: 15px 0; 
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-        }
-        .shipping-address .customer-name {
-            font-weight: 700;
-            color: #1e3a8a;
-            font-size: 16px;
-            margin-bottom: 8px;
-        }
-        .cta-button { 
-            display: inline-block;
-            background: linear-gradient(to right, #f59e0b, #d97706);
-            color: white !important; 
-            text-decoration: none; 
-            padding: 15px 35px; 
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 16px;
-            margin: 25px 0;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
-        }
-        .cta-button:hover { 
-            background: linear-gradient(to right, #d97706, #b45309);
-        }
-        .info-message { 
-            background: #eff6ff; 
-            border-left: 4px solid #3b82f6;
-            padding: 15px; 
-            margin: 20px 0;
-            border-radius: 4px;
-            color: #1e40af;
-        }
-        .footer { 
-            text-align: center; 
-            padding: 30px 20px; 
-            background: #f9fafb;
-            border-top: 1px solid #e5e7eb;
-        }
-        .footer-signature { 
-            font-size: 16px;
-            color: #1a202c;
-            margin-bottom: 15px;
-        }
-        .footer-signature strong { color: #f59e0b; }
-        .social-links { 
-            margin: 20px 0;
-        }
-        .social-links a { 
-            display: inline-block;
-            margin: 0 8px;
-        }
-        .social-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #1e3a8a;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-        .social-icon:hover { background: #f59e0b; }
-        .contact-info { 
-            color: #6b7280; 
-            font-size: 13px;
-            margin-top: 15px;
-        }
-        .contact-info a { 
-            color: #f59e0b; 
-            text-decoration: none;
-        }
-        @media only screen and (max-width: 600px) {
-            .email-wrapper { padding: 15px 10px; }
-            .content { padding: 20px 15px; }
-            .header h1 { font-size: 24px; }
-            .items-table th, .items-table td { font-size: 13px; padding: 10px 5px; }
-            .product-image { width: 50px; height: 50px; }
-        }
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="x-apple-disable-message-reformatting" />
+    <title>Confirmation de commande - KayArt</title>
+    <!--[if mso]>
+    <style type="text/css">
+        body, table, td {font-family: Arial, Helvetica, sans-serif !important;}
     </style>
+    <![endif]-->
 </head>
-<body>
-    <div class="email-wrapper">
-        <div class="container">
-            <!-- Header avec logo -->
-            <div class="header">
-                <img src="' . base_url('images/logo-kayart-white.png') . '" alt="KayArt" class="logo">
-                <h1>✨ Merci pour votre commande ! ✨</h1>
-            </div>
-            
-            <div class="content">
-                <p class="greeting">Bonjour <strong>' . esc($customerData['first_name'] . ' ' . $customerData['last_name']) . '</strong>,</p>
-                
-                <p>Nous avons bien reçu votre commande et nous vous en remercions ! Notre équipe s\'occupe de préparer votre matériel avec le plus grand soin. 🚣</p>
-                
-                <!-- Informations commande -->
-            
-                <!-- Informations commande -->
-                <div class="order-info">
-                    <p><strong>📋 Numéro de commande :</strong> ' . esc($order['reference']) . '</p>
-                    <p><strong>📅 Date :</strong> ' . date('d/m/Y à H:i', strtotime($order['created_at'])) . '</p>
-                    <p><strong>💰 Montant total :</strong> ' . number_format($order['total_amount'], 2, ',', ' ') . ' €</p>
-                </div>
-                
-                <h2 class="section-title">🛒 Détails de votre commande</h2>
-                <table class="items-table">
-                    <thead>
-                        <tr>
-                            <th>Article</th>
-                            <th style="text-align: center;">Quantité</th>
-                            <th style="text-align: right;">Prix unit.</th>
-                            <th style="text-align: right;">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>';
+<body style="margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #f3f4f6;">
+    <!-- Wrapper complet -->
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f3f4f6;">
+        <tr>
+            <td style="padding: 20px 10px;">
+                <!-- Container principal -->
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    
+                    <!-- Header Bleu avec logo -->
+                    <tr>
+                        <td style="background-color: #1e40af; padding: 40px 20px; text-align: center;">
+                            <img src="' . base_url('images/kayart_logo.svg') . '" alt="KayArt" style="width: 160px; height: auto; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;" />
+                            <h1 style="margin: 0; padding: 0; font-size: 26px; font-weight: bold; color: #ffffff; font-family: Arial, sans-serif;">
+                                ✨ Merci pour votre commande ! ✨
+                            </h1>
+                        </td>
+                    </tr>
+                    
+                    <!-- Contenu principal -->
+                    <tr>
+                        <td style="padding: 30px 25px; background-color: #ffffff;">
+                            
+                            <!-- Message d\'accueil -->
+                            <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px; color: #1f2937; font-family: Arial, sans-serif;">
+                                Bonjour <strong style="color: #f59e0b;">' . esc($customerData['first_name'] . ' ' . $customerData['last_name']) . '</strong>,
+                            </p>
+                            
+                            <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 24px; color: #4b5563; font-family: Arial, sans-serif;">
+                                Nous avons bien reçu votre commande et nous vous en remercions ! Notre équipe s\'occupe de préparer votre matériel avec le plus grand soin. 🚣
+                            </p> 
+                            
+                            <!-- Encadré infos commande (fond jaune/orange clair) -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 20px 0; background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 6px;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 20px; color: #78350f; font-family: Arial, sans-serif;">
+                                            <strong style="color: #92400e;">📋 Numéro de commande :</strong> ' . esc($order['reference']) . '
+                                        </p>
+                                        <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 20px; color: #78350f; font-family: Arial, sans-serif;">
+                                            <strong style="color: #92400e;">📅 Date :</strong> ' . date('d/m/Y à H:i', strtotime($order['created_at'])) . '
+                                        </p>
+                                        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #78350f; font-family: Arial, sans-serif;">
+                                            <strong style="color: #92400e;">💰 Montant total :</strong> ' . number_format($order['total_amount'], 2, ',', ' ') . ' €
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Titre section produits -->
+                            <h2 style="margin: 30px 0 15px 0; padding: 0 0 10px 0; font-size: 20px; font-weight: bold; color: #1e40af; font-family: Arial, sans-serif; border-bottom: 2px solid #f59e0b;">
+                                🛒 Détails de votre commande
+                            </h2>
+                            
+                            <!-- Tableau des produits -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 15px 0; border-collapse: collapse;">
+                                <thead>
+                                    <tr>
+                                        <th style="background-color: #1e40af; color: #ffffff; padding: 12px 10px; text-align: left; font-size: 14px; font-weight: 600; font-family: Arial, sans-serif;">Article</th>
+                                        <th style="background-color: #1e40af; color: #ffffff; padding: 12px 10px; text-align: center; font-size: 14px; font-weight: 600; font-family: Arial, sans-serif;">Qté</th>
+                                        <th style="background-color: #1e40af; color: #ffffff; padding: 12px 10px; text-align: right; font-size: 14px; font-weight: 600; font-family: Arial, sans-serif;">Prix unit.</th>
+                                        <th style="background-color: #1e40af; color: #ffffff; padding: 12px 10px; text-align: right; font-size: 14px; font-weight: 600; font-family: Arial, sans-serif;">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>';
         
         // Ajouter les articles
         $totalHT = 0;
@@ -714,104 +550,163 @@ class CheckoutController extends BaseController
             }
             
             $html .= '<tr>
-                        <td>
-                            <div class="product-cell">
-                                <img src="' . $imageUrl . '" alt="' . esc($productName) . '" class="product-image">
-                                <span class="product-name">' . esc($productName) . '</span>
-                            </div>
+                        <td style="padding: 15px 10px; border-bottom: 1px solid #e5e7eb; font-family: Arial, sans-serif;">
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding-right: 10px;">
+                                        <img src="' . $imageUrl . '" alt="' . esc($productName) . '" style="width: 60px; height: 60px; border-radius: 6px; border: 2px solid #e5e7eb; display: block;" />
+                                    </td>
+                                    <td>
+                                        <span style="font-weight: 600; color: #1f2937; font-size: 14px;">' . esc($productName) . '</span>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
-                        <td style="text-align: center; font-weight: 600;">' . $item['quantity'] . '</td>
-                        <td style="text-align: right;">' . number_format($item['unit_price'], 2, ',', ' ') . ' €</td>
-                        <td style="text-align: right; font-weight: 700; color: #1e3a8a;">' . number_format($itemTotal, 2, ',', ' ') . ' €</td>
+                        <td style="padding: 15px 10px; border-bottom: 1px solid #e5e7eb; text-align: center; font-weight: 600; color: #1f2937; font-family: Arial, sans-serif;">' . $item['quantity'] . '</td>
+                        <td style="padding: 15px 10px; border-bottom: 1px solid #e5e7eb; text-align: right; color: #4b5563; font-family: Arial, sans-serif;">' . number_format($item['unit_price'], 2, ',', ' ') . ' €</td>
+                        <td style="padding: 15px 10px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 700; color: #1e40af; font-family: Arial, sans-serif;">' . number_format($itemTotal, 2, ',', ' ') . ' €</td>
                     </tr>';
         }
         
         $tva = $order['total_amount'] - $totalHT;
         
         $html .= '</tbody>
-            </table>
-            
-            <!-- Récapitulatif des totaux -->
-            <div class="total-section">
-                <div class="total-row">
-                    <span>Sous-total HT :</span>
-                    <span>' . number_format($totalHT, 2, ',', ' ') . ' €</span>
-                </div>
-                <div class="total-row">
-                    <span>TVA (20%) :</span>
-                    <span>' . number_format($tva, 2, ',', ' ') . ' €</span>
-                </div>
-                <div class="total-row final">
-                    <span>Total TTC :</span>
-                    <span class="amount">' . number_format($order['total_amount'], 2, ',', ' ') . ' €</span>
-                </div>
-            </div>
-            
-            <h2 class="section-title">📦 Adresse de livraison</h2>
-            <div class="shipping-address">
-                <div class="customer-name">' . esc($customerData['first_name'] . ' ' . $customerData['last_name']) . '</div>
-                <p style="margin: 5px 0;">' . esc($shippingAddress['address']) . '</p>';
+                            </table>
+                            
+                            <!-- Récapitulatif des totaux -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 20px 0; background-color: #f9fafb; border-radius: 6px;">
+                                <tr>
+                                    <td style="padding: 15px;">
+                                        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                                            <tr>
+                                                <td style="padding: 8px 0; font-size: 15px; color: #4b5563; font-family: Arial, sans-serif;">Sous-total HT :</td>
+                                                <td style="padding: 8px 0; font-size: 15px; color: #4b5563; text-align: right; font-family: Arial, sans-serif;">' . number_format($totalHT, 2, ',', ' ') . ' €</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; font-size: 15px; color: #4b5563; font-family: Arial, sans-serif;">TVA (20%) :</td>
+                                                <td style="padding: 8px 0; font-size: 15px; color: #4b5563; text-align: right; font-family: Arial, sans-serif;">' . number_format($tva, 2, ',', ' ') . ' €</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 15px 0 0 0; font-size: 20px; font-weight: 700; color: #1e40af; font-family: Arial, sans-serif; border-top: 2px solid #d1d5db;">Total TTC :</td>
+                                                <td style="padding: 15px 0 0 0; font-size: 20px; font-weight: 700; color: #f59e0b; text-align: right; font-family: Arial, sans-serif; border-top: 2px solid #d1d5db;">' . number_format($order['total_amount'], 2, ',', ' ') . ' €</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Titre section livraison -->
+                            <h2 style="margin: 30px 0 15px 0; padding: 0 0 10px 0; font-size: 20px; font-weight: bold; color: #1e40af; font-family: Arial, sans-serif; border-bottom: 2px solid #f59e0b;">
+                                📦 Adresse de livraison
+                            </h2>
+                            
+                            <!-- Adresse de livraison -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 15px 0; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <p style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #1e40af; font-family: Arial, sans-serif;">
+                                            ' . esc($customerData['first_name'] . ' ' . $customerData['last_name']) . '
+                                        </p>
+                                        <p style="margin: 5px 0; font-size: 14px; color: #4b5563; font-family: Arial, sans-serif;">' . esc($shippingAddress['address']) . '</p>';
         
         // Ajouter le complément d'adresse si présent
         if (!empty($shippingAddress['address_complement'])) {
-            $html .= '<p style="margin: 5px 0;">' . esc($shippingAddress['address_complement']) . '</p>';
+            $html .= '<p style="margin: 5px 0; font-size: 14px; color: #4b5563; font-family: Arial, sans-serif;">' . esc($shippingAddress['address_complement']) . '</p>';
         }
         
-        $html .= '<p style="margin: 5px 0;">' . esc($shippingAddress['postal_code']) . ' ' . esc($shippingAddress['city']) . '</p>
-                <p style="margin: 5px 0; font-weight: 600;">' . esc($shippingAddress['country']) . '</p>
-            </div>
-            
-            <!-- Message informatif -->
-            <div class="info-message">
-                <strong>📬 Suivi de votre commande</strong><br>
-                Nous préparons votre commande avec soin. Vous recevrez bientôt un email avec les détails d\'expédition et le numéro de suivi de votre colis.
-            </div>
-            
-            <!-- Call to Action -->
-            <div style="text-align: center;">
-                <a href="' . base_url('mon-compte/commandes/' . $order['reference']) . '" class="cta-button">
-                    🔍 Suivre ma commande en ligne
-                </a>
-            </div>
-            
-            <p style="margin-top: 25px; color: #6b7280;">Pour toute question concernant votre commande, n\'hésitez pas à nous contacter en indiquant le numéro de commande <strong style="color: #f59e0b;">' . esc($order['reference']) . '</strong>.</p>
-        </div>
-        
-        <!-- Footer -->
-        <div class="footer">
-            <div class="footer-signature">
-                <p style="margin: 5px 0;">Merci de votre confiance ! 🙏</p>
-                <p style="margin: 5px 0;"><strong>L\'équipe KayArt</strong></p>
-                <p style="margin: 5px 0; font-style: italic; color: #6b7280;">"Votre passion, notre expertise"</p>
-            </div>
-            
-            <!-- Réseaux sociaux -->
-            <div class="social-links">
-                <p style="font-size: 14px; color: #6b7280; margin-bottom: 12px;">Suivez-nous sur les réseaux sociaux :</p>
-                <a href="https://facebook.com/kayart" title="Facebook">
-                    <div class="social-icon">
-                        <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                    </div>
-                </a>
-                <a href="https://instagram.com/kayart" title="Instagram">
-                    <div class="social-icon">
-                        <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                    </div>
-                </a>
-            </div>
-            
-            <!-- Contact -->
-            <div class="contact-info">
-                <p><a href="mailto:contact.kayart@gmail.com">📧 contact.kayart@gmail.com</a></p>
-                <p><a href="' . base_url() . '" style="color: #1e3a8a;">🌐 ' . str_replace(['http://', 'https://'], '', base_url()) . '</a></p>
-                <p style="margin-top: 15px; font-size: 11px; color: #9ca3af;">
-                    © ' . date('Y') . ' KayArt - Tous droits réservés<br>
-                    Vous recevez cet email car vous avez passé commande sur notre boutique.
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
+        $html .= '<p style="margin: 5px 0; font-size: 14px; color: #4b5563; font-family: Arial, sans-serif;">' . esc($shippingAddress['postal_code']) . ' ' . esc($shippingAddress['city']) . '</p>
+                                        <p style="margin: 5px 0; font-size: 14px; font-weight: 600; color: #1f2937; font-family: Arial, sans-serif;">' . esc($shippingAddress['country']) . '</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Message informatif (fond bleu clair) -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 20px 0; background-color: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 4px;">
+                                <tr>
+                                    <td style="padding: 15px;">
+                                        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #1e40af; font-family: Arial, sans-serif;">
+                                            <strong>📬 Suivi de votre commande</strong><br/>
+                                            Nous préparons votre commande avec soin. Vous recevrez bientôt un email avec les détails d\'expédition et le numéro de suivi de votre colis.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Bouton CTA -->
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 25px 0;">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <a href="' . base_url('mon-compte/commandes/' . $order['reference']) . '" style="display: inline-block; background-color: #f59e0b; color: #ffffff !important; text-decoration: none; padding: 15px 35px; border-radius: 8px; font-weight: 700; font-size: 16px; font-family: Arial, sans-serif;">
+                                            🔍 Suivre ma commande en ligne
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="margin: 25px 0 0 0; font-size: 14px; line-height: 22px; color: #6b7280; font-family: Arial, sans-serif;">
+                                Pour toute question concernant votre commande, n\'hésitez pas à nous contacter en indiquant le numéro de commande <strong style="color: #f59e0b;">' . esc($order['reference']) . '</strong>.
+                            </p>
+                            
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 30px 25px; background-color: #f9fafb; border-top: 1px solid #e5e7eb; text-align: center;">
+                            
+                            <!-- Signature -->
+                            <p style="margin: 0 0 5px 0; font-size: 16px; color: #1f2937; font-family: Arial, sans-serif;">
+                                Merci de votre confiance ! 🙏
+                            </p>
+                            <p style="margin: 5px 0; font-size: 16px; font-weight: 700; color: #1f2937; font-family: Arial, sans-serif;">
+                                <span style="color: #f59e0b;">L\'équipe KayArt</span>
+                            </p>
+                            <p style="margin: 5px 0 20px 0; font-size: 14px; font-style: italic; color: #6b7280; font-family: Arial, sans-serif;">
+                                "Votre passion, notre expertise"
+                            </p>
+                            
+                            <!-- Réseaux sociaux (avec emojis au lieu de SVG) -->
+                            <p style="margin: 20px 0 10px 0; font-size: 14px; color: #6b7280; font-family: Arial, sans-serif;">
+                                Suivez-nous sur les réseaux sociaux :
+                            </p>
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto 20px auto;">
+                                <tr>
+                                    <td style="padding: 0 10px;">
+                                        <a href="https://facebook.com/kayart" style="display: inline-block; background-color: #1e40af; color: #ffffff; text-decoration: none; padding: 10px 15px; border-radius: 50%; font-size: 18px; line-height: 1;">
+                                            📘
+                                        </a>
+                                    </td>
+                                    <td style="padding: 0 10px;">
+                                        <a href="https://instagram.com/kayart" style="display: inline-block; background-color: #1e40af; color: #ffffff; text-decoration: none; padding: 10px 15px; border-radius: 50%; font-size: 18px; line-height: 1;">
+                                            📸
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Contact -->
+                            <p style="margin: 15px 0 5px 0; font-size: 13px; color: #6b7280; font-family: Arial, sans-serif;">
+                                <a href="mailto:contact.kayart@gmail.com" style="color: #f59e0b; text-decoration: none;">📧 contact.kayart@gmail.com</a>
+                            </p>
+                            <p style="margin: 5px 0 15px 0; font-size: 13px; color: #6b7280; font-family: Arial, sans-serif;">
+                                <a href="' . base_url() . '" style="color: #1e40af; text-decoration: none;">🌐 ' . str_replace(['http://', 'https://'], '', base_url()) . '</a>
+                            </p>
+                            
+                            <!-- Copyright -->
+                            <p style="margin: 15px 0 0 0; font-size: 11px; color: #9ca3af; font-family: Arial, sans-serif; line-height: 16px;">
+                                © ' . date('Y') . ' KayArt - Tous droits réservés<br/>
+                                Vous recevez cet email car vous avez passé commande sur notre boutique.
+                            </p>
+                            
+                        </td>
+                    </tr>
+                    
+                </table>
+                <!-- Fin container principal -->
+            </td>
+        </tr>
+    </table>
+    <!-- Fin wrapper -->
 </body>
 </html>';
 
