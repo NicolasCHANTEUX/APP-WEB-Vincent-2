@@ -304,7 +304,7 @@ $categories = $categories ?? [];
         </div>
 
         <!-- Contenu -->
-        <div class="p-4 overflow-y-auto flex-1">
+        <div class="p-4 flex-1" style="overflow-y: scroll; -webkit-overflow-scrolling: touch;">
             <!-- Formulaire d'ajout/modification -->
             <div class="bg-gray-50 rounded-lg p-4 mb-4">
                 <h3 class="text-sm font-bold text-primary-dark mb-3" id="form-title">Ajouter une catégorie</h3>
@@ -483,9 +483,7 @@ document.getElementById('category-form')?.addEventListener('submit', async (e) =
             showSuccess(data.message);
             resetForm();
             loadCategories();
-            
-            // Recharger la page pour mettre à jour le filtre
-            setTimeout(() => window.location.reload(), 1000);
+            updateCategoryFilter();
         } else {
             showError(data.message || 'Erreur lors de la sauvegarde');
         }
@@ -515,9 +513,7 @@ async function deleteCategory(id, name) {
         if (data.success) {
             showSuccess(data.message);
             loadCategories();
-            
-            // Recharger la page pour mettre à jour le filtre
-            setTimeout(() => window.location.reload(), 1000);
+            updateCategoryFilter();
         } else {
             showError(data.message);
         }
@@ -525,6 +521,22 @@ async function deleteCategory(id, name) {
         console.error('Erreur:', error);
         showError('Erreur réseau');
     }
+}
+
+// Mettre à jour le dropdown de filtres
+function updateCategoryFilter() {
+    const select = document.querySelector('select[name="category"]');
+    if (!select) return;
+    
+    const currentValue = select.value;
+    const options = ['<option value="">Toutes</option>'];
+    
+    categories.forEach(cat => {
+        const selected = currentValue == cat.id ? ' selected' : '';
+        options.push(`<option value="${cat.id}"${selected}>${escapeHtml(cat.name)}</option>`);
+    });
+    
+    select.innerHTML = options.join('');
 }
 
 // Fonctions utilitaires
