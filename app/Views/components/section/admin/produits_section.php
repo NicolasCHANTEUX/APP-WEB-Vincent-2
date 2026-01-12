@@ -308,7 +308,6 @@ $categories = $categories ?? [];
             <!-- Formulaire d'ajout/modification -->
             <div class="bg-gray-50 rounded-lg p-4 mb-4">
                 <h3 class="text-sm font-bold text-primary-dark mb-3" id="form-title">Ajouter une catégorie</h3>
-                <h3 class="text-sm font-bold text-primary-dark mb-3" id="form-title">Ajouter une catégorie</h3>
                 <form id="category-form" class="space-y-3">
                     <input type="hidden" id="category-id" value="">
                     
