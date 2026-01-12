@@ -26,6 +26,11 @@ $routes->post('contact', 'ContactControler::sendEmail');
 $routes->post('connexion', 'ConnexionControler::authenticate');
 $routes->get('deconnexion', 'AuthController::logout');
 
+// Blog / Actualités
+$routes->get('actualites', 'BlogController::index');
+$routes->get('actualites/(:segment)', 'BlogController::detail/$1');
+$routes->post('actualites/(:num)/commenter', 'BlogController::postComment/$1');
+
 // Test logging
 $routes->get('test-log', 'TestLog::index');
 
@@ -77,6 +82,17 @@ $routes->group('admin', ['filter' => 'adminauth', 'namespace' => 'App\\Controlle
     $routes->get('demandes', 'AdminDemandesController::index');
     $routes->get('demandes/(:num)', 'AdminDemandesController::show/$1');
     $routes->post('demandes/(:num)/status', 'AdminDemandesController::updateStatus/$1');
+    
+    // Gestion du Blog
+    $routes->get('blog', 'AdminBlogController::index');
+    $routes->get('blog/nouveau', 'AdminBlogController::nouveau');
+    $routes->post('blog/create', 'AdminBlogController::create');
+    $routes->get('blog/edit/(:num)', 'AdminBlogController::edit/$1');
+    $routes->post('blog/update/(:num)', 'AdminBlogController::update/$1');
+    $routes->post('blog/delete/(:num)', 'AdminBlogController::delete/$1');
+    $routes->get('blog/commentaires', 'AdminBlogController::commentaires');
+    $routes->post('blog/commentaires/approve/(:num)', 'AdminBlogController::approveComment/$1');
+    $routes->post('blog/commentaires/delete/(:num)', 'AdminBlogController::deleteComment/$1');
 });
 
 // Routes Panier
