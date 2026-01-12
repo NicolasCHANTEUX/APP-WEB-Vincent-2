@@ -291,9 +291,9 @@ $categories = $categories ?? [];
 
 <!-- Modal de gestion des catégories -->
 <div id="category-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl max-w-xl w-full max-h-[70vh] overflow-hidden shadow-2xl">
+    <div class="bg-white rounded-xl max-w-xl w-full max-h-[70vh] flex flex-col shadow-2xl">
         <!-- Header -->
-        <div class="bg-gradient-to-r from-accent-gold to-amber-600 text-white px-4 py-3 flex items-center justify-between">
+        <div class="bg-gradient-to-r from-accent-gold to-amber-600 text-white px-4 py-3 flex items-center justify-between flex-shrink-0">
             <h2 class="text-lg font-bold flex items-center gap-2">
                 <i data-lucide="folder-cog" class="w-5 h-5"></i>
                 Gestion des Catégories
@@ -304,7 +304,7 @@ $categories = $categories ?? [];
         </div>
 
         <!-- Contenu -->
-        <div class="p-4 overflow-y-auto max-h-[calc(70vh-3.5rem)]">
+        <div class="p-4 overflow-y-auto flex-1">
             <!-- Formulaire d'ajout/modification -->
             <div class="bg-gray-50 rounded-lg p-4 mb-4">
                 <h3 class="text-sm font-bold text-primary-dark mb-3" id="form-title">Ajouter une catégorie</h3>
@@ -340,7 +340,7 @@ $categories = $categories ?? [];
             <!-- Liste des catégories existantes -->
             <div>
                 <h3 class="text-sm font-bold text-primary-dark mb-3">Catégories existantes</h3>
-                <div id="categories-list" class="space-y-2 max-h-60 overflow-y-auto">
+                <div id="categories-list" class="space-y-2">
                     <!-- Chargement... -->
                     <div class="text-center py-6 text-gray-500">
                         <i data-lucide="loader-2" class="w-6 h-6 inline animate-spin"></i>
