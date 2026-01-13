@@ -4,19 +4,16 @@ namespace App\Controllers;
 
 use App\Models\BlogPostModel;
 use App\Models\BlogCommentModel;
-use App\Libraries\ImageProcessor;
 
 class AdminBlogController extends BaseController
 {
     protected $blogPostModel;
     protected $blogCommentModel;
-    protected $imageProcessor;
 
     public function __construct()
     {
         $this->blogPostModel = new BlogPostModel();
         $this->blogCommentModel = new BlogCommentModel();
-        $this->imageProcessor = new ImageProcessor();
     }
 
     /**
@@ -71,13 +68,11 @@ class AdminBlogController extends BaseController
             $newName = $image->getRandomName();
             $image->move(WRITEPATH . 'uploads/blog', $newName);
             
-            // Redimensionner pour le web
-            $this->imageProcessor->resizeImage(
-                WRITEPATH . 'uploads/blog/' . $newName,
-                WRITEPATH . 'uploads/blog/thumb_' . $newName,
-                800,
-                600
-            );
+            // Redimensionner pour le web avec le service Image de CodeIgniter
+            $imageService = \Config\Services::image();
+            $imageService->withFile(WRITEPATH . 'uploads/blog/' . $newName)
+                        ->fit(800, 600, 'center')
+                        ->save(WRITEPATH . 'uploads/blog/thumb_' . $newName);
             
             $postData['image'] = $newName;
         }
@@ -146,12 +141,11 @@ class AdminBlogController extends BaseController
             $newName = $image->getRandomName();
             $image->move(WRITEPATH . 'uploads/blog', $newName);
             
-            $this->imageProcessor->resizeImage(
-                WRITEPATH . 'uploads/blog/' . $newName,
-                WRITEPATH . 'uploads/blog/thumb_' . $newName,
-                800,
-                600
-            );
+            // Redimensionner pour le web avec le service Image de CodeIgniter
+            $imageService = \Config\Services::image();
+            $imageService->withFile(WRITEPATH . 'uploads/blog/' . $newName)
+                        ->fit(800, 600, 'center')
+                        ->save(WRITEPATH . 'uploads/blog/thumb_' . $newName);
             
             $postData['image'] = $newName;
         }
