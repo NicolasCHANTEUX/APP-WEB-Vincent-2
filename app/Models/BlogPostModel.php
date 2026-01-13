@@ -24,7 +24,7 @@ class BlogPostModel extends Model
     // Validation
     protected $validationRules = [
         'title'   => 'required|min_length[3]|max_length[255]',
-        'slug'    => 'required|is_unique[blog_posts.slug,id,{id}]',
+        'slug'    => 'permit_empty|is_unique[blog_posts.slug,id,{id}]',
         'content' => 'required|min_length[10]',
     ];
 
@@ -34,7 +34,6 @@ class BlogPostModel extends Model
             'min_length' => 'Le titre doit contenir au moins 3 caractères',
         ],
         'slug' => [
-            'required'  => 'Le slug est requis',
             'is_unique' => 'Ce slug existe déjà',
         ],
         'content' => [
