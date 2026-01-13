@@ -2,17 +2,10 @@
 $langQ = '?lang=' . site_lang();
 ?>
 
-<!-- Hero Section -->
-<div class="bg-gradient-to-br from-primary-dark via-blue-900 to-primary-dark text-white py-20">
-    <div class="container mx-auto px-4 md:px-8 text-center">
-        <h1 class="text-4xl md:text-5xl font-serif font-bold mb-4">
-            Le Journal de l'Atelier
-        </h1>
-        <p class="text-xl text-blue-100 max-w-2xl mx-auto">
-            Découvrez les coulisses de la fabrication artisanale, nos conseils et nos dernières créations
-        </p>
-    </div>
-</div>
+<?= view_cell('App\\Cells\\Hero::render', [
+    'title' => trans('blog_title'),
+    'subtitle' => trans('blog_subtitle'),
+]) ?>
 
 <div class="py-16 bg-gray-50">
     <div class="container mx-auto px-4 md:px-8">

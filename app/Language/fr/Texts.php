@@ -6,6 +6,7 @@ return [
     'nav_products' => 'PRODUITS',
     'nav_services' => 'SERVICES',
     'nav_contact'  => 'CONTACT',
+    'nav_news'     => 'ACTUALITÉS',
     'nav_login'    => 'CONNEXION',
     'nav_admin'    => 'ADMINISTRATION',
     'nav_logout'   => 'DÉCONNEXION',
@@ -69,6 +70,10 @@ return [
     'faq_products_prefix' => 'Découvrez nos',
     'faq_products_link_text' => 'produits sur-mesure',
     'faq_contact_suffix_q5' => 'pour discuter de votre projet.',
+
+    // Blog / Actualités
+    'blog_title' => 'Le Journal de l\'Atelier',
+    'blog_subtitle' => 'Découvrez les coulisses de la fabrication artisanale, nos conseils et nos dernières créations',
 
     // Pages - Produits
     'products_title'              => 'Produits',

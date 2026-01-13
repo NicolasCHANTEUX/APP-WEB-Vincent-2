@@ -6,6 +6,7 @@ return [
     'nav_products' => 'PRODUCTS',
     'nav_services' => 'SERVICES',
     'nav_contact'  => 'CONTACT',
+    'nav_news'     => 'NEWS',
     'nav_login'    => 'LOGIN',
     'nav_admin'    => 'ADMIN',
     'nav_logout'   => 'LOGOUT',
@@ -69,6 +70,10 @@ return [
     'faq_products_prefix' => 'Discover our',
     'faq_products_link_text' => 'custom products',
     'faq_contact_suffix_q5' => 'to discuss your project.',
+
+    // Blog / News
+    'blog_title' => 'The Workshop Journal',
+    'blog_subtitle' => 'Discover the behind-the-scenes of artisanal manufacturing, our tips and our latest creations',
 
     // Pages - Products
     'products_title'              => 'Products',
