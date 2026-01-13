@@ -108,7 +108,7 @@ $isEdit = isset($post) && $post !== null;
 </div>
 
 <!-- TinyMCE Editor -->
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="https://cdn.tiny.cloud/1/c91bf7e12b5ce554ba1c796ebb9232f6648ab6b7ef9a2f1b24ff1e8a23c34066/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
 tinymce.init({
     selector: '#blog-content',
