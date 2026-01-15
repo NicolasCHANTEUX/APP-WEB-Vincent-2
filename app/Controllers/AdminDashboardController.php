@@ -30,9 +30,9 @@ class AdminDashboardController extends BaseController
 
         // Récupérer les réservations récentes
         $reservations = $this->reservationModel
-            ->select('reservations.*, product.title as product_name')
-            ->join('product', 'product.id = reservations.product_id', 'left')
-            ->orderBy('reservations.created_at', 'DESC')
+            ->select('reservation.*, product.title as product_name')
+            ->join('product', 'product.id = reservation.product_id', 'left')
+            ->orderBy('reservation.created_at', 'DESC')
             ->limit(5)
             ->findAll();
 
