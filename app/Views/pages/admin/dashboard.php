@@ -12,8 +12,8 @@ $this->setData([
 <?= view_cell('App\\Cells\\ContainerComposant::render', [
     'enfant' => view_cell('App\\Cells\\sections\\admin\\DashboardSectionComposant::render', [
         'stats' => $stats ?? [],
-        'lowStock' => $lowStock ?? [],
-        'recent' => $recent ?? [],
+        'recentRequests' => $recentRequests ?? [],
+        'recentReservations' => $recentReservations ?? [],
     ]),
     'bgColor' => 'bg-transparent',
     'classes' => 'mt-16 md:mt-20',

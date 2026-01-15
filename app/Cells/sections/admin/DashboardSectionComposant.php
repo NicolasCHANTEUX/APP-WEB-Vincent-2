@@ -4,12 +4,12 @@ namespace App\Cells\sections\admin;
 
 class DashboardSectionComposant
 {
-    public function render(array $stats = [], array $lowStock = [], array $recent = []): string
+    public function render(array $stats = [], array $recentRequests = [], array $recentReservations = []): string
     {
         return view('components/section/admin/dashboard_section', [
             'stats' => $stats,
-            'lowStock' => $lowStock,
-            'recent' => $recent,
+            'recentRequests' => $recentRequests,
+            'recentReservations' => $recentReservations,
         ]);
     }
 }

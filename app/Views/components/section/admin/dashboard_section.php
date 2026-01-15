@@ -1,7 +1,7 @@
 <?php
 $stats = $stats ?? [];
 $totalProducts = (int) ($stats['totalProducts'] ?? 0);
-$lowStockCount = (int) ($stats['lowStockCount'] ?? 0);
+$totalReservations = (int) ($stats['totalReservations'] ?? 0);
 $newRequests = (int) ($stats['newRequests'] ?? 0);
 
 $langQ = '?lang=' . site_lang();
@@ -35,7 +35,7 @@ $langQ = '?lang=' . site_lang();
                         Gérez vos produits, suivez vos demandes clients et optimisez votre boutique en ligne
                     </p>
                     
-                    <div class="grid grid-cols-3 gap-4 mt-8 max-w-2xl">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 max-w-2xl">
                         
                         <div class="group bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 hover:bg-white/15 hover:shadow-lg transition-all duration-300">
                             <div class="flex items-center gap-4 mb-2">
@@ -52,14 +52,14 @@ $langQ = '?lang=' . site_lang();
                         
                         <div class="group bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 hover:bg-white/15 hover:shadow-lg transition-all duration-300">
                             <div class="flex items-center gap-4 mb-2">
-                                <div class="w-12 h-12 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                                    <i data-lucide="alert-triangle" class="w-6 h-6 text-amber-300"></i>
+                                <div class="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="shopping-bag" class="w-6 h-6 text-blue-300"></i>
                                 </div>
-                                <div class="text-3xl md:text-4xl font-bold text-amber-300"><?= $lowStockCount ?></div>
+                                <div class="text-3xl md:text-4xl font-bold text-blue-300"><?= $totalReservations ?></div>
                             </div>
                             <div>
-                                <div class="text-sm text-white/80 font-medium leading-tight">Stock faible</div>
-                                <div class="text-xs text-white/60 mt-0.5">à surveiller</div>
+                                <div class="text-sm text-white/80 font-medium leading-tight">Commandes</div>
+                                <div class="text-xs text-white/60 mt-0.5">au total</div>
                             </div>
                         </div>
                         
@@ -84,8 +84,8 @@ $langQ = '?lang=' . site_lang();
                         
                     </div>
 
-                    <!-- Liens actions rapides -->
-                    <div class="grid grid-cols-2 gap-3 mt-6 max-w-2xl">
+                    <!-- Lien action rapide Blog -->
+                    <div class="mt-6 max-w-2xl">
                         <a href="<?= site_url('admin/blog') . $langQ ?>" 
                            class="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-blue-500/20 hover:border-blue-400/40 transition-all">
                             <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/30 transition-colors">
@@ -97,33 +97,11 @@ $langQ = '?lang=' . site_lang();
                             </div>
                             <i data-lucide="arrow-right" class="w-4 h-4 text-white/50 group-hover:text-blue-300 group-hover:translate-x-1 transition-all"></i>
                         </a>
-
-                        <a href="<?= site_url('actualites') . $langQ ?>" target="_blank"
-                           class="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-purple-500/20 hover:border-purple-400/40 transition-all">
-                            <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-500/30 transition-colors">
-                                <i data-lucide="eye" class="w-5 h-5 text-purple-300"></i>
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-sm font-medium text-white">Voir le site</div>
-                                <div class="text-xs text-white/60">Aperçu public</div>
-                            </div>
-                            <i data-lucide="external-link" class="w-4 h-4 text-white/50 group-hover:text-purple-300 transition-colors"></i>
-                        </a>
                     </div>
                 </div>
 
                 <div class="flex-shrink-0">
                     <div class="flex flex-col gap-3">
-                        <a href="<?= site_url('admin/produits/nouveau') . $langQ ?>" 
-                           class="group relative overflow-hidden flex items-center gap-3 px-6 py-4 rounded-xl bg-accent-gold hover:bg-accent-gold/90 transition shadow-lg hover:shadow-xl">
-                            <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-                            <i data-lucide="plus-circle" class="w-5 h-5 text-white relative z-10"></i>
-                            <div class="text-left relative z-10">
-                                <div class="text-sm font-bold text-white">Nouveau produit</div>
-                                <div class="text-xs text-white/80">Ajouter rapidement</div>
-                            </div>
-                        </a>
-                        
                         <a href="<?= site_url('admin/produits') . $langQ ?>" 
                            class="flex items-center gap-3 px-6 py-4 rounded-xl bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/20 transition">
                             <i data-lucide="package" class="w-5 h-5 text-white"></i>
@@ -139,6 +117,15 @@ $langQ = '?lang=' . site_lang();
                             <div class="text-left">
                                 <div class="text-sm font-semibold text-white">Commandes</div>
                                 <div class="text-xs text-white/70">Gérer les ventes</div>
+                            </div>
+                        </a>
+
+                        <a href="<?= site_url('admin/reservations') . $langQ ?>" 
+                           class="flex items-center gap-3 px-6 py-4 rounded-xl bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/20 transition">
+                            <i data-lucide="calendar-check" class="w-5 h-5 text-white"></i>
+                            <div class="text-left">
+                                <div class="text-sm font-semibold text-white">Réservations</div>
+                                <div class="text-xs text-white/70">Gérer les réservations</div>
                             </div>
                         </a>
                         
@@ -157,47 +144,68 @@ $langQ = '?lang=' . site_lang();
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Tableau Demandes -->
         <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-            <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-white">
+            <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-white">
                 <div class="flex items-center gap-2 text-sm font-semibold tracking-wide text-gray-800">
-                    <i data-lucide="alert-circle" class="w-4 h-4 text-amber-500"></i>
-                    STOCK FAIBLE
+                    <i data-lucide="mail" class="w-4 h-4 text-emerald-500"></i>
+                    DEMANDES DE CONTACT
                 </div>
-                <div class="text-xs text-gray-500 mt-1">Produits nécessitant votre attention</div>
+                <div class="text-xs text-gray-500 mt-1">Demandes clients récentes</div>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="text-xs uppercase text-gray-500 bg-gray-50">
                         <tr>
-                            <th class="text-left px-6 py-3">Produit</th>
-                            <th class="text-center px-6 py-3">Stock</th>
-                            <th class="text-right px-6 py-3">Prix</th>
-                            <th class="text-center px-6 py-3">Actions</th>
+                            <th class="text-left px-4 md:px-6 py-3 whitespace-nowrap">Client</th>
+                            <th class="text-left px-4 md:px-6 py-3 whitespace-nowrap hidden sm:table-cell">Email</th>
+                            <th class="text-center px-4 md:px-6 py-3 whitespace-nowrap">Statut</th>
+                            <th class="text-center px-4 md:px-6 py-3 whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
-                        <?php if (empty($lowStock)): ?>
+                        <?php if (empty($recentRequests ?? [])): ?>
                             <tr>
                                 <td colspan="4" class="px-6 py-8 text-center text-gray-500">
                                     <div class="flex flex-col items-center gap-2">
-                                        <i data-lucide="check-circle" class="w-8 h-8 text-emerald-500"></i>
-                                        <p class="text-sm font-medium">Tous les produits ont un stock suffisant</p>
+                                        <i data-lucide="inbox" class="w-8 h-8 text-gray-400"></i>
+                                        <p class="text-sm font-medium">Aucune demande récente</p>
                                     </div>
                                 </td>
                             </tr>
                         <?php else: ?>
-                            <?php foreach ($lowStock as $p): ?>
-                                <tr class="hover:bg-amber-50/50 transition-colors">
-                                    <td class="px-6 py-4 font-medium text-gray-900"><?= esc($p['name'] ?? '') ?></td>
-                                    <td class="px-6 py-4 text-center">
-                                        <span class="inline-flex items-center justify-center min-w-8 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
-                                            <?= (int) ($p['stock'] ?? 0) ?>
+                            <?php foreach ($recentRequests as $req): ?>
+                                <tr class="hover:bg-emerald-50/50 transition-colors">
+                                    <td class="px-4 md:px-6 py-4">
+                                        <div class="font-medium text-gray-900"><?= esc($req['name'] ?? '') ?></div>
+                                        <div class="text-xs text-gray-500 mt-0.5 sm:hidden"><?= esc($req['email'] ?? '') ?></div>
+                                        <div class="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                                            <i data-lucide="calendar" class="w-3 h-3"></i>
+                                            <?= esc($req['date'] ?? '') ?>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 md:px-6 py-4 text-sm text-gray-600 hidden sm:table-cell"><?= esc($req['email'] ?? '') ?></td>
+                                    <td class="px-4 md:px-6 py-4 text-center">
+                                        <?php
+                                        $status = $req['status'] ?? 'new';
+                                        $statusColors = [
+                                            'new' => 'bg-emerald-100 text-emerald-800',
+                                            'processing' => 'bg-blue-100 text-blue-800',
+                                            'completed' => 'bg-gray-100 text-gray-800',
+                                        ];
+                                        $statusLabels = [
+                                            'new' => 'Nouveau',
+                                            'processing' => 'En cours',
+                                            'completed' => 'Traité',
+                                        ];
+                                        ?>
+                                        <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap <?= $statusColors[$status] ?? 'bg-gray-100 text-gray-800' ?>">
+                                            <?= $statusLabels[$status] ?? $status ?>
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 text-right font-medium"><?= number_format((float) ($p['price'] ?? 0), 2, ',', ' ') ?> €</td>
-                                    <td class="px-6 py-4 text-center">
-                                        <a href="<?= site_url('admin/produits') . $langQ ?>" class="inline-flex items-center justify-center p-2 rounded-lg hover:bg-amber-100 transition-colors">
-                                            <i data-lucide="pencil" class="w-4 h-4 text-gray-600"></i>
+                                    <td class="px-4 md:px-6 py-4 text-center">
+                                        <a href="<?= site_url('admin/demandes') . $langQ ?>" class="inline-flex items-center justify-center p-2 rounded-lg hover:bg-emerald-100 transition-colors">
+                                            <i data-lucide="eye" class="w-4 h-4 text-gray-600"></i>
                                         </a>
                                     </td>
                                 </tr>
@@ -208,61 +216,69 @@ $langQ = '?lang=' . site_lang();
             </div>
         </div>
 
+        <!-- Tableau Commandes/Réservations -->
         <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-            <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-sky-50 to-white">
+            <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
                 <div class="flex items-center gap-2 text-sm font-semibold tracking-wide text-gray-800">
-                    <i data-lucide="clock" class="w-4 h-4 text-sky-500"></i>
-                    DERNIERS AJOUTS
+                    <i data-lucide="shopping-bag" class="w-4 h-4 text-blue-500"></i>
+                    COMMANDES RÉCENTES
                 </div>
-                <div class="text-xs text-gray-500 mt-1">Produits récemment ajoutés</div>
+                <div class="text-xs text-gray-500 mt-1">Réservations et commandes</div>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="text-xs uppercase text-gray-500 bg-gray-50">
                         <tr>
-                            <th class="text-left px-6 py-3">Produit</th>
-                            <th class="text-right px-6 py-3">Prix</th>
-                            <th class="text-center px-6 py-3">Stock</th>
-                            <th class="text-center px-6 py-3">Actions</th>
+                            <th class="text-left px-4 md:px-6 py-3 whitespace-nowrap">Client</th>
+                            <th class="text-left px-4 md:px-6 py-3 whitespace-nowrap hidden md:table-cell">Produit</th>
+                            <th class="text-center px-4 md:px-6 py-3 whitespace-nowrap">Statut</th>
+                            <th class="text-center px-4 md:px-6 py-3 whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
-                        <?php if (empty($recent)): ?>
+                        <?php if (empty($recentReservations ?? [])): ?>
                             <tr>
                                 <td colspan="4" class="px-6 py-8 text-center text-gray-500">
                                     <div class="flex flex-col items-center gap-2">
-                                        <i data-lucide="inbox" class="w-8 h-8 text-gray-500"></i>
-                                        <p class="text-sm font-medium">Aucun produit récent</p>
+                                        <i data-lucide="shopping-cart" class="w-8 h-8 text-gray-400"></i>
+                                        <p class="text-sm font-medium">Aucune commande récente</p>
                                     </div>
                                 </td>
                             </tr>
                         <?php else: ?>
-                            <?php foreach ($recent as $p): ?>
-                                <tr class="hover:bg-sky-50/50 transition-colors">
-                                    <td class="px-6 py-4">
-                                        <div class="font-medium text-gray-900"><?= esc($p['name'] ?? '') ?></div>
-                                        <?php if (! empty($p['date'])): ?>
-                                            <div class="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                                                <i data-lucide="calendar" class="w-3 h-3"></i>
-                                                <?= esc($p['date']) ?>
-                                            </div>
-                                        <?php endif; ?>
+                            <?php foreach ($recentReservations as $res): ?>
+                                <tr class="hover:bg-blue-50/50 transition-colors">
+                                    <td class="px-4 md:px-6 py-4">
+                                        <div class="font-medium text-gray-900"><?= esc($res['customer_name'] ?? '') ?></div>
+                                        <div class="text-xs text-gray-500 md:hidden mt-0.5"><?= esc($res['product_name'] ?? '') ?></div>
+                                        <div class="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                                            <i data-lucide="calendar" class="w-3 h-3"></i>
+                                            <?= esc($res['date'] ?? '') ?>
+                                        </div>
                                     </td>
-                                    <td class="px-6 py-4 text-right font-medium"><?= number_format((float) ($p['price'] ?? 0), 2, ',', ' ') ?> €</td>
-                                    <td class="px-6 py-4 text-center">
-                                        <span class="inline-flex items-center justify-center min-w-8 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-                                            <?= (int) ($p['stock'] ?? 0) ?>
+                                    <td class="px-4 md:px-6 py-4 text-sm text-gray-600 hidden md:table-cell"><?= esc($res['product_name'] ?? '') ?></td>
+                                    <td class="px-4 md:px-6 py-4 text-center">
+                                        <?php
+                                        $status = $res['status'] ?? 'pending';
+                                        $statusColors = [
+                                            'pending' => 'bg-blue-100 text-blue-800',
+                                            'confirmed' => 'bg-emerald-100 text-emerald-800',
+                                            'cancelled' => 'bg-red-100 text-red-800',
+                                        ];
+                                        $statusLabels = [
+                                            'pending' => 'En attente',
+                                            'confirmed' => 'Confirmé',
+                                            'cancelled' => 'Annulé',
+                                        ];
+                                        ?>
+                                        <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap <?= $statusColors[$status] ?? 'bg-gray-100 text-gray-800' ?>">
+                                            <?= $statusLabels[$status] ?? $status ?>
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 text-center">
-                                        <div class="inline-flex items-center gap-1">
-                                            <a href="<?= site_url('admin/produits') . $langQ ?>" class="inline-flex items-center justify-center p-2 rounded-lg hover:bg-sky-100 transition-colors">
-                                                <i data-lucide="pencil" class="w-4 h-4 text-gray-600"></i>
-                                            </a>
-                                            <a href="<?= site_url('produits') . $langQ ?>" class="inline-flex items-center justify-center p-2 rounded-lg hover:bg-sky-100 transition-colors">
-                                                <i data-lucide="eye" class="w-4 h-4 text-gray-600"></i>
-                                            </a>
-                                        </div>
+                                    <td class="px-4 md:px-6 py-4 text-center">
+                                        <a href="<?= site_url('admin/reservations') . $langQ ?>" class="inline-flex items-center justify-center p-2 rounded-lg hover:bg-blue-100 transition-colors">
+                                            <i data-lucide="eye" class="w-4 h-4 text-gray-600"></i>
+                                        </a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
