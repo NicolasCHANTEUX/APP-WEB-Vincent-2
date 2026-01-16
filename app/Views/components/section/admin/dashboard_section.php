@@ -35,7 +35,7 @@ $langQ = '?lang=' . site_lang();
                         Gérez vos produits, suivez vos demandes clients et optimisez votre boutique en ligne
                     </p>
                     
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 max-w-2xl">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 max-w-2xl">
                         
                         <div class="group bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 hover:bg-white/15 hover:shadow-lg transition-all duration-300">
                             <div class="flex items-center gap-4 mb-2">
