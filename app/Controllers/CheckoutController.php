@@ -531,10 +531,10 @@ class CheckoutController extends BaseController
                                 <tbody>';
         
         // Ajouter les articles
-        $totalHT = 0;
+        $totalTTC = 0; // Total TTC de tous les articles
         foreach ($orderItems as $item) {
             $itemTotal = $item['quantity'] * $item['unit_price'];
-            $totalHT += $itemTotal;
+            $totalTTC += $itemTotal;
             
             // Le nom du produit et l'image sont dans le snapshot
             $productName = $item['product_snapshot']['title'] ?? 'Produit inconnu';
@@ -568,7 +568,9 @@ class CheckoutController extends BaseController
                     </tr>';
         }
         
-        $tva = $order['total_amount'] - $totalHT;
+        // Calcul correct : TTC = 1.20 × HT, donc HT = TTC ÷ 1.20 et TVA = TTC - HT
+        $totalHT = round($totalTTC / 1.20, 2);
+        $tva = round($totalTTC - $totalHT, 2);
         
         $html .= '</tbody>
                             </table>
