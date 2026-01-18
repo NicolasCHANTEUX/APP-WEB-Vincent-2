@@ -64,7 +64,7 @@
             
             echo view('components/section/contact/map_widget', [
                 'points' => $mapPoints, 
-                'defaultZoom' => 14,
+                'defaultZoom' => 10,
                 'mapId' => 'contact-map'
             ]); 
             ?>
