@@ -53,37 +53,125 @@ class ContactControler extends BaseController
             return redirect()->back()->withInput()->with('error', trans('contact_error_save'));
         }
 
-        // --- ENVOI DE L'EMAIL ADMINISTRATEUR (NOUVEAU STYLE) ---
+        // --- ENVOI DE L'EMAIL ADMINISTRATEUR (TEMPLATE HTML PROFESSIONNEL) ---
+        
+        // ===== DÉTECTION LANGUE (basée sur indicatif téléphonique) =====
+        $emailLang = 'fr'; // Par défaut français
+        if (!empty($data['phone'])) {
+            // Si téléphone commence par +33 ou 0 → français, sinon anglais
+            $phone = trim($data['phone']);
+            if (!str_starts_with($phone, '+33') && !str_starts_with($phone, '0') && !str_starts_with($phone, '06') && !str_starts_with($phone, '07')) {
+                $emailLang = 'en';
+            }
+        }
         
         $emailService = \Config\Services::email();
         $emailService->setFrom('contact.kayart@gmail.com', 'Site Web Kayart');
         $emailService->setTo('contact.kayart@gmail.com'); // REMPLACE PAR TON EMAIL ADMIN
         $emailService->setReplyTo($data['email'], $data['name']);
 
-        $subject = "Nouvelle prise de contact : " . $data['subject'];
+        // Sujet selon langue détectée
+        $subject = $emailLang === 'fr' 
+            ? "📩 Nouvelle demande de contact : " . $data['subject']
+            : "📩 New contact request: " . $data['subject'];
         $emailService->setSubject($subject);
 
-        // Construction du contenu HTML
-        $phoneHtml = !empty($data['phone']) ? "<p style='margin: 0 0 10px 0;'><strong>Téléphone :</strong> " . esc($data['phone']) . "</p>" : '';
+        // Construction du contenu HTML selon langue
+        $phoneHtml = !empty($data['phone']) 
+            ? "<tr>
+                <td style='padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #475569; width: 140px;'>" 
+                . ($emailLang === 'fr' ? 'Téléphone' : 'Phone') . " :</td>
+                <td style='padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #1e293b;'>" . esc($data['phone']) . "</td>
+               </tr>" 
+            : '';
         
-        $htmlContent = "
-            <p>Bonjour,</p>
-            <p>Une personne souhaite entrer en contact avec l'atelier via le formulaire du site web.</p>
-            
-            <div style='background-color: #f1f5f9; padding: 20px; border-radius: 6px; margin: 20px 0;'>
-                <p style='margin: 0 0 10px 0;'><strong>Nom :</strong> " . esc($data['name']) . "</p>
-                <p style='margin: 0 0 10px 0;'><strong>Email :</strong> <a href='mailto:" . esc($data['email']) . "' style='color: #0f172a;'>" . esc($data['email']) . "</a></p>
-                {$phoneHtml}
-            </div>
+        if ($emailLang === 'fr') {
+            $htmlContent = "
+                <p style='margin: 0 0 20px 0; font-size: 16px; color: #475569;'>
+                    Bonjour,<br><br>
+                    Une nouvelle demande de contact a été soumise via le formulaire du site web.
+                </p>
+                
+                <div style='background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 24px; border-radius: 8px; margin: 25px 0; border: 1px solid #cbd5e1;'>
+                    <h3 style='margin: 0 0 16px 0; color: #0f172a; font-size: 18px; font-weight: 700;'>📋 Informations du contact</h3>
+                    <table style='width: 100%; border-collapse: collapse; background-color: white; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);'>
+                        <tr>
+                            <td style='padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #475569; width: 140px;'>Nom :</td>
+                            <td style='padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #1e293b;'>" . esc($data['name']) . "</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #475569;'>Email :</td>
+                            <td style='padding: 12px 16px; border-bottom: 1px solid #e2e8f0;'>
+                                <a href='mailto:" . esc($data['email']) . "' style='color: #d97706; text-decoration: none; font-weight: 500;'>" . esc($data['email']) . "</a>
+                            </td>
+                        </tr>
+                        {$phoneHtml}
+                        <tr>
+                            <td style='padding: 12px 16px; font-weight: 600; color: #475569;'>Objet :</td>
+                            <td style='padding: 12px 16px; color: #1e293b; font-weight: 600;'>" . esc($data['subject']) . "</td>
+                        </tr>
+                    </table>
+                </div>
 
-            <p><strong>Message :</strong></p>
-            <blockquote style='border-left: 4px solid #d97706; margin: 0; padding-left: 20px; color: #475569; font-style: italic;'>
-                " . nl2br(esc($data['message'])) . "
-            </blockquote>
-        ";
+                <div style='margin: 25px 0;'>
+                    <h3 style='margin: 0 0 12px 0; color: #0f172a; font-size: 18px; font-weight: 700;'>💬 Message</h3>
+                    <div style='background-color: #fffbeb; border-left: 4px solid #d97706; padding: 20px 24px; border-radius: 0 6px 6px 0; box-shadow: 0 1px 3px rgba(217,119,6,0.1);'>
+                        <p style='margin: 0; color: #78350f; line-height: 1.7; white-space: pre-wrap;'>" . esc($data['message']) . "</p>
+                    </div>
+                </div>
 
-        // Utilisation de notre template BaseController
-        $body = $this->getEmailTemplate('Nouveau Message', $htmlContent);
+                <div style='background-color: #ecfdf5; border: 1px solid #a7f3d0; padding: 16px 20px; border-radius: 6px; margin-top: 25px;'>
+                    <p style='margin: 0; color: #065f46; font-size: 14px;'>
+                        💡 <strong>Astuce :</strong> Vous pouvez répondre directement en cliquant sur \"Répondre\" (l'email du client est configuré comme Reply-To).
+                    </p>
+                </div>
+            ";
+        } else {
+            $htmlContent = "
+                <p style='margin: 0 0 20px 0; font-size: 16px; color: #475569;'>
+                    Hello,<br><br>
+                    A new contact request has been submitted via the website form.
+                </p>
+                
+                <div style='background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 24px; border-radius: 8px; margin: 25px 0; border: 1px solid #cbd5e1;'>
+                    <h3 style='margin: 0 0 16px 0; color: #0f172a; font-size: 18px; font-weight: 700;'>📋 Contact Information</h3>
+                    <table style='width: 100%; border-collapse: collapse; background-color: white; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);'>
+                        <tr>
+                            <td style='padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #475569; width: 140px;'>Name:</td>
+                            <td style='padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #1e293b;'>" . esc($data['name']) . "</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #475569;'>Email:</td>
+                            <td style='padding: 12px 16px; border-bottom: 1px solid #e2e8f0;'>
+                                <a href='mailto:" . esc($data['email']) . "' style='color: #d97706; text-decoration: none; font-weight: 500;'>" . esc($data['email']) . "</a>
+                            </td>
+                        </tr>
+                        {$phoneHtml}
+                        <tr>
+                            <td style='padding: 12px 16px; font-weight: 600; color: #475569;'>Subject:</td>
+                            <td style='padding: 12px 16px; color: #1e293b; font-weight: 600;'>" . esc($data['subject']) . "</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div style='margin: 25px 0;'>
+                    <h3 style='margin: 0 0 12px 0; color: #0f172a; font-size: 18px; font-weight: 700;'>💬 Message</h3>
+                    <div style='background-color: #fffbeb; border-left: 4px solid #d97706; padding: 20px 24px; border-radius: 0 6px 6px 0; box-shadow: 0 1px 3px rgba(217,119,6,0.1);'>
+                        <p style='margin: 0; color: #78350f; line-height: 1.7; white-space: pre-wrap;'>" . esc($data['message']) . "</p>
+                    </div>
+                </div>
+
+                <div style='background-color: #ecfdf5; border: 1px solid #a7f3d0; padding: 16px 20px; border-radius: 6px; margin-top: 25px;'>
+                    <p style='margin: 0; color: #065f46; font-size: 14px;'>
+                        💡 <strong>Tip:</strong> You can reply directly by clicking \"Reply\" (customer's email is set as Reply-To).
+                    </p>
+                </div>
+            ";
+        }
+
+        // Utilisation du template BaseController avec titre selon langue
+        $emailTitle = $emailLang === 'fr' ? 'Nouvelle demande de contact' : 'New Contact Request';
+        $body = $this->getEmailTemplate($emailTitle, $htmlContent);
         
         $emailService->setMessage($body);
         $emailService->send();

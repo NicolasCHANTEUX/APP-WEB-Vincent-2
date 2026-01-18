@@ -53,10 +53,10 @@
             // Configuration des points pour la carte
             $mapPoints = [
                 [
-                    // Coordonnées approximatives de la Buronnière, 72400 Saint-Aubin-des-Coudrais
-                    'latitude' => 48.190395, 
-                    'longitude' => 0.578511, 
-                    'markerText' => 'Atelier Kayart',
+                    // Coordonnées du centre-ville de La Ferté-Bernard (pour confidentialité)
+                    'latitude' => 48.1854, 
+                    'longitude' => 0.6533, 
+                    'markerText' => 'Atelier Kayart - La Ferté-Bernard',
                     'isMain' => true,
                     'color' => 'gold' 
                 ]

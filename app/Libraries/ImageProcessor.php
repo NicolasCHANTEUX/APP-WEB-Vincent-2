@@ -118,6 +118,9 @@ class ImageProcessor
             $success = true;
             $generatedFiles = [];
 
+            // ===== CORRECTION EXIF ORIENTATION (pour iPhone/Android) =====
+            $this->fixExifOrientation($file->getRealPath());
+
             // Générer les 3 versions (avec numérotation)
             foreach ($this->formats as $formatKey => $formatConfig) {
                 $outputPath = $this->uploadPath . $formatConfig['path'] . '/';
@@ -131,10 +134,10 @@ class ImageProcessor
                 $tempFile = $outputPath . 'temp_' . $file->getName();
                 copy($file->getRealPath(), $tempFile);
 
-                // Redimensionner et convertir (fit pour respecter largeur max)
+                // ===== AMÉLIORATION CROP : resize() au lieu de fit() pour conserver proportions =====
                 $imageService
                     ->withFile($tempFile)
-                    ->fit($formatConfig['width'], $formatConfig['width'], 'center')
+                    ->resize($formatConfig['width'], $formatConfig['width'], true, 'height') // Conserver ratio
                     ->convert(IMAGETYPE_WEBP)
                     ->save($fullPath, $formatConfig['quality']);
 
@@ -304,6 +307,107 @@ class ImageProcessor
         $originalPath = $this->uploadPath . 'original/' . $cleanSku . '-' . $imageNumber . '.webp';
         
         return file_exists($originalPath);
+    }
+
+    /**
+     * Corriger l'orientation d'une image basée sur les données EXIF
+     * (Fix pour les photos iPhone/Android qui apparaissent tournées)
+     * 
+     * @param string $filePath Chemin vers le fichier image
+     * @return bool Succès de la correction
+     */
+    protected function fixExifOrientation(string $filePath): bool
+    {
+        // Vérifier si la fonction exif_read_data existe (extension PHP exif requise)
+        if (!function_exists('exif_read_data')) {
+            log_message('warning', '[ImageProcessor] Extension PHP EXIF non disponible - rotation EXIF ignorée');
+            return false;
+        }
+
+        try {
+            // Lire les données EXIF
+            $exif = @exif_read_data($filePath);
+            
+            if (!$exif || !isset($exif['Orientation'])) {
+                log_message('debug', '[ImageProcessor] Pas de données EXIF Orientation trouvées');
+                return true; // Pas d'erreur, juste pas de rotation nécessaire
+            }
+
+            $orientation = $exif['Orientation'];
+            log_message('error', '[ImageProcessor] EXIF Orientation détectée: ' . $orientation);
+
+            // Charger l'image avec GD
+            $image = null;
+            $imageType = exif_imagetype($filePath);
+            
+            switch ($imageType) {
+                case IMAGETYPE_JPEG:
+                    $image = @imagecreatefromjpeg($filePath);
+                    break;
+                case IMAGETYPE_PNG:
+                    $image = @imagecreatefrompng($filePath);
+                    break;
+                case IMAGETYPE_WEBP:
+                    $image = @imagecreatefromwebp($filePath);
+                    break;
+                default:
+                    log_message('warning', '[ImageProcessor] Type d\'image non supporté pour rotation EXIF');
+                    return false;
+            }
+
+            if (!$image) {
+                log_message('error', '[ImageProcessor] Impossible de charger l\'image pour rotation EXIF');
+                return false;
+            }
+
+            // Appliquer la rotation selon la valeur EXIF
+            $rotated = null;
+            switch ($orientation) {
+                case 3: // 180 degrés
+                    $rotated = imagerotate($image, 180, 0);
+                    log_message('error', '[ImageProcessor] ✓ Rotation 180° appliquée');
+                    break;
+                case 6: // 90 degrés sens horaire (iPhone portrait)
+                    $rotated = imagerotate($image, -90, 0);
+                    log_message('error', '[ImageProcessor] ✓ Rotation -90° appliquée (iPhone portrait)');
+                    break;
+                case 8: // 90 degrés sens anti-horaire
+                    $rotated = imagerotate($image, 90, 0);
+                    log_message('error', '[ImageProcessor] ✓ Rotation 90° appliquée');
+                    break;
+                default:
+                    log_message('debug', '[ImageProcessor] Orientation normale (valeur ' . $orientation . '), pas de rotation');
+                    imagedestroy($image);
+                    return true;
+            }
+
+            if ($rotated) {
+                // Sauvegarder l'image corrigée
+                switch ($imageType) {
+                    case IMAGETYPE_JPEG:
+                        imagejpeg($rotated, $filePath, 95);
+                        break;
+                    case IMAGETYPE_PNG:
+                        imagepng($rotated, $filePath, 9);
+                        break;
+                    case IMAGETYPE_WEBP:
+                        imagewebp($rotated, $filePath, 95);
+                        break;
+                }
+                
+                imagedestroy($image);
+                imagedestroy($rotated);
+                log_message('error', '[ImageProcessor] ✓ Image EXIF corrigée et sauvegardée');
+                return true;
+            }
+
+            imagedestroy($image);
+            return false;
+
+        } catch (\Exception $e) {
+            log_message('error', '[ImageProcessor] Erreur rotation EXIF: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**
