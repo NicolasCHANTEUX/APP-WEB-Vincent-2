@@ -42,9 +42,6 @@ $routes->get('mentions-legales', 'PagesController::mentionsLegales');
 $routes->get('politique-confidentialite', 'PagesController::privacy');
 $routes->get('cgv', 'PagesController::cgv');
 
-// Showroom (Portfolio technique)
-$routes->get('showroom', 'ShowroomController::index');
-
 // Admin
 $routes->get('admin', 'AdminDashboardController::index', ['filter' => 'adminauth']);
 $routes->group('admin', ['filter' => 'adminauth', 'namespace' => 'App\\Controllers'], function ($routes) {
