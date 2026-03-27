@@ -3,16 +3,19 @@
 namespace App\Controllers;
 
 use App\Models\BlogPostModel;
+use App\Models\BlogPostBlockModel;
 use App\Models\BlogCommentModel;
 
 class BlogController extends BaseController
 {
     protected $blogPostModel;
+    protected $blogPostBlockModel;
     protected $blogCommentModel;
 
     public function __construct()
     {
         $this->blogPostModel = new BlogPostModel();
+        $this->blogPostBlockModel = new BlogPostBlockModel();
         $this->blogCommentModel = new BlogCommentModel();
     }
 
@@ -30,6 +33,16 @@ class BlogController extends BaseController
         // Ajouter le nombre de commentaires pour chaque article
         foreach ($data['posts'] as &$post) {
             $post['comments_count'] = $this->blogPostModel->getCommentsCount($post['id']);
+            if (empty($post['excerpt'])) {
+                $blocks = $this->blogPostBlockModel->getByPostId((int) $post['id']);
+                $mappedBlocks = array_map(static function (array $block): array {
+                    return [
+                        'type' => $block['block_type'] ?? '',
+                        'text' => $block['text_content'] ?? '',
+                    ];
+                }, $blocks);
+                $post['excerpt'] = $this->blogPostModel->buildExcerptFromBlocks($mappedBlocks);
+            }
         }
 
         return view('layouts/main', [
@@ -52,6 +65,13 @@ class BlogController extends BaseController
         $data = [
             'title' => $post['title'],
             'post' => $post,
+            'blocks' => array_map(static function (array $block): array {
+                return [
+                    'type' => $block['block_type'] ?? '',
+                    'text' => $block['text_content'] ?? '',
+                    'image' => $block['image_path'] ?? '',
+                ];
+            }, $this->blogPostBlockModel->getByPostId((int) $post['id'])),
             'comments' => $this->blogCommentModel->getApprovedComments($post['id']),
         ];
 

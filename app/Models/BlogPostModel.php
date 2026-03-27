@@ -25,7 +25,7 @@ class BlogPostModel extends Model
     protected $validationRules = [
         'title'   => 'required|min_length[3]|max_length[255]',
         'slug'    => 'permit_empty|is_unique[blog_posts.slug,id,{id}]',
-        'content' => 'required|min_length[10]',
+        'content' => 'permit_empty',
     ];
 
     protected $validationMessages = [
@@ -43,21 +43,99 @@ class BlogPostModel extends Model
     ];
 
     // Callbacks
-    protected $beforeInsert = ['cleanSlug'];
-    protected $beforeUpdate = ['cleanSlug'];
+    protected $beforeInsert = ['prepareSlug'];
+    protected $beforeUpdate = ['prepareSlug'];
 
     /**
      * Nettoie automatiquement le slug (conversion des accents)
      */
-    protected function cleanSlug(array $data)
+    protected function prepareSlug(array $data)
     {
-        if (isset($data['data']['title'])) {
-            helper('text');
-            $cleanTitle = convert_accented_characters($data['data']['title']);
-            $slug = url_title($cleanTitle, '-', true);
-            $data['data']['slug'] = $slug;
+        if (! isset($data['data']['title'])) {
+            return $data;
         }
+
+        helper('text');
+
+        $cleanTitle = convert_accented_characters((string) $data['data']['title']);
+        $baseSlug   = url_title($cleanTitle, '-', true);
+        $baseSlug   = $baseSlug !== '' ? $baseSlug : 'article';
+
+        $currentId = null;
+
+        if (isset($data['id'])) {
+            $currentId = is_array($data['id']) ? (int) ($data['id'][0] ?? 0) : (int) $data['id'];
+            if ($currentId === 0) {
+                $currentId = null;
+            }
+        }
+
+        $slug   = $baseSlug;
+        $suffix = 2;
+
+        while ($this->isSlugTaken($slug, $currentId)) {
+            $slug = $baseSlug . '-' . $suffix;
+            $suffix++;
+        }
+
+        $data['data']['slug'] = $slug;
+
         return $data;
+    }
+
+    protected function isSlugTaken(string $slug, ?int $currentId = null): bool
+    {
+        $builder = $this->builder()->select('id')->where('slug', $slug);
+
+        if ($currentId !== null) {
+            $builder->where('id !=', $currentId);
+        }
+
+        return $builder->countAllResults() > 0;
+    }
+
+    public function buildExcerptFromBlocks(array $blocks, int $maxLength = 180): string
+    {
+        $texts = [];
+
+        foreach ($blocks as $block) {
+            if (($block['type'] ?? null) !== 'paragraph') {
+                continue;
+            }
+
+            $text = trim((string) ($block['text'] ?? ''));
+            if ($text !== '') {
+                $texts[] = $text;
+            }
+        }
+
+        if (empty($texts)) {
+            return '';
+        }
+
+        $fullText = preg_replace('/\s+/u', ' ', implode(' ', $texts)) ?? '';
+
+        if (mb_strlen($fullText) <= $maxLength) {
+            return $fullText;
+        }
+
+        return rtrim(mb_substr($fullText, 0, $maxLength)) . '...';
+    }
+
+    public function composeLegacyContentFromBlocks(array $blocks): string
+    {
+        $parts = [];
+
+        foreach ($blocks as $block) {
+            if (($block['type'] ?? null) === 'paragraph') {
+                $text = trim((string) ($block['text'] ?? ''));
+                if ($text !== '') {
+                    $parts[] = $text;
+                }
+            }
+        }
+
+        return implode("\n\n", $parts);
     }
 
     /**

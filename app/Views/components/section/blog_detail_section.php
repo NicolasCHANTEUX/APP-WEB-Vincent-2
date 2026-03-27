@@ -57,7 +57,11 @@ $langQ = '?lang=' . site_lang();
         <!-- Contenu de l'article -->
         <div class="bg-white rounded-xl shadow-sm p-8 md:p-10 mb-10">
             <div class="prose prose-blog">
-                <?= $post['content'] ?>
+                <?php if (!empty($blocks)): ?>
+                    <?= view('components/blog/blocks_renderer', ['blocks' => $blocks]) ?>
+                <?php else: ?>
+                    <p class="mb-6 leading-8 text-gray-700 whitespace-pre-line"><?= esc((string) ($post['content'] ?? '')) ?></p>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -241,110 +245,5 @@ function showMessage(message, type) {
     line-height: 1.8;
     color: #374151;
     text-align: left;
-}
-
-/* Titres dans l'article */
-.prose-blog h2 {
-    font-size: 1.875rem;
-    font-weight: 700;
-    margin-top: 2.5rem;
-    margin-bottom: 1rem;
-    color: #1e3a8a;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    line-height: 1.3;
-}
-
-.prose-blog h3 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-top: 2rem;
-    margin-bottom: 0.75rem;
-    color: #1e3a8a;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    line-height: 1.4;
-}
-
-/* Paragraphes */
-.prose-blog p {
-    margin-bottom: 1.5rem;
-    line-height: 1.8;
-    text-align: left;
-}
-
-/* Listes */
-.prose-blog ul, 
-.prose-blog ol {
-    margin-left: 2rem;
-    margin-bottom: 1.5rem;
-    text-align: left;
-}
-
-.prose-blog li {
-    margin-bottom: 0.75rem;
-    line-height: 1.7;
-}
-
-/* Texte en gras */
-.prose-blog strong {
-    font-weight: 700;
-    color: #1f2937;
-}
-
-/* Liens - Couleur orange foncé pour meilleur contraste */
-.prose-blog a {
-    color: #d97706;
-    text-decoration: underline;
-    font-weight: 500;
-    transition: color 0.2s;
-}
-
-.prose-blog a:hover {
-    color: #b45309;
-}
-
-/* Images dans l'article */
-.prose-blog img {
-    border-radius: 0.75rem;
-    margin: 2rem auto;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    max-width: 100%;
-    height: auto;
-}
-
-/* Citations */
-.prose-blog blockquote {
-    border-left: 4px solid #f59e0b;
-    padding-left: 1.5rem;
-    margin: 2rem 0;
-    font-style: italic;
-    color: #6b7280;
-}
-
-/* Code */
-.prose-blog code {
-    background-color: #f3f4f6;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.9em;
-    color: #dc2626;
-}
-
-/* Tableaux */
-.prose-blog table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 2rem 0;
-}
-
-.prose-blog th,
-.prose-blog td {
-    border: 1px solid #e5e7eb;
-    padding: 0.75rem;
-    text-align: left;
-}
-
-.prose-blog th {
-    background-color: #f9fafb;
-    font-weight: 600;
 }
 </style>
