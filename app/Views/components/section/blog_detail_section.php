@@ -1,5 +1,6 @@
 <?php
 $langQ = '?lang=' . site_lang();
+helper('blog_image');
 ?>
 
 <article class="py-16 bg-gray-50">
@@ -45,14 +46,13 @@ $langQ = '?lang=' . site_lang();
         </header>
 
         <!-- Image de couverture (Option A : entre le titre et le contenu) -->
-        <?php if ($post['image']): ?>
         <div class="mb-10 rounded-xl overflow-hidden shadow-xl">
-            <img src="<?= base_url('writable/uploads/blog/thumb_' . $post['image']) ?>" 
+              <img src="<?= blog_cover_url($post['image'] ?? null, true) ?>"
                  alt="<?= esc($post['title']) ?>"
                  class="w-full h-auto object-cover"
-                 style="max-height: 500px;">
+                  style="max-height: 500px;"
+                  onerror="this.onerror=null;this.src='<?= blog_default_image_url() ?>';">
         </div>
-        <?php endif; ?>
 
         <!-- Contenu de l'article -->
         <div class="bg-white rounded-xl shadow-sm p-8 md:p-10 mb-10">

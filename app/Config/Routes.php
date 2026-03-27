@@ -26,6 +26,11 @@ $routes->post('contact', 'ContactControler::sendEmail');
 $routes->post('connexion', 'ConnexionControler::authenticate');
 $routes->get('deconnexion', 'AuthController::logout');
 
+// Media blog (images dans writable + fallback)
+$routes->get('media/blog/cover/(:segment)', 'MediaController::blogCover/$1');
+$routes->get('media/blog/cover-thumb/(:segment)', 'MediaController::blogCoverThumb/$1');
+$routes->get('media/blog/block/(:segment)', 'MediaController::blogBlock/$1');
+
 // Blog / Actualités
 $routes->get('actualites', 'BlogController::index');
 $routes->get('actualites/(:segment)', 'BlogController::detail/$1');

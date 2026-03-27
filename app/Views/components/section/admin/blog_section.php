@@ -1,5 +1,6 @@
 <?php
 $langQ = '?lang=' . site_lang();
+helper('blog_image');
 ?>
 
 <div class="pt-32 pb-12">
@@ -57,9 +58,10 @@ $langQ = '?lang=' . site_lang();
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-4">
                                 <?php if ($post['image']): ?>
-                                <img src="<?= base_url('writable/uploads/blog/thumb_' . $post['image']) ?>" 
+                                  <img src="<?= blog_cover_url($post['image'], true) ?>"
                                      alt="<?= esc($post['title']) ?>"
-                                     class="w-16 h-16 rounded-lg object-cover">
+                                      class="w-16 h-16 rounded-lg object-cover"
+                                      onerror="this.onerror=null;this.src='<?= blog_default_image_url() ?>';">
                                 <?php else: ?>
                                 <div class="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center">
                                     <i data-lucide="image" class="w-6 h-6 text-gray-400"></i>

@@ -1,5 +1,6 @@
 <?php
 $langQ = '?lang=' . site_lang();
+helper('blog_image');
 ?>
 
 <?= view_cell('App\\Cells\\Hero::render', [
@@ -26,9 +27,10 @@ $langQ = '?lang=' . site_lang();
                 <!-- Image -->
                 <a href="<?= site_url('actualites/' . $post['slug']) . $langQ ?>" class="block overflow-hidden">
                     <?php if ($post['image']): ?>
-                    <img src="<?= base_url('writable/uploads/blog/thumb_' . $post['image']) ?>" 
+                    <img src="<?= blog_cover_url($post['image'], true) ?>"
                          alt="<?= esc($post['title']) ?>"
-                         class="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300">
+                        class="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
+                        onerror="this.onerror=null;this.src='<?= blog_default_image_url() ?>';">
                     <?php else: ?>
                     <div class="w-full h-56 bg-gradient-to-br from-primary-dark to-blue-900 flex items-center justify-center">
                         <i data-lucide="image" class="w-16 h-16 text-white/50"></i>

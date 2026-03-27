@@ -1,3 +1,7 @@
+<?php
+helper('blog_image');
+?>
+
 <?php if (!empty($blocks)): ?>
     <?php foreach ($blocks as $block): ?>
         <?php if (($block['type'] ?? '') === 'paragraph'): ?>
@@ -11,9 +15,10 @@
             <?php $imagePath = trim((string) ($block['image'] ?? '')); ?>
             <?php if ($imagePath !== ''): ?>
                 <figure class="my-8">
-                    <img src="<?= base_url('writable/uploads/blog/blocks/' . $imagePath) ?>"
+                    <img src="<?= blog_block_url($imagePath) ?>"
                          alt="Image de l'article"
-                         class="w-full h-auto rounded-xl shadow-sm border border-gray-100">
+                         class="w-full h-auto rounded-xl shadow-sm border border-gray-100"
+                         onerror="this.onerror=null;this.src='<?= blog_default_image_url() ?>';">
                 </figure>
             <?php endif; ?>
         <?php endif; ?>

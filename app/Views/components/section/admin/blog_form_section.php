@@ -1,6 +1,7 @@
 <?php
 $langQ = '?lang=' . site_lang();
 $isEdit = isset($post) && $post !== null;
+helper('blog_image');
 
 $initialBlocks = old('blocks');
 if (!is_array($initialBlocks) || empty($initialBlocks)) {
@@ -59,9 +60,10 @@ if (!is_array($initialBlocks) || empty($initialBlocks)) {
 
                 <?php if ($isEdit && !empty($post['image'])): ?>
                     <div class="mb-4">
-                        <img src="<?= base_url('writable/uploads/blog/thumb_' . $post['image']) ?>"
+                        <img src="<?= blog_cover_url($post['image'], true) ?>"
                              alt="Image actuelle"
-                             class="w-64 h-48 object-cover rounded-xl border-2 border-gray-200">
+                             class="w-64 h-48 object-cover rounded-xl border-2 border-gray-200"
+                             onerror="this.onerror=null;this.src='<?= blog_default_image_url() ?>';">
                         <p class="text-xs text-gray-500 mt-1">Image actuelle</p>
                     </div>
                 <?php endif; ?>
@@ -165,7 +167,7 @@ if (!is_array($initialBlocks) || empty($initialBlocks)) {
         } else {
             const existingImage = data.existing_image || '';
             const preview = existingImage
-                ? `<img src="<?= base_url('writable/uploads/blog/blocks/') ?>${existingImage}" class="w-full max-h-72 object-cover rounded-xl border border-gray-200" alt="Image bloc">`
+                ? `<img src="<?= site_url('media/blog/block') ?>/${encodeURIComponent(existingImage)}" class="w-full max-h-72 object-cover rounded-xl border border-gray-200" alt="Image bloc" onerror="this.onerror=null;this.src='<?= blog_default_image_url() ?>';">`
                 : `<div class="w-full h-40 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-sm">Aperçu image</div>`;
 
             wrapper.innerHTML = `
