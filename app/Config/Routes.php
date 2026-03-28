@@ -97,6 +97,7 @@ $routes->group('admin', ['filter' => 'adminauth', 'namespace' => 'App\\Controlle
     $routes->post('blog/delete/(:num)', 'AdminBlogController::delete/$1');
     $routes->get('blog/commentaires', 'AdminBlogController::commentaires');
     $routes->post('blog/commentaires/approve/(:num)', 'AdminBlogController::approveComment/$1');
+    $routes->post('blog/commentaires/reject/(:num)', 'AdminBlogController::rejectComment/$1');
     $routes->post('blog/commentaires/delete/(:num)', 'AdminBlogController::deleteComment/$1');
 });
 

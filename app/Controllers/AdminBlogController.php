@@ -401,6 +401,18 @@ class AdminBlogController extends BaseController
     }
 
     /**
+     * Refuser un commentaire
+     */
+    public function rejectComment($id)
+    {
+        if ($this->blogCommentModel->reject($id)) {
+            return $this->response->setJSON(['success' => true, 'message' => 'Commentaire refusé']);
+        }
+
+        return $this->response->setJSON(['success' => false, 'message' => 'Erreur']);
+    }
+
+    /**
      * Supprimer un commentaire
      */
     public function deleteComment($id)

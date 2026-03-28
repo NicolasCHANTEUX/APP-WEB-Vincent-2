@@ -37,7 +37,7 @@ $langQ = '?lang=' . site_lang();
                             <h3 class="font-bold text-primary-dark"><?= esc($comment['author_name']) ?></h3>
                             <p class="text-sm text-gray-500">
                                 Sur l'article : 
-                                <a href="<?= site_url('actualites/' . $comment['post_id']) ?>" target="_blank" class="text-accent-gold hover:underline">
+                                <a href="<?= site_url('actualites/' . ($comment['post_slug'] ?? '')) ?>" target="_blank" class="text-accent-gold hover:underline">
                                     <?= esc($comment['post_title']) ?>
                                 </a>
                             </p>
@@ -62,6 +62,11 @@ $langQ = '?lang=' . site_lang();
                                 class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">
                             <i data-lucide="check" class="w-4 h-4"></i>
                             Approuver
+                        </button>
+                        <button onclick="rejectComment(<?= $comment['id'] ?>)"
+                                class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-medium">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                            Refuser
                         </button>
                         <button onclick="deleteComment(<?= $comment['id'] ?>)"
                                 class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">
@@ -132,6 +137,37 @@ async function deleteComment(id) {
             element.style.opacity = '0';
             setTimeout(() => element.remove(), 300);
             
+            setTimeout(() => {
+                if (!document.querySelector('[id^="comment-"]')) {
+                    window.location.reload();
+                }
+            }, 500);
+        } else {
+            alert('Erreur : ' + data.message);
+        }
+    } catch (error) {
+        alert('Erreur réseau');
+    }
+}
+
+async function rejectComment(id) {
+    if (!confirm('Voulez-vous vraiment refuser ce commentaire ?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`<?= site_url('admin/blog/commentaires/reject') ?>/${id}`, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const element = document.getElementById('comment-' + id);
+            element.style.opacity = '0';
+            setTimeout(() => element.remove(), 300);
+
             setTimeout(() => {
                 if (!document.querySelector('[id^="comment-"]')) {
                     window.location.reload();

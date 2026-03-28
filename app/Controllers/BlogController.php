@@ -90,15 +90,59 @@ class BlogController extends BaseController
             return redirect()->back();
         }
 
+        $post = $this->blogPostModel->find((int) $postId);
+        if (!$post || (int) ($post['is_published'] ?? 0) !== 1) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Article introuvable.'
+            ]);
+        }
+
+        $honeypot = trim((string) $this->request->getPost('website'));
+        if ($honeypot !== '') {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Merci ! Votre commentaire sera visible après validation.'
+            ]);
+        }
+
+        $lastCommentAt = (int) session('last_blog_comment_at');
+        $now = time();
+        if ($lastCommentAt > 0 && ($now - $lastCommentAt) < 15) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Veuillez patienter quelques secondes avant de publier un autre commentaire.'
+            ]);
+        }
+
+        $payload = [
+            'post_id' => (int) $postId,
+            'author_name' => trim((string) $this->request->getPost('author_name')),
+            'author_email' => trim((string) $this->request->getPost('author_email')),
+            'content' => trim((string) $this->request->getPost('content')),
+            'status' => 'pending',
+        ];
+
+        if (! $this->blogCommentModel->validate($payload)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Veuillez corriger les erreurs du formulaire.',
+                'errors' => $this->blogCommentModel->errors(),
+            ]);
+        }
+
         $commentData = [
-            'post_id' => $postId,
-            'author_name' => $this->request->getPost('author_name'),
-            'author_email' => $this->request->getPost('author_email'),
-            'content' => $this->request->getPost('content'),
-            'is_approved' => 0, // En attente de modération
+            'post_id' => (int) $postId,
+            'author_name' => $payload['author_name'],
+            'author_email' => $payload['author_email'],
+            'content' => $payload['content'],
+            'status' => 'pending',
+            'is_approved' => 0,
         ];
 
         if ($this->blogCommentModel->insert($commentData)) {
+            session()->set('last_blog_comment_at', $now);
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Merci ! Votre commentaire sera visible après validation.'

@@ -3,9 +3,8 @@ $langQ = '?lang=' . site_lang();
 helper('blog_image');
 ?>
 
-<article class="py-16 bg-gray-50">
-    <!-- Conteneur central limité à 800px pour une meilleure lisibilité -->
-    <div class="mx-auto px-4 md:px-6" style="max-width: 800px;">
+<article class="py-10 md:py-16 bg-[linear-gradient(180deg,#f8f9fb_0%,#f5f7fa_100%)]">
+    <div class="mx-auto px-4 md:px-6" style="max-width: 980px;">
         
         <!-- Breadcrumb -->
         <nav class="mb-6 text-sm">
@@ -19,7 +18,7 @@ helper('blog_image');
         </nav>
 
         <!-- En-tête article -->
-        <header class="mb-6 text-center">
+        <header class="mb-8 text-center">
             <!-- Badge catégorie -->
             <div class="mb-4">
                 <span class="inline-block px-4 py-1.5 bg-gradient-to-r from-accent-gold to-amber-600 text-white text-xs font-bold uppercase rounded-full tracking-wider">
@@ -28,7 +27,7 @@ helper('blog_image');
             </div>
 
             <!-- Titre principal -->
-            <h1 class="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-primary-dark mb-4 leading-tight">
+            <h1 class="text-3xl md:text-5xl lg:text-6xl font-serif font-bold text-primary-dark mb-5 leading-tight tracking-tight">
                 <?= esc($post['title']) ?>
             </h1>
             
@@ -46,16 +45,16 @@ helper('blog_image');
         </header>
 
         <!-- Image de couverture (Option A : entre le titre et le contenu) -->
-        <div class="mb-10 rounded-xl overflow-hidden shadow-xl">
+        <div class="mb-12 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-black/5 md:-mx-4 lg:-mx-8">
               <img src="<?= blog_cover_url($post['image'] ?? null, true) ?>"
                  alt="<?= esc($post['title']) ?>"
                  class="w-full h-auto object-cover"
-                  style="max-height: 500px;"
+                  style="max-height: 620px;"
                   onerror="this.onerror=null;this.src='<?= blog_default_image_url() ?>';">
         </div>
 
         <!-- Contenu de l'article -->
-        <div class="bg-white rounded-xl shadow-sm p-8 md:p-10 mb-10">
+        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6 md:p-10 lg:p-12 mb-12">
             <div class="prose prose-blog">
                 <?php if (!empty($blocks)): ?>
                     <?= view('components/blog/blocks_renderer', ['blocks' => $blocks]) ?>
@@ -69,7 +68,7 @@ helper('blog_image');
         <hr class="my-10 border-gray-300">
 
         <!-- Section Commentaires -->
-        <section id="commentaires" class="bg-white rounded-xl shadow-sm p-8 md:p-10">
+        <section id="commentaires" class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6 md:p-10 lg:p-12">
             <h2 class="text-2xl md:text-3xl font-sans font-bold text-primary-dark mb-8 pb-3 border-b-2 border-accent-gold inline-block">
                 Commentaires (<?= count($comments) ?>)
             </h2>
@@ -108,6 +107,7 @@ helper('blog_image');
                 </h3>
                 
                 <form id="comment-form" class="space-y-4">
+                    <input type="text" id="website" name="website" autocomplete="off" tabindex="-1" class="hidden" aria-hidden="true">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Votre nom *</label>
@@ -182,6 +182,7 @@ document.getElementById('comment-form')?.addEventListener('submit', async (e) =>
     const authorName = document.getElementById('author_name').value.trim();
     const authorEmail = document.getElementById('author_email').value.trim();
     const content = document.getElementById('comment_content').value.trim();
+    const website = document.getElementById('website').value.trim();
 
     if (!authorName || !content) {
         showMessage('Veuillez remplir tous les champs requis', 'error');
@@ -196,6 +197,7 @@ document.getElementById('comment-form')?.addEventListener('submit', async (e) =>
     formData.append('author_name', authorName);
     formData.append('author_email', authorEmail);
     formData.append('content', content);
+    formData.append('website', website);
 
     try {
         const response = await fetch('<?= site_url('actualites/' . $post['id'] . '/commenter') ?>', {
@@ -241,8 +243,8 @@ function showMessage(message, type) {
 <style>
 /* Styles pour le contenu de l'article - Design éditorial moderne */
 .prose-blog {
-    font-size: 18px;
-    line-height: 1.8;
+    font-size: 1.12rem;
+    line-height: 1.9;
     color: #374151;
     text-align: left;
 }
