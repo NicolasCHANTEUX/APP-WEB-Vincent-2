@@ -3,11 +3,11 @@ $langQ = '?lang=' . site_lang();
 helper('blog_image');
 ?>
 
-<article class="py-10 md:py-16 bg-[linear-gradient(180deg,#f8f9fb_0%,#f5f7fa_100%)]">
-    <div class="mx-auto px-4 md:px-6" style="max-width: 980px;">
+<article class="py-10 md:py-16 bg-[linear-gradient(180deg,#f8f9fb_0%,#f5f7fa_100%)] overflow-x-hidden">
+    <div class="px-4 md:px-6">
         
         <!-- Breadcrumb -->
-        <nav class="mb-6 text-sm">
+        <nav class="mb-6 text-sm mx-auto" style="max-width: 800px;">
             <ol class="flex items-center gap-2 text-gray-500">
                 <li><a href="<?= site_url('/') . $langQ ?>" class="hover:text-accent-gold transition">Accueil</a></li>
                 <li><i data-lucide="chevron-right" class="w-4 h-4"></i></li>
@@ -18,7 +18,7 @@ helper('blog_image');
         </nav>
 
         <!-- En-tête article -->
-        <header class="mb-8 text-center">
+        <header class="mb-8 text-center mx-auto" style="max-width: 800px;">
             <!-- Badge catégorie -->
             <div class="mb-4">
                 <span class="inline-block px-4 py-1.5 bg-gradient-to-r from-accent-gold to-amber-600 text-white text-xs font-bold uppercase rounded-full tracking-wider">
@@ -39,22 +39,22 @@ helper('blog_image');
                 </span>
                 <span class="flex items-center gap-2">
                     <i data-lucide="message-circle" class="w-4 h-4 text-accent-gold"></i>
-                    <span><?= count($comments) ?> commentaire<?= count($comments) > 1 ? 's' : '' ?></span>
+                    <span><?= (int) ($commentsCount ?? count($comments)) ?> commentaire<?= ((int) ($commentsCount ?? count($comments))) > 1 ? 's' : '' ?></span>
                 </span>
             </div>
         </header>
 
         <!-- Image de couverture (Option A : entre le titre et le contenu) -->
-        <div class="mb-12 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-black/5 md:-mx-4 lg:-mx-8">
+        <div class="mb-14 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-black/5 relative left-1/2 -translate-x-1/2 w-screen max-w-none">
               <img src="<?= blog_cover_url($post['image'] ?? null, true) ?>"
                  alt="<?= esc($post['title']) ?>"
                  class="w-full h-auto object-cover"
-                  style="max-height: 620px;"
+                  style="max-height: 68vh;"
                   onerror="this.onerror=null;this.src='<?= blog_default_image_url() ?>';">
         </div>
 
         <!-- Contenu de l'article -->
-        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6 md:p-10 lg:p-12 mb-12">
+        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6 md:p-10 lg:p-12 mb-12 mx-auto" style="max-width: 800px;">
             <div class="prose prose-blog">
                 <?php if (!empty($blocks)): ?>
                     <?= view('components/blog/blocks_renderer', ['blocks' => $blocks]) ?>
@@ -68,9 +68,9 @@ helper('blog_image');
         <hr class="my-10 border-gray-300">
 
         <!-- Section Commentaires -->
-        <section id="commentaires" class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6 md:p-10 lg:p-12">
+        <section id="commentaires" class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6 md:p-10 lg:p-12 mx-auto" style="max-width: 800px;">
             <h2 class="text-2xl md:text-3xl font-sans font-bold text-primary-dark mb-8 pb-3 border-b-2 border-accent-gold inline-block">
-                Commentaires (<?= count($comments) ?>)
+                Commentaires (<?= (int) ($commentsCount ?? count($comments)) ?>)
             </h2>
 
             <!-- Liste des commentaires approuvés -->
@@ -87,6 +87,10 @@ helper('blog_image');
                         <div class="flex-1">
                             <div class="flex items-center gap-3 mb-2">
                                 <h4 class="font-bold text-primary-dark"><?= esc($comment['author_name']) ?></h4>
+                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-green-100 text-green-700">
+                                    <i data-lucide="badge-check" class="w-3 h-3"></i>
+                                    Commentaire valide
+                                </span>
                                 <span class="text-xs text-gray-500">
                                     <?= date('d/m/Y à H:i', strtotime($comment['created_at'])) ?>
                                 </span>
@@ -96,6 +100,12 @@ helper('blog_image');
                     </div>
                 </div>
                 <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+
+            <?php if (isset($commentsPager) && $commentsPager !== null && $commentsPager->getPageCount('comments') > 1): ?>
+            <div class="mt-8 flex justify-center">
+                <?= $commentsPager->links('comments', 'default_full') ?>
             </div>
             <?php endif; ?>
 
@@ -152,7 +162,7 @@ helper('blog_image');
         </section>
 
         <!-- Retour à la liste -->
-        <div class="mt-10 text-center">
+        <div class="mt-10 text-center mx-auto" style="max-width: 800px;">
             <a href="<?= site_url('actualites') . $langQ ?>" 
                class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-accent-gold transition-all font-medium shadow-sm">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i>

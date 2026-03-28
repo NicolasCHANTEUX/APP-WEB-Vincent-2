@@ -64,6 +64,33 @@ class BlogCommentModel extends Model
                     ->findAll();
     }
 
+    public function getApprovedCommentsPaginated(int $postId, int $perPage = 10): array
+    {
+        return $this->groupStart()
+                        ->where('status', 'approved')
+                        ->orGroupStart()
+                            ->where('status IS NULL', null, false)
+                            ->where('is_approved', 1)
+                        ->groupEnd()
+                    ->groupEnd()
+                    ->where('post_id', $postId)
+                    ->orderBy('created_at', 'DESC')
+                    ->paginate($perPage, 'comments');
+    }
+
+    public function countApprovedForPost(int $postId): int
+    {
+        return $this->groupStart()
+                        ->where('status', 'approved')
+                        ->orGroupStart()
+                            ->where('status IS NULL', null, false)
+                            ->where('is_approved', 1)
+                        ->groupEnd()
+                    ->groupEnd()
+                    ->where('post_id', $postId)
+                    ->countAllResults();
+    }
+
     /**
      * Récupère les commentaires en attente de modération
      */

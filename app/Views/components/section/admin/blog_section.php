@@ -33,6 +33,15 @@ helper('blog_image');
     </div>
     <?php endif; ?>
 
+    <?php if ($pendingCommentsCount > 0): ?>
+    <div class="bg-orange-50 border-l-4 border-orange-500 p-4 mb-6 rounded">
+        <p class="text-orange-800 font-medium">
+            <?= $pendingCommentsCount ?> commentaire<?= $pendingCommentsCount > 1 ? 's' : '' ?> en attente de modération.
+            <a href="<?= site_url('admin/blog/commentaires') . $langQ ?>" class="underline font-semibold ml-1">Ouvrir la modération</a>
+        </p>
+    </div>
+    <?php endif; ?>
+
     <!-- Liste des articles -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
         <table class="w-full">

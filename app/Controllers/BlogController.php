@@ -62,6 +62,8 @@ class BlogController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
 
+        $comments = $this->blogCommentModel->getApprovedCommentsPaginated((int) $post['id'], 10);
+
         $data = [
             'title' => $post['title'],
             'post' => $post,
@@ -72,7 +74,9 @@ class BlogController extends BaseController
                     'image' => $block['image_path'] ?? '',
                 ];
             }, $this->blogPostBlockModel->getByPostId((int) $post['id'])),
-            'comments' => $this->blogCommentModel->getApprovedComments($post['id']),
+            'comments' => $comments,
+            'commentsPager' => $this->blogCommentModel->pager,
+            'commentsCount' => $this->blogCommentModel->countApprovedForPost((int) $post['id']),
         ];
 
         return view('layouts/main', [

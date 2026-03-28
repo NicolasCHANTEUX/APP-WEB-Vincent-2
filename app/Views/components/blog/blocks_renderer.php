@@ -14,8 +14,8 @@ helper('blog_image');
         <?php if (($block['type'] ?? '') === 'image'): ?>
             <?php $imagePath = trim((string) ($block['image'] ?? '')); ?>
             <?php if ($imagePath !== ''): ?>
-                <?php $offsetClass = ($index % 2 === 0) ? 'md:-mx-8 lg:-mx-14' : 'md:-mx-5 lg:-mx-10'; ?>
-                <figure class="my-10 <?= $offsetClass ?>">
+                <?php $rhythmClass = ($index % 2 === 0) ? 'md:rotate-[-0.15deg]' : 'md:rotate-[0.15deg]'; ?>
+                <figure class="my-12 relative left-1/2 -translate-x-1/2 w-[min(1100px,calc(100vw-2rem))] md:w-[min(1100px,calc(100vw-5rem))] <?= $rhythmClass ?>">
                     <img src="<?= blog_block_url($imagePath) ?>"
                          alt="Image de l'article"
                          class="w-full h-auto rounded-2xl shadow-xl ring-1 ring-black/5"
