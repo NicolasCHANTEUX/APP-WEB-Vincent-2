@@ -4,7 +4,10 @@
   "description": "Application Web avec CodeIgniter et Tailwind CSS",
   "scripts": {
     "dev": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css --watch",
-    "build": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css --minify"
+    "build": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css --minify",
+    "security:audit": "npm audit --audit-level=low",
+    "security:snyk": "npx -y snyk test --severity-threshold=low",
+    "security:check": "npm run security:audit"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.0"

@@ -43,7 +43,15 @@ abstract class BaseController extends Controller
         // (Logique reprise de l'ancien projet)
         $lang = $this->request->getGet('lang');
         if ($lang && in_array($lang, ['fr', 'en'], true)) {
-            setcookie('site_lang', $lang, time() + 60 * 60 * 24 * 30, '/');
+            $secureCookie = $this->request->isSecure() || (bool) env('app.forceGlobalSecureRequests', false);
+
+            setcookie('site_lang', $lang, [
+                'expires' => time() + 60 * 60 * 24 * 30,
+                'path' => '/',
+                'secure' => $secureCookie,
+                'httponly' => true,
+                'samesite' => 'Strict',
+            ]);
             // dispo immédiatement sur la requête courante
             $_COOKIE['site_lang'] = $lang;
         }

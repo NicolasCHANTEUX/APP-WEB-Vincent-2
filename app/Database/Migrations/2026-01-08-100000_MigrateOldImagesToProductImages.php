@@ -63,7 +63,16 @@ class MigrateOldImagesToProductImages extends Migration
 
             } catch (\Exception $e) {
                 $errors++;
-                echo "  ✗ Produit #{$product['id']} : ERREUR - {$e->getMessage()}\n";
+                log_message('error', '[MigrateOldImagesToProductImages] Produit #{id} : {message}', [
+                    'id' => (int) $product['id'],
+                    'message' => $e->getMessage(),
+                ]);
+
+                if (ENVIRONMENT !== 'production') {
+                    echo "  ✗ Produit #{$product['id']} : ERREUR (voir logs)\n";
+                } else {
+                    echo "  ✗ Produit #{$product['id']} : Une erreur inattendue est survenue.\n";
+                }
             }
         }
 

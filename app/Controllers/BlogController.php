@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\BlogPostModel;
 use App\Models\BlogPostBlockModel;
 use App\Models\BlogCommentModel;
+use Config\Email as EmailConfig;
 
 class BlogController extends BaseController
 {
@@ -147,6 +148,9 @@ class BlogController extends BaseController
         if ($this->blogCommentModel->insert($commentData)) {
             session()->set('last_blog_comment_at', $now);
 
+            $commentId = (int) $this->blogCommentModel->getInsertID();
+            $this->notifyAdminPendingComment($post, $commentData, $commentId);
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Merci ! Votre commentaire sera visible après validation.'
@@ -158,5 +162,114 @@ class BlogController extends BaseController
             'message' => 'Erreur lors de l\'envoi du commentaire',
             'errors' => $this->blogCommentModel->errors()
         ]);
+    }
+
+    protected function notifyAdminPendingComment(array $post, array $commentData, int $commentId): void
+    {
+        $adminEmail = $this->resolveAdminNotificationEmail();
+
+        if ($adminEmail === null) {
+            log_message('warning', '[BlogComment] Notification email skipped: ADMIN_EMAIL invalid or missing.');
+            return;
+        }
+
+        try {
+            $emailService = \Config\Services::email();
+            $emailConfig = config(EmailConfig::class);
+
+            $fromEmail = $emailConfig->fromEmail ?: 'no-reply@localhost';
+            $fromName = $emailConfig->fromName ?: 'KayArt';
+
+            $moderationUrl = site_url('admin/blog/commentaires');
+            $articleTitle = trim((string) ($post['title'] ?? 'Article'));
+            $articleSlug = trim((string) ($post['slug'] ?? ''));
+            $articleUrl = $articleSlug !== '' ? site_url('actualites/' . $articleSlug) : site_url('actualites');
+
+            $authorName = trim((string) ($commentData['author_name'] ?? 'Anonyme'));
+            $authorEmail = trim((string) ($commentData['author_email'] ?? ''));
+
+            $rawContent = trim((string) ($commentData['content'] ?? ''));
+            $sanitized = preg_replace('/\s+/u', ' ', strip_tags($rawContent)) ?? '';
+            $excerpt = mb_substr($sanitized, 0, 260) . (mb_strlen($sanitized) > 260 ? '...' : '');
+
+            $ip = (string) $this->request->getIPAddress();
+            $date = date('d/m/Y H:i');
+
+            $emailService->setFrom($fromEmail, $fromName);
+            $emailService->setTo($adminEmail);
+            $emailService->setSubject('Nouveau commentaire en attente de validation');
+
+            if ($authorEmail !== '' && filter_var($authorEmail, FILTER_VALIDATE_EMAIL)) {
+                $emailService->setReplyTo($authorEmail, $authorName);
+            }
+
+            $content = '
+                <p style="margin:0 0 16px 0;">Un nouveau commentaire est en attente de validation.</p>
+                <table style="width:100%; border-collapse:collapse; margin: 0 0 18px 0;">
+                    <tr>
+                        <td style="padding:8px 10px; border:1px solid #e2e8f0; width:180px;"><strong>Article</strong></td>
+                        <td style="padding:8px 10px; border:1px solid #e2e8f0;">' . esc($articleTitle) . '</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:8px 10px; border:1px solid #e2e8f0;"><strong>Auteur</strong></td>
+                        <td style="padding:8px 10px; border:1px solid #e2e8f0;">' . esc($authorName) . '</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:8px 10px; border:1px solid #e2e8f0;"><strong>Email</strong></td>
+                        <td style="padding:8px 10px; border:1px solid #e2e8f0;">' . esc($authorEmail !== '' ? $authorEmail : 'Non renseigne') . '</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:8px 10px; border:1px solid #e2e8f0;"><strong>Date</strong></td>
+                        <td style="padding:8px 10px; border:1px solid #e2e8f0;">' . esc($date) . '</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:8px 10px; border:1px solid #e2e8f0;"><strong>IP</strong></td>
+                        <td style="padding:8px 10px; border:1px solid #e2e8f0;">' . esc($ip) . '</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:8px 10px; border:1px solid #e2e8f0;"><strong>ID commentaire</strong></td>
+                        <td style="padding:8px 10px; border:1px solid #e2e8f0;">#' . esc((string) $commentId) . '</td>
+                    </tr>
+                </table>
+                <div style="padding:12px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; margin-bottom: 18px;">
+                    <p style="margin:0 0 8px 0;"><strong>Extrait du commentaire</strong></p>
+                    <p style="margin:0; color:#334155;">' . esc($excerpt) . '</p>
+                </div>
+                <p style="margin:0 0 8px 0;">Lien article : <a href="' . esc($articleUrl) . '">' . esc($articleTitle) . '</a></p>
+                <p style="margin:0;">Lien moderation : <a href="' . esc($moderationUrl) . '">' . esc($moderationUrl) . '</a></p>
+            ';
+
+            $emailBody = $this->getEmailTemplate(
+                'Nouveau commentaire en attente',
+                $content,
+                $moderationUrl,
+                'Ouvrir la moderation'
+            );
+
+            $emailService->setMessage($emailBody);
+
+            if (! $emailService->send()) {
+                log_message('error', '[BlogComment] Email notification failed for comment #' . $commentId . ': ' . $emailService->printDebugger(['headers']));
+            }
+        } catch (\Throwable $e) {
+            log_message('error', '[BlogComment] Email notification exception for comment #' . $commentId . ': ' . $e->getMessage());
+        }
+    }
+
+    protected function resolveAdminNotificationEmail(): ?string
+    {
+        $envEmail = trim((string) env('ADMIN_EMAIL', ''));
+        if ($envEmail !== '' && filter_var($envEmail, FILTER_VALIDATE_EMAIL)) {
+            return $envEmail;
+        }
+
+        $emailConfig = config(EmailConfig::class);
+        $fallback = trim((string) ($emailConfig->fromEmail ?? ''));
+
+        if ($fallback !== '' && filter_var($fallback, FILTER_VALIDATE_EMAIL)) {
+            return $fallback;
+        }
+
+        return null;
     }
 }
