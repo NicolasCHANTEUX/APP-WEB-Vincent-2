@@ -1,5 +1,15 @@
 <?php
 $langQ = '?lang=' . site_lang();
+$categoryMeta = [];
+if (isset($categories) && is_array($categories)) {
+    foreach ($categories as $category) {
+        $categoryMeta[] = [
+            'id' => (int) ($category['id'] ?? 0),
+            'name' => (string) ($category['name'] ?? ''),
+            'slug' => (string) ($category['slug'] ?? ''),
+        ];
+    }
+}
 ?>
 
 <div class="pt-32 pb-12">
@@ -10,7 +20,7 @@ $langQ = '?lang=' . site_lang();
         </a>
         <div>
             <h1 class="text-3xl font-serif font-bold text-primary-dark">Nouveau produit</h1>
-            <p class="text-gray-500">Ajouter un produit au catalogue</p>
+            <p class="text-gray-500">Formulaire guide en 4 etapes</p>
         </div>
     </div>
 
@@ -33,33 +43,61 @@ $langQ = '?lang=' . site_lang();
     <form id="create-product-form" method="post" action="<?= site_url('admin/produits/create' . $langQ) ?>" enctype="multipart/form-data" class="space-y-6">
         <?= csrf_field() ?>
 
-        <!-- Informations de base -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                <div>
+                    <p class="text-sm font-semibold tracking-wide text-primary-dark uppercase">Progression</p>
+                    <p class="text-sm text-gray-500" id="step-caption">Etape 1 sur 4</p>
+                </div>
+                <div class="w-full md:w-80 bg-gray-200 h-2.5 rounded-full overflow-hidden">
+                    <div id="step-progress" class="h-full bg-gradient-to-r from-accent-gold to-primary-dark transition-all duration-300" style="width: 25%"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="step-tabs">
+                <button type="button" data-step-tab="1" class="step-tab rounded-xl border px-3 py-2 text-sm font-semibold border-primary-dark text-primary-dark bg-primary-dark/5">1. General</button>
+                <button type="button" data-step-tab="2" class="step-tab rounded-xl border px-3 py-2 text-sm font-semibold border-gray-200 text-gray-400 bg-gray-50" disabled>2. Tarifs</button>
+                <button type="button" data-step-tab="3" class="step-tab rounded-xl border px-3 py-2 text-sm font-semibold border-gray-200 text-gray-400 bg-gray-50" disabled>3. Physique</button>
+                <button type="button" data-step-tab="4" class="step-tab rounded-xl border px-3 py-2 text-sm font-semibold border-gray-200 text-gray-400 bg-gray-50" disabled>4. Images</button>
+            </div>
+        </div>
+
+        <div id="step-errors" class="hidden bg-red-50 border-l-4 border-red-500 rounded-xl p-4">
+            <div class="flex items-start gap-3">
+                <i data-lucide="shield-alert" class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5"></i>
+                <div class="flex-1">
+                    <h3 class="font-semibold text-red-800">Veuillez corriger cette etape</h3>
+                    <ul id="step-errors-list" class="list-disc list-inside text-sm text-red-700 mt-2 space-y-1"></ul>
+                </div>
+            </div>
+        </div>
+
+        <section data-step="1" class="step-panel bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-lg font-semibold text-primary-dark mb-4 flex items-center gap-2">
                 <i data-lucide="package" class="w-5 h-5 text-accent-gold"></i>
-                Informations générales
+                Etape 1 - Informations generales
             </h3>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Titre du produit <span class="text-red-500">*</span></label>
-                    <input type="text" name="title" value="<?= old('title') ?>" required
+                    <input type="text" name="title" value="<?= old('title') ?>" data-step-required="1" required
                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:border-transparent"
-                           placeholder="Ex: Pagaie Carbone Compétition 210 cm">
+                           placeholder="Ex: Pagaie Carbone Competition 210 cm">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">SKU (référence) <span class="text-red-500">*</span></label>
-                    <input type="text" name="sku" value="<?= old('sku') ?>" required
+                    <label class="block text-sm font-medium text-gray-700 mb-2">SKU (reference) <span class="text-red-500">*</span></label>
+                    <input type="text" name="sku" value="<?= old('sku') ?>" data-step-required="1" required
                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:border-transparent"
                            placeholder="Ex: PAG-CARB-COMP-210">
-                    <p class="text-xs text-gray-500 mt-1">Lettres, chiffres, tirets uniquement. Doit être unique.</p>
+                    <p class="text-xs text-gray-500 mt-1">Lettres, chiffres, tirets uniquement. Doit etre unique.</p>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
-                    <select name="category_id" class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:border-transparent">
-                        <option value="">-- Aucune catégorie --</option>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Categorie <span class="text-red-500">*</span></label>
+                    <select id="category-select" name="category_id" data-step-required="1" required class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:border-transparent">
+                        <option value="">-- Choisir une categorie --</option>
                         <?php if (isset($categories) && !empty($categories)): ?>
                             <?php foreach ($categories as $category): ?>
                                 <option value="<?= $category['id'] ?>" <?= old('category_id') == $category['id'] ? 'selected' : '' ?>>
@@ -71,31 +109,30 @@ $langQ = '?lang=' . site_lang();
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                    <textarea name="description" rows="4"
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description <span class="text-red-500">*</span></label>
+                    <textarea name="description" rows="4" data-step-required="1" required
                               class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:border-transparent"
-                              placeholder="Décrivez les caractéristiques du produit..."><?= old('description') ?></textarea>
+                              placeholder="Decrivez les caracteristiques du produit..."><?= old('description') ?></textarea>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Tarification -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <section data-step="2" class="step-panel hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-lg font-semibold text-primary-dark mb-4 flex items-center gap-2">
                 <i data-lucide="euro" class="w-5 h-5 text-accent-gold"></i>
-                Tarification
+                Etape 2 - Tarification
             </h3>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Prix (€) <span class="text-red-500">*</span></label>
-                    <input type="number" name="price" value="<?= old('price') ?>" step="0.01" min="0" required
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Prix (EUR) <span class="text-red-500">*</span></label>
+                    <input type="number" name="price" value="<?= old('price') ?>" step="0.01" min="0" data-step-required="1" required
                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:border-transparent"
                            placeholder="299.99">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Réduction (%)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Reduction (%)</label>
                     <input type="number" name="discount_percent" value="<?= old('discount_percent') ?>" step="0.01" min="0" max="100"
                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:border-transparent"
                            placeholder="15.00">
@@ -103,20 +140,20 @@ $langQ = '?lang=' . site_lang();
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">État <span class="text-red-500">*</span></label>
-                    <select name="condition_state" required class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:border-transparent">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Etat <span class="text-red-500">*</span></label>
+                    <select id="condition-state" name="condition_state" data-step-required="1" required class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:border-transparent">
                         <option value="new" <?= old('condition_state') == 'new' ? 'selected' : '' ?>>Neuf</option>
                         <option value="used" <?= old('condition_state') == 'used' ? 'selected' : '' ?>>Occasion</option>
                     </select>
+                    <p id="condition-lock-message" class="hidden text-xs text-blue-600 mt-1">Categorie Service: etat automatiquement fixe a neuf.</p>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Caractéristiques physiques -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <section data-step="3" class="step-panel hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-lg font-semibold text-primary-dark mb-4 flex items-center gap-2">
                 <i data-lucide="ruler" class="w-5 h-5 text-accent-gold"></i>
-                Caractéristiques physiques
+                Etape 3 - Caracteristiques physiques
             </h3>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -134,261 +171,78 @@ $langQ = '?lang=' . site_lang();
                            placeholder="Ex: 210cm x 18cm">
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Stock</label>
-                    <input type="number" name="stock" value="<?= old('stock', '0') ?>" min="0"
+                <div id="stock-field-wrap">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Stock <span id="stock-required-mark" class="text-red-500">*</span></label>
+                    <input id="stock-input" type="number" name="stock" value="<?= old('stock', '0') ?>" min="0" data-step-required="1" required
                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:border-transparent"
                            placeholder="10">
+                    <p id="stock-service-message" class="hidden text-xs text-blue-600 mt-1">Pas de stock pour la categorie Service.</p>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Galerie d'images multi-upload -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <section data-step="4" class="step-panel hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-lg font-semibold text-primary-dark mb-4 flex items-center gap-2">
                 <i data-lucide="images" class="w-5 h-5 text-accent-gold"></i>
-                Galerie d'images
+                Etape 4 - Galerie d'images
                 <span class="text-xs font-normal text-gray-500 ml-auto">(<span id="image-count">0</span>/6 images)</span>
             </h3>
 
             <div class="space-y-6">
-                <!-- Zone d'upload drag & drop -->
                 <div id="upload-zone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-accent-gold hover:bg-accent-gold/5 transition cursor-pointer">
                     <input type="file" id="image-upload" name="images[]" multiple accept="image/jpeg,image/png,image/webp" class="hidden">
-                    
+
                     <div id="upload-prompt">
                         <i data-lucide="upload-cloud" class="w-12 h-12 mx-auto text-gray-400 mb-3"></i>
-                        <p class="text-sm font-medium text-gray-700 mb-1">Glissez-déposez vos images ici</p>
+                        <p class="text-sm font-medium text-gray-700 mb-1">Glissez-deposez vos images ici</p>
                         <p class="text-xs text-gray-500">ou cliquez pour parcourir</p>
-                        <p class="text-xs text-gray-400 mt-3">JPEG, PNG, WebP • Max 10 MB par image • Max 6 images</p>
+                        <p class="text-xs text-gray-400 mt-3">JPEG, PNG, WebP - Max 10 MB par image - Max 6 images</p>
                     </div>
                 </div>
 
-                <!-- Grille des images sélectionnées -->
-                <div id="images-preview-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <!-- Les previews seront ajoutées ici dynamiquement -->
-                </div>
-
-                <!-- Champ caché pour l'image principale -->
+                <div id="images-preview-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
                 <input type="hidden" id="primary-image-index" name="primary_image_index" value="0">
 
-                <!-- Message d'aide -->
                 <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
                     <div class="flex items-start gap-3">
                         <i data-lucide="info" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"></i>
                         <div class="text-sm text-blue-800">
-                            <p class="font-semibold mb-1">💡 Conseils pour vos images</p>
+                            <p class="font-semibold mb-1">Conseils images</p>
                             <ul class="list-disc list-inside space-y-1 text-xs">
-                                <li>Ajoutez jusqu'à 6 images par produit</li>
-                                <li>La première image sera définie comme image principale</li>
-                                <li>Cliquez sur l'étoile pour changer l'image principale</li>
-                                <li>Glissez-déposez les images pour les réorganiser</li>
-                                <li>Chaque image génère automatiquement 3 versions (original, détail, miniature)</li>
+                                <li>Ajoutez jusqu'a 6 images par produit</li>
+                                <li>La premiere image devient image principale (modifiable via l'etoile)</li>
+                                <li>Glissez-deposez les images pour reorganiser l'ordre</li>
+                                <li>Chaque image genere automatiquement 3 formats</li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </div>
+        </section>
+
+        <div class="flex items-center justify-between gap-4">
+            <a href="<?= site_url('admin/produits') . $langQ ?>" class="px-6 py-2.5 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium">
+                Annuler
+            </a>
+
+            <div class="flex items-center gap-3">
+                <button type="button" id="step-back" class="hidden px-6 py-2.5 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 transition font-medium">
+                    Retour
+                </button>
+                <button type="button" id="step-next" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-dark text-white hover:bg-accent-gold hover:text-primary-dark transition font-bold shadow-md">
+                    Suivant
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+                <button type="submit" id="step-submit" class="hidden inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-dark text-white hover:bg-accent-gold hover:text-primary-dark transition font-bold shadow-md">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    Enregistrer le produit
+                </button>
+            </div>
         </div>
 
-        <script>
-        let selectedFiles = [];
-        let primaryIndex = 0;
-
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeUpload();
-            lucide.createIcons();
-        });
-
-        function initializeUpload() {
-            const uploadZone = document.getElementById('upload-zone');
-            const fileInput = document.getElementById('image-upload');
-
-            // Clic pour sélectionner
-            uploadZone.addEventListener('click', () => {
-                if (selectedFiles.length >= 6) {
-                    alert('Limite de 6 images atteinte.');
-                    return;
-                }
-                fileInput.click();
-            });
-
-            // Changement de fichier
-            fileInput.addEventListener('change', (e) => {
-                handleFileSelection(e.target.files);
-            });
-
-            // Drag & drop
-            uploadZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadZone.classList.add('border-accent-gold', 'bg-accent-gold/10');
-            });
-
-            uploadZone.addEventListener('dragleave', () => {
-                uploadZone.classList.remove('border-accent-gold', 'bg-accent-gold/10');
-            });
-
-            uploadZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadZone.classList.remove('border-accent-gold', 'bg-accent-gold/10');
-                handleFileSelection(e.dataTransfer.files);
-            });
-        }
-
-        function handleFileSelection(files) {
-            const newFiles = Array.from(files).slice(0, 6 - selectedFiles.length);
-            
-            // Valider chaque fichier
-            for (const file of newFiles) {
-                if (!file.type.match('image.*')) {
-                    alert(`${file.name} n'est pas une image valide.`);
-                    continue;
-                }
-                if (file.size > 10 * 1024 * 1024) {
-                    alert(`${file.name} dépasse 10 MB.`);
-                    continue;
-                }
-                selectedFiles.push(file);
-            }
-            
-            // Vérifier la taille totale
-            const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
-            const totalMB = (totalSize / (1024 * 1024)).toFixed(2);
-            
-            if (totalSize > 80 * 1024 * 1024) { // 80 MB max total
-                alert(`⚠️ Taille totale trop importante (${totalMB} MB).\n\nConseils :\n• Compressez vos images avant upload\n• Maximum recommandé : 80 MB au total\n• Certaines images ne seront pas uploadées.`);
-                // Garder seulement les images qui passent sous 80 MB
-                let currentSize = 0;
-                selectedFiles = selectedFiles.filter(file => {
-                    if (currentSize + file.size <= 80 * 1024 * 1024) {
-                        currentSize += file.size;
-                        return true;
-                    }
-                    return false;
-                });
-            }
-
-            renderPreviews();
-            updateFileInput();
-        }
-
-        function renderPreviews() {
-            const grid = document.getElementById('images-preview-grid');
-            const countSpan = document.getElementById('image-count');
-            
-            grid.innerHTML = '';
-            countSpan.textContent = selectedFiles.length;
-
-            selectedFiles.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const card = createPreviewCard(e.target.result, file.name, index);
-                    grid.appendChild(card);
-                    lucide.createIcons();
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        function createPreviewCard(src, name, index) {
-            const div = document.createElement('div');
-            div.className = 'relative group rounded-xl overflow-hidden shadow-sm hover:shadow-md transition border-2 ' + 
-                          (index === primaryIndex ? 'border-accent-gold' : 'border-gray-200');
-            div.draggable = true;
-            div.dataset.index = index;
-
-            // Drag events
-            div.addEventListener('dragstart', (e) => {
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/plain', index);
-            });
-
-            div.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-            });
-
-            div.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
-                const toIndex = index;
-                
-                if (fromIndex !== toIndex) {
-                    // Réorganiser
-                    const [movedFile] = selectedFiles.splice(fromIndex, 1);
-                    selectedFiles.splice(toIndex, 0, movedFile);
-                    
-                    // Ajuster l'index de l'image principale
-                    if (primaryIndex === fromIndex) {
-                        primaryIndex = toIndex;
-                    } else if (fromIndex < primaryIndex && toIndex >= primaryIndex) {
-                        primaryIndex--;
-                    } else if (fromIndex > primaryIndex && toIndex <= primaryIndex) {
-                        primaryIndex++;
-                    }
-                    
-                    renderPreviews();
-                    updateFileInput();
-                }
-            });
-
-            div.innerHTML = `
-                <img src="${src}" alt="${name}" class="w-full h-48 object-cover">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div class="absolute top-2 right-2 flex gap-2">
-                        <button type="button" onclick="setPrimary(${index})" 
-                                class="p-2 rounded-lg ${index === primaryIndex ? 'bg-accent-gold text-primary-dark' : 'bg-white/90 text-gray-700 hover:bg-accent-gold hover:text-primary-dark'} transition shadow">
-                            <i data-lucide="star" class="w-4 h-4 ${index === primaryIndex ? 'fill-current' : ''}"></i>
-                        </button>
-                        <button type="button" onclick="removeImage(${index})" 
-                                class="p-2 rounded-lg bg-red-500/90 text-white hover:bg-red-600 transition shadow">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-                ${index === primaryIndex ? '<div class="absolute bottom-2 left-2 px-2 py-1 bg-accent-gold text-primary-dark text-xs font-bold rounded">Image principale</div>' : ''}
-                <div class="absolute bottom-2 right-2 px-2 py-1 bg-black/60 text-white text-xs rounded">#${index + 1}</div>
-            `;
-
-            return div;
-        }
-
-        function setPrimary(index) {
-            primaryIndex = index;
-            document.getElementById('primary-image-index').value = index;
-            renderPreviews();
-        }
-
-        function removeImage(index) {
-            selectedFiles.splice(index, 1);
-            if (primaryIndex >= index && primaryIndex > 0) {
-                primaryIndex--;
-            }
-            if (primaryIndex >= selectedFiles.length) {
-                primaryIndex = Math.max(0, selectedFiles.length - 1);
-            }
-            document.getElementById('primary-image-index').value = primaryIndex;
-            renderPreviews();
-            updateFileInput();
-        }
-
-        function updateFileInput() {
-            const fileInput = document.getElementById('image-upload');
-            const dataTransfer = new DataTransfer();
-            
-            selectedFiles.forEach(file => {
-                dataTransfer.items.add(file);
-            });
-            
-            fileInput.files = dataTransfer.files;
-        }
-        </script>
-
-        <!-- Overlay de progression -->
         <div id="creation-overlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
             <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
                 <div class="text-center">
-                    <!-- Animation de chargement -->
                     <div class="relative w-20 h-20 mx-auto mb-6">
                         <div class="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
                         <div class="absolute inset-0 border-4 border-accent-gold rounded-full border-t-transparent animate-spin"></div>
@@ -397,204 +251,591 @@ $langQ = '?lang=' . site_lang();
                         </div>
                     </div>
 
-                    <!-- Message d'étape -->
-                    <h3 class="text-xl font-bold text-primary-dark mb-2">Création en cours...</h3>
-                    <p id="progress-message" class="text-gray-600 mb-6">Préparation...</p>
+                    <h3 class="text-xl font-bold text-primary-dark mb-2">Creation en cours...</h3>
+                    <p id="progress-message" class="text-gray-600 mb-6">Preparation...</p>
 
-                    <!-- Barre de progression -->
                     <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden mb-2">
                         <div id="progress-bar" class="bg-gradient-to-r from-accent-gold to-primary-dark h-full rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
                     </div>
                     <p id="progress-percent" class="text-sm text-gray-500">0%</p>
 
-                    <!-- Détails de progression -->
-                    <div id="progress-details" class="mt-4 text-xs text-gray-500 space-y-1">
-                        <!-- Détails dynamiques -->
-                    </div>
+                    <div id="progress-details" class="mt-4 text-xs text-gray-500 space-y-1"></div>
                 </div>
             </div>
-        </div>
-
-        <script>
-        // Gestion de la soumission du formulaire avec progression
-        document.getElementById('create-product-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const form = this;
-            const formData = new FormData(form);
-            const imageCount = selectedFiles.length;
-            
-            // Afficher l'overlay
-            showProgressOverlay();
-            
-            // Simuler la progression en fonction du nombre d'images
-            simulateProgress(imageCount);
-            
-            // Soumettre le formulaire via AJAX
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                // Vérifier si c'est du JSON ou une redirection
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    return response.json();
-                } else {
-                    // Si ce n'est pas JSON, c'est probablement un succès avec redirection HTML
-                    return { success: true };
-                }
-            })
-            .then(data => {
-                // Attendre que la progression atteigne au moins 93%
-                waitForCompletion().then(() => {
-                    // Succès final
-                    updateProgress(100, '✅ Produit créé avec succès !', 'Redirection...');
-                    
-                    setTimeout(() => {
-                        // Utiliser l'URL de redirection fournie ou l'URL par défaut
-                        const redirectUrl = data.redirect || '<?= site_url('admin/produits' . $langQ) ?>';
-                        window.location.href = redirectUrl;
-                    }, 800);
-                });
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-                hideProgressOverlay();
-                alert('Une erreur est survenue lors de la création du produit.');
-            });
-        });
-
-        function showProgressOverlay() {
-            const overlay = document.getElementById('creation-overlay');
-            overlay.classList.remove('hidden');
-            lucide.createIcons();
-        }
-
-        function hideProgressOverlay() {
-            const overlay = document.getElementById('creation-overlay');
-            overlay.classList.add('hidden');
-        }
-
-        function updateProgress(percent, message, details = '') {
-            document.getElementById('progress-bar').style.width = percent + '%';
-            document.getElementById('progress-percent').textContent = Math.round(percent) + '%';
-            document.getElementById('progress-message').textContent = message;
-            
-            if (details) {
-                const detailsDiv = document.getElementById('progress-details');
-                const p = document.createElement('p');
-                p.className = 'text-left';
-                p.innerHTML = `<span class="text-accent-gold">•</span> ${details}`;
-                detailsDiv.appendChild(p);
-                
-                // Limiter à 5 dernières lignes
-                while (detailsDiv.children.length > 5) {
-                    detailsDiv.removeChild(detailsDiv.firstChild);
-                }
-            }
-        }
-
-        let currentProgress = 0;
-        let progressInterval;
-        let isServerDone = false;
-
-        function simulateProgress(imageCount) {
-            currentProgress = 0;
-            isServerDone = false;
-            
-            // Calculer la durée totale estimée (plus réaliste)
-            const estimatedTime = 2000 + (imageCount * 1200); // Base 2s + 1.2s par image
-            
-            const steps = [
-                { percent: 5, message: '📤 Upload des images...', delay: 400 },
-                { percent: 15, message: '🔍 Validation des fichiers...', delay: 500 }
-            ];
-
-            // Ajouter des étapes pour chaque image (50% du total)
-            for (let i = 1; i <= imageCount; i++) {
-                const basePercent = 15 + (i * 50 / imageCount);
-                const stepDelay = 600 + (imageCount * 100); // Plus d'images = plus de temps
-                steps.push({
-                    percent: basePercent,
-                    message: `🖼️ Traitement image ${i}/${imageCount}...`,
-                    details: `Génération des versions WebP (original, détail, miniature)`,
-                    delay: stepDelay
-                });
-            }
-
-            // Étapes finales plus lentes
-            steps.push(
-                { percent: 70, message: '💾 Enregistrement en base de données...', details: 'Création du produit', delay: 800 },
-                { percent: 80, message: '🔗 Liaison des images...', details: 'Association des fichiers', delay: 700 },
-                { percent: 88, message: '✨ Optimisation des données...', details: 'Indexation et cache', delay: 600 },
-                { percent: 93, message: '🔄 Finalisation...', details: 'Vérification des fichiers', delay: 500 }
-            );
-
-            let stepIndex = 0;
-
-            function nextStep() {
-                if (stepIndex < steps.length) {
-                    const step = steps[stepIndex];
-                    currentProgress = step.percent;
-                    updateProgress(step.percent, step.message, step.details || '');
-                    stepIndex++;
-                    
-                    setTimeout(nextStep, step.delay);
-                } else {
-                    // Après toutes les étapes, progression lente jusqu'à 99%
-                    slowProgressToEnd();
-                }
-            }
-
-            nextStep();
-        }
-
-        function slowProgressToEnd() {
-            // Progression très lente de 93% à 99% en attendant le serveur
-            const slowInterval = setInterval(() => {
-                if (isServerDone) {
-                    clearInterval(slowInterval);
-                    return;
-                }
-                
-                if (currentProgress < 99) {
-                    currentProgress += 0.5; // Progression très lente
-                    updateProgress(currentProgress, '⏳ Traitement final en cours...', 'Veuillez patienter...');
-                } else {
-                    // Bloqué à 99% en attendant
-                    updateProgress(99, '⏳ Finalisation côté serveur...', 'Presque terminé...');
-                }
-            }, 400); // Toutes les 400ms
-        }
-
-        function waitForCompletion() {
-            return new Promise((resolve) => {
-                // Attendre au minimum 1 seconde pour que la progression soit visible
-                const minDelay = setTimeout(() => {
-                    isServerDone = true;
-                    resolve();
-                }, 1000);
-            });
-        }
-        </script>
-
-        <!-- Actions -->
-        <div class="flex items-center justify-end gap-4">
-            <a href="<?= site_url('admin/produits') . $langQ ?>" class="px-6 py-2.5 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium">
-                Annuler
-            </a>
-            <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-dark text-white hover:bg-accent-gold hover:text-primary-dark transition font-bold shadow-md">
-                <i data-lucide="save" class="w-4 h-4"></i>
-                Créer le produit
-            </button>
         </div>
     </form>
 </div>
 </div>
 
+<script>
+const categoryMeta = <?= json_encode($categoryMeta, JSON_UNESCAPED_UNICODE) ?>;
+const totalSteps = 4;
+let currentStep = 1;
+let maxUnlockedStep = 1;
+const validatedSteps = new Set();
 
+let selectedFiles = [];
+let primaryIndex = 0;
+let currentProgress = 0;
+let isServerDone = false;
 
+document.addEventListener('DOMContentLoaded', () => {
+    initializeStepNavigation();
+    initializeUpload();
+    initializeCategoryRules();
+    renderStepUi();
+    lucide.createIcons();
+});
+
+function initializeStepNavigation() {
+    const nextBtn = document.getElementById('step-next');
+    const backBtn = document.getElementById('step-back');
+    const tabs = document.querySelectorAll('[data-step-tab]');
+
+    nextBtn.addEventListener('click', async () => {
+        clearStepErrors();
+        const ok = await validateStepWithServer(currentStep);
+        if (!ok) {
+            return;
+        }
+
+        validatedSteps.add(currentStep);
+        maxUnlockedStep = Math.max(maxUnlockedStep, currentStep + 1);
+        if (currentStep < totalSteps) {
+            currentStep++;
+        }
+        renderStepUi();
+    });
+
+    backBtn.addEventListener('click', () => {
+        clearStepErrors();
+        if (currentStep > 1) {
+            currentStep--;
+            renderStepUi();
+        }
+    });
+
+    tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+            const step = parseInt(tab.dataset.stepTab, 10);
+            if (step <= maxUnlockedStep) {
+                currentStep = step;
+                clearStepErrors();
+                renderStepUi();
+            }
+        });
+    });
+
+    const form = document.getElementById('create-product-form');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearStepErrors();
+
+        const allStepChecks = await validateAllStepsBeforeSubmit();
+        if (!allStepChecks) {
+            return;
+        }
+
+        submitFormWithProgress(form);
+    });
+}
+
+function renderStepUi() {
+    document.querySelectorAll('.step-panel').forEach((panel) => {
+        const step = parseInt(panel.dataset.step, 10);
+        panel.classList.toggle('hidden', step !== currentStep);
+    });
+
+    const tabs = document.querySelectorAll('[data-step-tab]');
+    tabs.forEach((tab) => {
+        const step = parseInt(tab.dataset.stepTab, 10);
+        const isCurrent = step === currentStep;
+        const isUnlocked = step <= maxUnlockedStep;
+
+        tab.disabled = !isUnlocked;
+        tab.className = 'step-tab rounded-xl border px-3 py-2 text-sm font-semibold transition';
+
+        if (isCurrent) {
+            tab.classList.add('border-primary-dark', 'text-primary-dark', 'bg-primary-dark/5');
+        } else if (isUnlocked) {
+            tab.classList.add('border-gray-300', 'text-gray-700', 'bg-white', 'hover:bg-gray-50');
+        } else {
+            tab.classList.add('border-gray-200', 'text-gray-400', 'bg-gray-50');
+        }
+    });
+
+    document.getElementById('step-caption').textContent = 'Etape ' + currentStep + ' sur 4';
+    document.getElementById('step-progress').style.width = ((currentStep / totalSteps) * 100) + '%';
+
+    const backBtn = document.getElementById('step-back');
+    const nextBtn = document.getElementById('step-next');
+    const submitBtn = document.getElementById('step-submit');
+
+    backBtn.classList.toggle('hidden', currentStep === 1);
+    nextBtn.classList.toggle('hidden', currentStep === totalSteps);
+    submitBtn.classList.toggle('hidden', currentStep !== totalSteps);
+
+    lucide.createIcons();
+}
+
+function initializeCategoryRules() {
+    const categorySelect = document.getElementById('category-select');
+    categorySelect.addEventListener('change', applyServiceCategoryRules);
+    applyServiceCategoryRules();
+}
+
+function applyServiceCategoryRules() {
+    const categorySelect = document.getElementById('category-select');
+    const selectedId = parseInt(categorySelect.value || '0', 10);
+
+    const category = categoryMeta.find((item) => item.id === selectedId);
+    const normalizedSlug = category ? String(category.slug || '').toLowerCase() : '';
+    const normalizedName = category ? String(category.name || '').toLowerCase() : '';
+    const isService = normalizedSlug === 'service' || normalizedSlug === 'services' || normalizedName === 'service' || normalizedName === 'services';
+
+    const condition = document.getElementById('condition-state');
+    const conditionMessage = document.getElementById('condition-lock-message');
+    const stockWrap = document.getElementById('stock-field-wrap');
+    const stockInput = document.getElementById('stock-input');
+    const stockMark = document.getElementById('stock-required-mark');
+    const stockServiceMessage = document.getElementById('stock-service-message');
+
+    if (isService) {
+        condition.value = 'new';
+        condition.setAttribute('disabled', 'disabled');
+        conditionMessage.classList.remove('hidden');
+
+        stockInput.value = '';
+        stockInput.removeAttribute('required');
+        stockInput.removeAttribute('data-step-required');
+        stockWrap.classList.add('hidden');
+        stockMark.classList.add('hidden');
+        stockServiceMessage.classList.remove('hidden');
+    } else {
+        condition.removeAttribute('disabled');
+        conditionMessage.classList.add('hidden');
+
+        stockWrap.classList.remove('hidden');
+        stockInput.setAttribute('required', 'required');
+        stockInput.setAttribute('data-step-required', '1');
+        stockMark.classList.remove('hidden');
+        stockServiceMessage.classList.add('hidden');
+    }
+}
+
+async function validateAllStepsBeforeSubmit() {
+    for (let step = 1; step <= 3; step++) {
+        const ok = await validateStepWithServer(step, false);
+        if (!ok) {
+            currentStep = step;
+            maxUnlockedStep = Math.max(maxUnlockedStep, step);
+            renderStepUi();
+            return false;
+        }
+        validatedSteps.add(step);
+    }
+
+    return true;
+}
+
+async function validateStepWithServer(step, checkClientFirst = true) {
+    if (checkClientFirst && !validateStepLocally(step)) {
+        return false;
+    }
+
+    const form = document.getElementById('create-product-form');
+    const formData = new FormData(form);
+
+    const condition = document.getElementById('condition-state');
+    if (condition.hasAttribute('disabled')) {
+        formData.set('condition_state', 'new');
+    }
+
+    formData.set('step', String(step));
+
+    try {
+        const response = await fetch('<?= site_url('admin/produits/validate-step' . $langQ) ?>', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const payload = await response.json();
+
+        if (!response.ok || !payload.success) {
+            const errors = payload.errors || { general: payload.message || 'Validation impossible.' };
+            showStepErrors(Object.values(errors));
+            return false;
+        }
+
+        if (payload.is_service) {
+            document.getElementById('condition-state').value = 'new';
+            const stockInput = document.getElementById('stock-input');
+            stockInput.value = '';
+        }
+
+        return true;
+    } catch (error) {
+        showStepErrors(['Erreur reseau pendant la validation de l\'etape.']);
+        return false;
+    }
+}
+
+function validateStepLocally(step) {
+    const panel = document.querySelector('.step-panel[data-step="' + step + '"]');
+    if (!panel) {
+        return true;
+    }
+
+    const errors = [];
+    const requiredFields = panel.querySelectorAll('[data-step-required="1"]');
+
+    requiredFields.forEach((field) => {
+        if (field.disabled || field.closest('.hidden')) {
+            return;
+        }
+
+        if (String(field.value || '').trim() === '') {
+            const label = field.closest('div')?.querySelector('label')?.textContent?.replace('*', '').trim() || field.name;
+            errors.push(label + ' est requis.');
+        }
+    });
+
+    if (errors.length > 0) {
+        showStepErrors(errors);
+        return false;
+    }
+
+    return true;
+}
+
+function showStepErrors(messages) {
+    const box = document.getElementById('step-errors');
+    const list = document.getElementById('step-errors-list');
+
+    list.innerHTML = '';
+    messages.forEach((message) => {
+        const li = document.createElement('li');
+        li.textContent = message;
+        list.appendChild(li);
+    });
+
+    box.classList.remove('hidden');
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    lucide.createIcons();
+}
+
+function clearStepErrors() {
+    const box = document.getElementById('step-errors');
+    const list = document.getElementById('step-errors-list');
+    list.innerHTML = '';
+    box.classList.add('hidden');
+}
+
+function initializeUpload() {
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('image-upload');
+
+    uploadZone.addEventListener('click', () => {
+        if (selectedFiles.length >= 6) {
+            alert('Limite de 6 images atteinte.');
+            return;
+        }
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        handleFileSelection(e.target.files);
+    });
+
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('border-accent-gold', 'bg-accent-gold/10');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('border-accent-gold', 'bg-accent-gold/10');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('border-accent-gold', 'bg-accent-gold/10');
+        handleFileSelection(e.dataTransfer.files);
+    });
+}
+
+function handleFileSelection(files) {
+    const newFiles = Array.from(files).slice(0, 6 - selectedFiles.length);
+
+    for (const file of newFiles) {
+        if (!file.type.match('image.*')) {
+            alert(file.name + ' n\'est pas une image valide.');
+            continue;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            alert(file.name + ' depasse 10 MB.');
+            continue;
+        }
+        selectedFiles.push(file);
+    }
+
+    const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+    if (totalSize > 80 * 1024 * 1024) {
+        alert('Taille totale trop importante. Maximum recommande: 80 MB.');
+        let currentSize = 0;
+        selectedFiles = selectedFiles.filter((file) => {
+            if (currentSize + file.size <= 80 * 1024 * 1024) {
+                currentSize += file.size;
+                return true;
+            }
+            return false;
+        });
+    }
+
+    renderPreviews();
+    updateFileInput();
+}
+
+function renderPreviews() {
+    const grid = document.getElementById('images-preview-grid');
+    const countSpan = document.getElementById('image-count');
+
+    grid.innerHTML = '';
+    countSpan.textContent = selectedFiles.length;
+
+    selectedFiles.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const card = createPreviewCard(e.target.result, file.name, index);
+            grid.appendChild(card);
+            lucide.createIcons();
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function createPreviewCard(src, name, index) {
+    const div = document.createElement('div');
+    div.className = 'relative group rounded-xl overflow-hidden shadow-sm hover:shadow-md transition border-2 ' + (index === primaryIndex ? 'border-accent-gold' : 'border-gray-200');
+    div.draggable = true;
+    div.dataset.index = index;
+
+    div.addEventListener('dragstart', (e) => {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', index);
+    });
+
+    div.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    });
+
+    div.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const fromIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+        const toIndex = index;
+
+        if (fromIndex !== toIndex) {
+            const movedFile = selectedFiles.splice(fromIndex, 1)[0];
+            selectedFiles.splice(toIndex, 0, movedFile);
+
+            if (primaryIndex === fromIndex) {
+                primaryIndex = toIndex;
+            } else if (fromIndex < primaryIndex && toIndex >= primaryIndex) {
+                primaryIndex--;
+            } else if (fromIndex > primaryIndex && toIndex <= primaryIndex) {
+                primaryIndex++;
+            }
+
+            renderPreviews();
+            updateFileInput();
+        }
+    });
+
+    div.innerHTML = '\
+        <img src="' + src + '" alt="' + name + '" class="w-full h-48 object-cover">\
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity">\
+            <div class="absolute top-2 right-2 flex gap-2">\
+                <button type="button" onclick="setPrimary(' + index + ')" class="p-2 rounded-lg ' + (index === primaryIndex ? 'bg-accent-gold text-primary-dark' : 'bg-white/90 text-gray-700 hover:bg-accent-gold hover:text-primary-dark') + ' transition shadow">\
+                    <i data-lucide="star" class="w-4 h-4 ' + (index === primaryIndex ? 'fill-current' : '') + '"></i>\
+                </button>\
+                <button type="button" onclick="removeImage(' + index + ')" class="p-2 rounded-lg bg-red-500/90 text-white hover:bg-red-600 transition shadow">\
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>\
+                </button>\
+            </div>\
+        </div>\
+        ' + (index === primaryIndex ? '<div class="absolute bottom-2 left-2 px-2 py-1 bg-accent-gold text-primary-dark text-xs font-bold rounded">Image principale</div>' : '') + '\
+        <div class="absolute bottom-2 right-2 px-2 py-1 bg-black/60 text-white text-xs rounded">#' + (index + 1) + '</div>';
+
+    return div;
+}
+
+function setPrimary(index) {
+    primaryIndex = index;
+    document.getElementById('primary-image-index').value = String(index);
+    renderPreviews();
+}
+
+function removeImage(index) {
+    selectedFiles.splice(index, 1);
+
+    if (primaryIndex >= index && primaryIndex > 0) {
+        primaryIndex--;
+    }
+    if (primaryIndex >= selectedFiles.length) {
+        primaryIndex = Math.max(0, selectedFiles.length - 1);
+    }
+
+    document.getElementById('primary-image-index').value = String(primaryIndex);
+    renderPreviews();
+    updateFileInput();
+}
+
+function updateFileInput() {
+    const fileInput = document.getElementById('image-upload');
+    const dataTransfer = new DataTransfer();
+
+    selectedFiles.forEach((file) => {
+        dataTransfer.items.add(file);
+    });
+
+    fileInput.files = dataTransfer.files;
+}
+
+function submitFormWithProgress(form) {
+    const formData = new FormData(form);
+    const condition = document.getElementById('condition-state');
+    if (condition.hasAttribute('disabled')) {
+        formData.set('condition_state', 'new');
+    }
+
+    showProgressOverlay();
+    simulateProgress(selectedFiles.length);
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+        .then((response) => {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json();
+            }
+            return { success: true };
+        })
+        .then((data) => {
+            if (!data.success) {
+                throw new Error(data.message || 'Erreur de creation');
+            }
+
+            waitForCompletion().then(() => {
+                updateProgress(100, 'Produit cree avec succes', 'Redirection...');
+                setTimeout(() => {
+                    const redirectUrl = data.redirect || '<?= site_url('admin/produits' . $langQ) ?>';
+                    window.location.href = redirectUrl;
+                }, 700);
+            });
+        })
+        .catch((error) => {
+            hideProgressOverlay();
+            showStepErrors([error.message || 'Une erreur est survenue lors de la creation du produit.']);
+        });
+}
+
+function showProgressOverlay() {
+    document.getElementById('creation-overlay').classList.remove('hidden');
+    document.getElementById('progress-details').innerHTML = '';
+    lucide.createIcons();
+}
+
+function hideProgressOverlay() {
+    document.getElementById('creation-overlay').classList.add('hidden');
+}
+
+function updateProgress(percent, message, details = '') {
+    document.getElementById('progress-bar').style.width = percent + '%';
+    document.getElementById('progress-percent').textContent = Math.round(percent) + '%';
+    document.getElementById('progress-message').textContent = message;
+
+    if (details) {
+        const detailsDiv = document.getElementById('progress-details');
+        const p = document.createElement('p');
+        p.className = 'text-left';
+        p.textContent = '- ' + details;
+        detailsDiv.appendChild(p);
+
+        while (detailsDiv.children.length > 5) {
+            detailsDiv.removeChild(detailsDiv.firstChild);
+        }
+    }
+}
+
+function simulateProgress(imageCount) {
+    currentProgress = 0;
+    isServerDone = false;
+
+    const steps = [
+        { percent: 8, message: 'Validation finale...', details: 'Verification des etapes', delay: 350 },
+        { percent: 16, message: 'Upload des images...', details: 'Transmission des fichiers', delay: 500 }
+    ];
+
+    for (let i = 1; i <= imageCount; i++) {
+        const ratio = 30 + (i * 45 / Math.max(imageCount, 1));
+        steps.push({
+            percent: ratio,
+            message: 'Traitement image ' + i + '/' + imageCount,
+            details: 'Generation des formats web',
+            delay: 550
+        });
+    }
+
+    steps.push(
+        { percent: 78, message: 'Enregistrement produit...', details: 'Sauvegarde base de donnees', delay: 700 },
+        { percent: 90, message: 'Finalisation...', details: 'Preparation redirection', delay: 500 }
+    );
+
+    let idx = 0;
+    function next() {
+        if (idx >= steps.length) {
+            slowProgressToEnd();
+            return;
+        }
+
+        const step = steps[idx];
+        currentProgress = step.percent;
+        updateProgress(step.percent, step.message, step.details);
+        idx++;
+        setTimeout(next, step.delay);
+    }
+
+    next();
+}
+
+function slowProgressToEnd() {
+    const timer = setInterval(() => {
+        if (isServerDone) {
+            clearInterval(timer);
+            return;
+        }
+
+        if (currentProgress < 99) {
+            currentProgress += 0.5;
+            updateProgress(currentProgress, 'Finalisation cote serveur...', 'Veuillez patienter');
+        }
+    }, 400);
+}
+
+function waitForCompletion() {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            isServerDone = true;
+            resolve();
+        }, 900);
+    });
+}
+</script>

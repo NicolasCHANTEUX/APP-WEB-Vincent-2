@@ -53,6 +53,7 @@ $routes->group('admin', ['filter' => 'adminauth', 'namespace' => 'App\\Controlle
     // Gestion des Produits
     $routes->get('produits', 'AdminProduitsController::index');
     $routes->get('produits/nouveau', 'AdminProduitsController::nouveau');
+    $routes->post('produits/validate-step', 'AdminProduitsController::validateStep');
     $routes->post('produits/create', 'AdminProduitsController::create');
     $routes->get('produits/edit/(:num)', 'AdminProduitsController::edit/$1');
     $routes->post('produits/update/(:num)', 'AdminProduitsController::update/$1');

@@ -96,6 +96,79 @@ class AdminProduitsController extends BaseController
     }
 
     /**
+     * Validation serveur d'une étape du formulaire de création produit.
+     */
+    public function validateStep()
+    {
+        if (!$this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Requête invalide.'
+            ])->setStatusCode(400);
+        }
+
+        $step = (int) ($this->request->getPost('step') ?? 0);
+        $categoryId = $this->request->getPost('category_id');
+        $categoryId = is_numeric($categoryId) ? (int) $categoryId : null;
+        $isService = $this->isServiceCategory($categoryId);
+
+        $rules = [];
+        switch ($step) {
+            case 1:
+                $rules = [
+                    'title' => 'required|min_length[3]|max_length[255]',
+                    'sku' => 'required|alpha_dash|is_unique[product.sku]',
+                    'category_id' => 'required|is_natural_no_zero',
+                    'description' => 'required|min_length[10]',
+                ];
+                break;
+
+            case 2:
+                $rules = [
+                    'price' => 'required|decimal|greater_than[0]',
+                    'discount_percent' => 'permit_empty|decimal|greater_than_equal_to[0]|less_than_equal_to[100]',
+                    'condition_state' => $isService ? 'required|in_list[new]' : 'required|in_list[new,used]',
+                ];
+                break;
+
+            case 3:
+                $rules = [
+                    'weight' => 'permit_empty|decimal|greater_than_equal_to[0]',
+                    'dimensions' => 'permit_empty|max_length[50]',
+                    'stock' => $isService ? 'permit_empty' : 'required|integer|greater_than_equal_to[0]',
+                ];
+                break;
+
+            case 4:
+                $rules = [];
+                break;
+
+            default:
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Étape inconnue.'
+                ])->setStatusCode(400);
+        }
+
+        if (!empty($rules) && !$this->validate($rules)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => $this->validator->getErrors(),
+            ])->setStatusCode(422);
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'step' => $step,
+            'is_service' => $isService,
+            'normalized' => [
+                'condition_state' => $isService ? 'new' : (string) ($this->request->getPost('condition_state') ?? 'new'),
+                'stock' => $isService ? null : $this->request->getPost('stock'),
+            ],
+        ]);
+    }
+
+    /**
      * Afficher le formulaire d'édition d'un produit
      */
     public function edit($id)
@@ -134,6 +207,9 @@ class AdminProduitsController extends BaseController
         
         $lang = site_lang();
         $validation = \Config\Services::validation();
+        $categoryId = $this->request->getPost('category_id');
+        $categoryId = is_numeric($categoryId) ? (int) $categoryId : null;
+        $isService = $this->isServiceCategory($categoryId);
 
         // Vérifier si des fichiers ont été uploadés
         $imageFiles = $this->request->getFileMultiple('images');
@@ -148,18 +224,7 @@ class AdminProduitsController extends BaseController
         }
 
         // Règles de validation
-        $rules = [
-            'title'       => 'required|min_length[3]|max_length[255]',
-            'sku'         => 'required|is_unique[product.sku]|alpha_dash',
-            'description' => 'permit_empty',
-            'price'       => 'required|decimal',
-            'weight'      => 'permit_empty|decimal',
-            'dimensions'  => 'permit_empty|max_length[50]',
-            'category_id' => 'permit_empty|integer',
-            'stock'       => 'permit_empty|integer',
-            'condition_state' => 'required|in_list[new,used]',
-            'discount_percent' => 'permit_empty|decimal|less_than_equal_to[100]',
-        ];
+        $rules = $this->buildProductRulesForCreate($isService);
 
         log_message('error', '[AdminProduits] Règles de validation: ' . json_encode(array_keys($rules)));
 
@@ -177,11 +242,12 @@ class AdminProduitsController extends BaseController
             'price'            => $this->request->getPost('price'),
             'weight'           => $this->request->getPost('weight'),
             'dimensions'       => $this->request->getPost('dimensions'),
-            'category_id'      => $this->request->getPost('category_id') ?: null,
-            'stock'            => $this->request->getPost('stock') ?: 0,
+            'category_id'      => $categoryId,
+            'stock'            => $this->request->getPost('stock'),
             'condition_state'  => $this->request->getPost('condition_state'),
             'discount_percent' => $this->request->getPost('discount_percent') ?: null,
         ];
+        $data = $this->normalizeProductDataByCategory($data, $isService);
 
         log_message('error', '[AdminProduits] Données produit: ' . json_encode($data));
 
@@ -294,19 +360,11 @@ class AdminProduitsController extends BaseController
         }
 
         $validation = \Config\Services::validation();
+        $categoryId = $this->request->getPost('category_id');
+        $categoryId = is_numeric($categoryId) ? (int) $categoryId : null;
+        $isService = $this->isServiceCategory($categoryId);
 
-        $rules = [
-            'title'       => 'required|min_length[3]|max_length[255]',
-            'description' => 'permit_empty',
-            'price'       => 'required|decimal',
-            'weight'      => 'permit_empty|decimal',
-            'dimensions'  => 'permit_empty|max_length[50]',
-            'category_id' => 'permit_empty|integer',
-            'stock'       => 'permit_empty|integer',
-            'condition_state' => 'required|in_list[new,used]',
-            'discount_percent' => 'permit_empty|decimal|less_than_equal_to[100]',
-            'image'       => 'permit_empty|max_size[image,10240]|is_image[image]'
-        ];
+        $rules = $this->buildProductRulesForUpdate($isService);
 
         if (!$this->validate($rules)) {
             log_message('error', '[AdminProduits] Validation échouée');
@@ -335,11 +393,12 @@ class AdminProduitsController extends BaseController
             'price'            => $this->request->getPost('price'),
             'weight'           => $this->request->getPost('weight'),
             'dimensions'       => $this->request->getPost('dimensions'),
-            'category_id'      => $this->request->getPost('category_id') ?: null,
-            'stock'            => $this->request->getPost('stock') ?: 0,
+            'category_id'      => $categoryId,
+            'stock'            => $this->request->getPost('stock'),
             'condition_state'  => $this->request->getPost('condition_state'),
             'discount_percent' => $this->request->getPost('discount_percent') ?: null,
         ];
+        $data = $this->normalizeProductDataByCategory($data, $isService);
 
         // Traitement de l'image si une nouvelle est uploadée
         $imageFile = $this->request->getFile('image');
@@ -379,6 +438,68 @@ class AdminProduitsController extends BaseController
             log_message('error', '[AdminProduits] ✗ Échec mise à jour BDD: ' . json_encode($this->productModel->errors()));
             return redirect()->back()->withInput()->with('error', 'Erreur lors de la mise à jour du produit.');
         }
+    }
+
+    private function buildProductRulesForCreate(bool $isService): array
+    {
+        return [
+            'title' => 'required|min_length[3]|max_length[255]',
+            'sku' => 'required|is_unique[product.sku]|alpha_dash',
+            'description' => 'required|min_length[10]',
+            'price' => 'required|decimal|greater_than[0]',
+            'weight' => 'permit_empty|decimal|greater_than_equal_to[0]',
+            'dimensions' => 'permit_empty|max_length[50]',
+            'category_id' => 'required|is_natural_no_zero',
+            'stock' => $isService ? 'permit_empty' : 'required|integer|greater_than_equal_to[0]',
+            'condition_state' => $isService ? 'required|in_list[new]' : 'required|in_list[new,used]',
+            'discount_percent' => 'permit_empty|decimal|greater_than_equal_to[0]|less_than_equal_to[100]',
+        ];
+    }
+
+    private function buildProductRulesForUpdate(bool $isService): array
+    {
+        return [
+            'title' => 'required|min_length[3]|max_length[255]',
+            'description' => 'permit_empty',
+            'price' => 'required|decimal|greater_than[0]',
+            'weight' => 'permit_empty|decimal|greater_than_equal_to[0]',
+            'dimensions' => 'permit_empty|max_length[50]',
+            'category_id' => 'permit_empty|integer',
+            'stock' => $isService ? 'permit_empty' : 'required|integer|greater_than_equal_to[0]',
+            'condition_state' => $isService ? 'required|in_list[new]' : 'required|in_list[new,used]',
+            'discount_percent' => 'permit_empty|decimal|greater_than_equal_to[0]|less_than_equal_to[100]',
+            'image' => 'permit_empty|max_size[image,10240]|is_image[image]'
+        ];
+    }
+
+    private function normalizeProductDataByCategory(array $data, bool $isService): array
+    {
+        if ($isService) {
+            $data['condition_state'] = 'new';
+            $data['stock'] = null;
+            return $data;
+        }
+
+        $data['stock'] = $data['stock'] === '' || $data['stock'] === null ? 0 : (int) $data['stock'];
+        return $data;
+    }
+
+    private function isServiceCategory(?int $categoryId): bool
+    {
+        if ($categoryId === null || $categoryId <= 0) {
+            return false;
+        }
+
+        $category = $this->categoryModel->find($categoryId);
+        if (!$category) {
+            return false;
+        }
+
+        $slug = mb_strtolower(trim((string) ($category['slug'] ?? '')));
+        $name = mb_strtolower(trim((string) ($category['name'] ?? '')));
+
+        return in_array($slug, ['service', 'services'], true)
+            || in_array($name, ['service', 'services'], true);
     }
 
     /**
