@@ -305,11 +305,33 @@ let isServerDone = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeStepNavigation();
+    initializeAutoUnlock();
     initializeUpload();
     initializeCategoryRules();
     renderStepUi();
     lucide.createIcons();
 });
+
+function initializeAutoUnlock() {
+    const watchedSelectors = [
+        '[data-step-fields="1"] input, [data-step-fields="1"] select, [data-step-fields="1"] textarea',
+        '[data-step-fields="2"] input, [data-step-fields="2"] select, [data-step-fields="2"] textarea',
+        '[data-step-fields="3"] input, [data-step-fields="3"] select, [data-step-fields="3"] textarea'
+    ];
+
+    watchedSelectors.forEach((selector, idx) => {
+        const step = idx + 1;
+        const fields = document.querySelectorAll(selector);
+        const debouncedTryUnlock = debounce(() => {
+            tryAutoUnlockStep(step);
+        }, 350);
+
+        fields.forEach((field) => {
+            field.addEventListener('input', debouncedTryUnlock);
+            field.addEventListener('change', debouncedTryUnlock);
+        });
+    });
+}
 
 function initializeStepNavigation() {
     const nextBtn = document.getElementById('step-next');
@@ -446,8 +468,36 @@ function isStepUnlocked(step) {
 
 function initializeCategoryRules() {
     const categorySelect = document.getElementById('category-select');
-    categorySelect.addEventListener('change', applyServiceCategoryRules);
+    categorySelect.addEventListener('change', async () => {
+        applyServiceCategoryRules();
+        await tryAutoUnlockStep(1);
+        await tryAutoUnlockStep(2);
+        await tryAutoUnlockStep(3);
+    });
     applyServiceCategoryRules();
+}
+
+async function tryAutoUnlockStep(step) {
+    if (step < 1 || step > 3) {
+        return;
+    }
+
+    if (!isStepUnlocked(step) || isStepUnlocked(step + 1)) {
+        return;
+    }
+
+    if (!validateStepLocally(step, false)) {
+        return;
+    }
+
+    const ok = await validateStepWithServerInternal(step, false, false);
+    if (!ok) {
+        return;
+    }
+
+    validatedSteps.add(step);
+    maxUnlockedStep = Math.max(maxUnlockedStep, step + 1);
+    renderStepUi();
 }
 
 function applyServiceCategoryRules() {
@@ -505,7 +555,11 @@ async function validateAllStepsBeforeSubmit() {
 }
 
 async function validateStepWithServer(step, checkClientFirst = true) {
-    if (checkClientFirst && !validateStepLocally(step)) {
+    return validateStepWithServerInternal(step, checkClientFirst, true);
+}
+
+async function validateStepWithServerInternal(step, checkClientFirst = true, showErrors = true) {
+    if (checkClientFirst && !validateStepLocally(step, showErrors)) {
         return false;
     }
 
@@ -532,7 +586,9 @@ async function validateStepWithServer(step, checkClientFirst = true) {
 
         if (!response.ok || !payload.success) {
             const errors = payload.errors || { general: payload.message || 'Validation impossible.' };
-            showStepErrors(Object.values(errors));
+            if (showErrors) {
+                showStepErrors(Object.values(errors));
+            }
             return false;
         }
 
@@ -544,12 +600,14 @@ async function validateStepWithServer(step, checkClientFirst = true) {
 
         return true;
     } catch (error) {
-        showStepErrors(['Erreur reseau pendant la validation de l\'etape.']);
+        if (showErrors) {
+            showStepErrors(['Erreur reseau pendant la validation de l\'etape.']);
+        }
         return false;
     }
 }
 
-function validateStepLocally(step) {
+function validateStepLocally(step, showErrors = true) {
     const panel = document.querySelector('.step-panel[data-step="' + step + '"]');
     if (!panel) {
         return true;
@@ -570,11 +628,21 @@ function validateStepLocally(step) {
     });
 
     if (errors.length > 0) {
-        showStepErrors(errors);
+        if (showErrors) {
+            showStepErrors(errors);
+        }
         return false;
     }
 
     return true;
+}
+
+function debounce(fn, delay) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), delay);
+    };
 }
 
 function showStepErrors(messages) {
