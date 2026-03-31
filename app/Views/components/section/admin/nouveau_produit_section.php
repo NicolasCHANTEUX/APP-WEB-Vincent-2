@@ -72,13 +72,19 @@ if (isset($categories) && is_array($categories)) {
             </div>
         </div>
 
-        <section data-step="1" class="step-panel bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <section data-step="1" class="step-panel bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition">
             <h3 class="text-lg font-semibold text-primary-dark mb-4 flex items-center gap-2">
                 <i data-lucide="package" class="w-5 h-5 text-accent-gold"></i>
                 Etape 1 - Informations generales
+                <span data-step-lock-badge class="hidden ml-auto inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-1 text-xs text-gray-600">
+                    <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                    Verrouille
+                </span>
             </h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <p data-step-lock-message class="hidden text-sm text-gray-500 mb-4">Completez l'etape precedente pour debloquer cette section.</p>
+
+            <fieldset data-step-fields="1" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Titre du produit <span class="text-red-500">*</span></label>
                     <input type="text" name="title" value="<?= old('title') ?>" data-step-required="1" required
@@ -114,16 +120,22 @@ if (isset($categories) && is_array($categories)) {
                               class="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent-gold focus:border-transparent"
                               placeholder="Decrivez les caracteristiques du produit..."><?= old('description') ?></textarea>
                 </div>
-            </div>
+            </fieldset>
         </section>
 
-        <section data-step="2" class="step-panel hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <section data-step="2" class="step-panel bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition">
             <h3 class="text-lg font-semibold text-primary-dark mb-4 flex items-center gap-2">
                 <i data-lucide="euro" class="w-5 h-5 text-accent-gold"></i>
                 Etape 2 - Tarification
+                <span data-step-lock-badge class="hidden ml-auto inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-1 text-xs text-gray-600">
+                    <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                    Verrouille
+                </span>
             </h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <p data-step-lock-message class="hidden text-sm text-gray-500 mb-4">Completez l'etape precedente pour debloquer cette section.</p>
+
+            <fieldset data-step-fields="2" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Prix (EUR) <span class="text-red-500">*</span></label>
                     <input type="number" name="price" value="<?= old('price') ?>" step="0.01" min="0" data-step-required="1" required
@@ -147,16 +159,22 @@ if (isset($categories) && is_array($categories)) {
                     </select>
                     <p id="condition-lock-message" class="hidden text-xs text-blue-600 mt-1">Categorie Service: etat automatiquement fixe a neuf.</p>
                 </div>
-            </div>
+            </fieldset>
         </section>
 
-        <section data-step="3" class="step-panel hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <section data-step="3" class="step-panel bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition">
             <h3 class="text-lg font-semibold text-primary-dark mb-4 flex items-center gap-2">
                 <i data-lucide="ruler" class="w-5 h-5 text-accent-gold"></i>
                 Etape 3 - Caracteristiques physiques
+                <span data-step-lock-badge class="hidden ml-auto inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-1 text-xs text-gray-600">
+                    <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                    Verrouille
+                </span>
             </h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <p data-step-lock-message class="hidden text-sm text-gray-500 mb-4">Completez l'etape precedente pour debloquer cette section.</p>
+
+            <fieldset data-step-fields="3" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Poids (kg)</label>
                     <input type="number" name="weight" value="<?= old('weight') ?>" step="0.001" min="0"
@@ -178,17 +196,23 @@ if (isset($categories) && is_array($categories)) {
                            placeholder="10">
                     <p id="stock-service-message" class="hidden text-xs text-blue-600 mt-1">Pas de stock pour la categorie Service.</p>
                 </div>
-            </div>
+            </fieldset>
         </section>
 
-        <section data-step="4" class="step-panel hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <section data-step="4" class="step-panel bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition">
             <h3 class="text-lg font-semibold text-primary-dark mb-4 flex items-center gap-2">
                 <i data-lucide="images" class="w-5 h-5 text-accent-gold"></i>
                 Etape 4 - Galerie d'images
                 <span class="text-xs font-normal text-gray-500 ml-auto">(<span id="image-count">0</span>/6 images)</span>
+                <span data-step-lock-badge class="hidden inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-1 text-xs text-gray-600">
+                    <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                    Verrouille
+                </span>
             </h3>
 
-            <div class="space-y-6">
+            <p data-step-lock-message class="hidden text-sm text-gray-500 mb-4">Completez l'etape precedente pour debloquer cette section.</p>
+
+            <fieldset data-step-fields="4" class="space-y-6">
                 <div id="upload-zone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-accent-gold hover:bg-accent-gold/5 transition cursor-pointer">
                     <input type="file" id="image-upload" name="images[]" multiple accept="image/jpeg,image/png,image/webp" class="hidden">
 
@@ -217,7 +241,7 @@ if (isset($categories) && is_array($categories)) {
                         </div>
                     </div>
                 </div>
-            </div>
+            </fieldset>
         </section>
 
         <div class="flex items-center justify-between gap-4">
@@ -343,7 +367,9 @@ function initializeStepNavigation() {
 function renderStepUi() {
     document.querySelectorAll('.step-panel').forEach((panel) => {
         const step = parseInt(panel.dataset.step, 10);
-        panel.classList.toggle('hidden', step !== currentStep);
+        const isCurrent = step === currentStep;
+        const isUnlocked = step <= maxUnlockedStep;
+        applySectionLockState(panel, step, isUnlocked, isCurrent);
     });
 
     const tabs = document.querySelectorAll('[data-step-tab]');
@@ -376,6 +402,46 @@ function renderStepUi() {
     submitBtn.classList.toggle('hidden', currentStep !== totalSteps);
 
     lucide.createIcons();
+}
+
+function applySectionLockState(panel, step, isUnlocked, isCurrent) {
+    const fieldset = panel.querySelector('[data-step-fields="' + step + '"]');
+    const lockBadge = panel.querySelector('[data-step-lock-badge]');
+    const lockMessage = panel.querySelector('[data-step-lock-message]');
+
+    panel.classList.remove('opacity-60', 'bg-gray-50', 'border-dashed', 'ring-2', 'ring-accent-gold/40');
+    panel.classList.add('border-gray-100');
+
+    if (isUnlocked) {
+        if (fieldset) {
+            fieldset.disabled = false;
+        }
+        if (lockBadge) {
+            lockBadge.classList.add('hidden');
+        }
+        if (lockMessage) {
+            lockMessage.classList.add('hidden');
+        }
+    } else {
+        if (fieldset) {
+            fieldset.disabled = true;
+        }
+        if (lockBadge) {
+            lockBadge.classList.remove('hidden');
+        }
+        if (lockMessage) {
+            lockMessage.classList.remove('hidden');
+        }
+        panel.classList.add('opacity-60', 'bg-gray-50', 'border-dashed');
+    }
+
+    if (isCurrent) {
+        panel.classList.add('ring-2', 'ring-accent-gold/40');
+    }
+}
+
+function isStepUnlocked(step) {
+    return step <= maxUnlockedStep;
 }
 
 function initializeCategoryRules() {
@@ -539,6 +605,10 @@ function initializeUpload() {
     const fileInput = document.getElementById('image-upload');
 
     uploadZone.addEventListener('click', () => {
+        if (!isStepUnlocked(4)) {
+            showStepErrors(['Completez et validez l\'etape 3 pour debloquer la galerie d\'images.']);
+            return;
+        }
         if (selectedFiles.length >= 6) {
             alert('Limite de 6 images atteinte.');
             return;
@@ -547,20 +617,32 @@ function initializeUpload() {
     });
 
     fileInput.addEventListener('change', (e) => {
+        if (!isStepUnlocked(4)) {
+            return;
+        }
         handleFileSelection(e.target.files);
     });
 
     uploadZone.addEventListener('dragover', (e) => {
         e.preventDefault();
+        if (!isStepUnlocked(4)) {
+            return;
+        }
         uploadZone.classList.add('border-accent-gold', 'bg-accent-gold/10');
     });
 
     uploadZone.addEventListener('dragleave', () => {
+        if (!isStepUnlocked(4)) {
+            return;
+        }
         uploadZone.classList.remove('border-accent-gold', 'bg-accent-gold/10');
     });
 
     uploadZone.addEventListener('drop', (e) => {
         e.preventDefault();
+        if (!isStepUnlocked(4)) {
+            return;
+        }
         uploadZone.classList.remove('border-accent-gold', 'bg-accent-gold/10');
         handleFileSelection(e.dataTransfer.files);
     });
@@ -673,12 +755,18 @@ function createPreviewCard(src, name, index) {
 }
 
 function setPrimary(index) {
+    if (!isStepUnlocked(4)) {
+        return;
+    }
     primaryIndex = index;
     document.getElementById('primary-image-index').value = String(index);
     renderPreviews();
 }
 
 function removeImage(index) {
+    if (!isStepUnlocked(4)) {
+        return;
+    }
     selectedFiles.splice(index, 1);
 
     if (primaryIndex >= index && primaryIndex > 0) {
