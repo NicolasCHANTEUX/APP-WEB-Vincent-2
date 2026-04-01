@@ -558,6 +558,13 @@ async function tryAutoUnlockStep(step) {
 
     validatedSteps.add(step);
     maxUnlockedStep = Math.max(maxUnlockedStep, step + 1);
+
+    // UX: avancer automatiquement vers l'etape nouvellement debloquee
+    // pour eviter d'obliger un clic manuel sur les onglets de progression.
+    if (currentStep <= step) {
+        currentStep = Math.min(step + 1, totalSteps);
+    }
+
     renderStepUi();
 }
 
