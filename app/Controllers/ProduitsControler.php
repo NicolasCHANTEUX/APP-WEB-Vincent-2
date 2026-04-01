@@ -115,6 +115,24 @@ class ProduitsControler extends BaseController
         // Formater les produits pour la vue
         $formattedProducts = $this->formatProducts($products);
 
+        $pageTitle = trans('meta_title') . ' - ' . trans('nav_products');
+        $metaDescription = 'Découvrez nos produits artisanaux KayArt pour canoë-kayak : pagaies, sièges, accessoires et services sur mesure.';
+
+        if (!empty($searchQuery)) {
+            $pageTitle = 'Recherche "' . $searchQuery . '" - ' . trans('nav_products') . ' | KayArt';
+            $metaDescription = 'Résultats pour "' . $searchQuery . '" parmi les produits KayArt dédiés au canoë-kayak.';
+        } elseif ($selectedSlug !== 'all') {
+            $selectedCategory = array_values(array_filter($dbCategories, static function (array $cat) use ($selectedSlug): bool {
+                return ($cat['slug'] ?? '') === $selectedSlug;
+            }));
+
+            if (!empty($selectedCategory)) {
+                $categoryName = (string) ($selectedCategory[0]['name'] ?? trans('nav_products'));
+                $pageTitle = $categoryName . ' | KayArt';
+                $metaDescription = 'Parcourez notre sélection "' . $categoryName . '" pour l\'univers canoë-kayak.';
+            }
+        }
+
         return view('pages/produits', [
             'categories' => $categories,
             'products' => $formattedProducts,
@@ -123,6 +141,9 @@ class ProduitsControler extends BaseController
             'hasMore' => $hasMore,
             'perPage' => $perPage,
             'searchQuery' => $searchQuery,
+            'pageTitle' => $pageTitle,
+            'meta_description' => $metaDescription,
+            'canonicalUrl' => site_url('produits'),
         ]);
     }
 
@@ -324,7 +345,52 @@ class ProduitsControler extends BaseController
             'created_at' => $product['created_at'],
         ];
 
-        return view('pages/produit_detail', ['product' => $formattedProduct]);
+        $isService = $this->productModel->isServiceProduct($product);
+        $stock = (int) ($product['stock'] ?? 0);
+        $availability = ($isService || $stock > 0)
+            ? 'https://schema.org/InStock'
+            : 'https://schema.org/OutOfStock';
+
+        $rawDescription = trim((string) ($product['description'] ?? ''));
+        $cleanDescription = preg_replace('/\s+/u', ' ', strip_tags($rawDescription)) ?? '';
+        if ($cleanDescription === '') {
+            $cleanDescription = 'Produit artisanal KayArt pour l\'univers canoë-kayak.';
+        }
+        $metaDescription = mb_substr($cleanDescription, 0, 160);
+
+        $productUrl = site_url('produits/' . $slug);
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Product',
+            'name' => (string) ($product['title'] ?? ''),
+            'image' => [$imageUrl],
+            'description' => $cleanDescription,
+            'sku' => (string) ($product['sku'] ?? ''),
+            'brand' => [
+                '@type' => 'Brand',
+                'name' => 'KayArt',
+            ],
+            'category' => (string) ($product['category_name'] ?? ''),
+            'offers' => [
+                '@type' => 'Offer',
+                'url' => $productUrl,
+                'priceCurrency' => 'EUR',
+                'price' => number_format((float) ($discountedPrice ?? $product['price'] ?? 0), 2, '.', ''),
+                'availability' => $availability,
+                'itemCondition' => ($product['condition_state'] ?? 'new') === 'used'
+                    ? 'https://schema.org/UsedCondition'
+                    : 'https://schema.org/NewCondition',
+            ],
+        ];
+
+        return view('pages/produit_detail', [
+            'product' => $formattedProduct,
+            'pageTitle' => 'Acheter ' . (string) ($product['title'] ?? '') . ' | KayArt',
+            'meta_description' => $metaDescription,
+            'canonicalUrl' => $productUrl,
+            'meta_image' => $imageUrl,
+            'structuredData' => $schema,
+        ]);
     }
 
     /**

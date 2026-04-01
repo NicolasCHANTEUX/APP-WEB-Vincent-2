@@ -2,22 +2,38 @@
 <html lang="<?= esc(site_lang()) ?>">
 
 <head>
+    <?php
+        $resolvedTitle = (string) ($pageTitle ?? trans('meta_title'));
+        $resolvedDescription = (string) ($meta_description ?? trans('meta_description'));
+        $resolvedCanonical = (string) ($canonicalUrl ?? current_url());
+        $resolvedOgImage = (string) ($meta_image ?? base_url('images/default-image.webp'));
+    ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= esc($pageTitle ?? trans('meta_title')) ?></title>
+    <title><?= esc($resolvedTitle) ?></title>
     <meta name="description"
-        content="<?= esc($meta_description ?? trans('meta_description')) ?>">
+        content="<?= esc($resolvedDescription) ?>">
 
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="<?= current_url() ?>">
+    <link rel="canonical" href="<?= esc($resolvedCanonical) ?>">
 
     <meta property="og:type" content="website">
     <meta property="og:locale" content="<?= esc(site_lang()) ?>">
     <meta property="og:site_name" content="KAYART">
-    <meta property="og:title" content="<?= esc($pageTitle ?? 'KAYART') ?>">
-    <meta property="og:description" content="<?= esc($meta_description ?? trans('meta_description')) ?>">
-    <meta property="og:url" content="<?= current_url() ?>">
+    <meta property="og:title" content="<?= esc($resolvedTitle) ?>">
+    <meta property="og:description" content="<?= esc($resolvedDescription) ?>">
+    <meta property="og:url" content="<?= esc($resolvedCanonical) ?>">
+    <meta property="og:image" content="<?= esc($resolvedOgImage) ?>">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?= esc($resolvedTitle) ?>">
+    <meta name="twitter:description" content="<?= esc($resolvedDescription) ?>">
+    <meta name="twitter:image" content="<?= esc($resolvedOgImage) ?>">
     <link rel="icon" type="image/png" href="/favicon.ico">
+
+    <?php if (!empty($structuredData)): ?>
+        <script type="application/ld+json"><?= json_encode($structuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
+    <?php endif; ?>
 
     <!-- Preload critical font -->
     <link rel="preload" href="/fonts/roboto-900-italic.woff2" as="font" type="font/woff2" crossorigin>

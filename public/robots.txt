@@ -1,2 +1,9 @@
 User-agent: *
-Disallow: 
+Disallow: /admin
+Disallow: /connexion
+Disallow: /deconnexion
+Disallow: /checkout
+Disallow: /panier
+Disallow: /webhook
+
+Sitemap: /sitemap.xml

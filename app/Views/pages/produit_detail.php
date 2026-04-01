@@ -2,8 +2,11 @@
 
 <?php
 $this->setData([
-    'pageTitle' => ($product['title'] ?? '') . ' - ' . trans('meta_title'),
-    'meta_description' => ($product['description'] ?? trans('meta_description')),
+    'pageTitle' => $pageTitle ?? (($product['title'] ?? '') . ' - ' . trans('meta_title')),
+    'meta_description' => $meta_description ?? ($product['description'] ?? trans('meta_description')),
+    'canonicalUrl' => $canonicalUrl ?? site_url('produits/' . ($product['slug'] ?? '')),
+    'meta_image' => $meta_image ?? ($product['image'] ?? base_url('images/default-image.webp')),
+    'structuredData' => $structuredData ?? null,
 ]);
 ?>
 

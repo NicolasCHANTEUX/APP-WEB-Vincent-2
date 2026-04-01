@@ -15,6 +15,7 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Home::index');
 $routes->get('accueil', 'Home::index');
+$routes->get('sitemap.xml', 'SitemapController::index');
 $routes->get('produits', 'ProduitsControler::index');
 $routes->get('produits/load-more', 'ProduitsControler::loadMore');
 $routes->get('produits/(:segment)', 'ProduitsControler::detail/$1');

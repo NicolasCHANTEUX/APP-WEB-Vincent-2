@@ -2,8 +2,9 @@
 
 <?php
 $this->setData([
-    'pageTitle' => trans('meta_title') . ' - ' . trans('nav_products'),
-    'meta_description' => trans('meta_description'),
+    'pageTitle' => $pageTitle ?? (trans('meta_title') . ' - ' . trans('nav_products')),
+    'meta_description' => $meta_description ?? trans('meta_description'),
+    'canonicalUrl' => $canonicalUrl ?? site_url('produits'),
 ]);
 ?>
 

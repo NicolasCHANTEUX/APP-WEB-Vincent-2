@@ -48,6 +48,8 @@ class BlogController extends BaseController
 
         return view('layouts/main', [
             'title' => $data['title'],
+            'meta_description' => 'Guides, conseils et actualités KayArt autour du canoë-kayak : sécurité, choix du matériel et entretien.',
+            'canonicalUrl' => site_url('actualites'),
             'content' => view('components/section/blog_list_section', $data)
         ]);
     }
@@ -80,8 +82,46 @@ class BlogController extends BaseController
             'commentsCount' => $this->blogCommentModel->countApprovedForPost((int) $post['id']),
         ];
 
+        $rawExcerpt = trim((string) ($post['excerpt'] ?? ''));
+        if ($rawExcerpt === '') {
+            $rawExcerpt = trim((string) ($post['content'] ?? ''));
+        }
+        $cleanExcerpt = preg_replace('/\s+/u', ' ', strip_tags($rawExcerpt)) ?? '';
+        if ($cleanExcerpt === '') {
+            $cleanExcerpt = 'Article du journal KayArt sur le canoë-kayak.';
+        }
+        $metaDescription = mb_substr($cleanExcerpt, 0, 160);
+
+        $coverImage = !empty($post['cover_image'])
+            ? site_url('media/blog/cover/' . $post['cover_image'])
+            : base_url('images/default-image.webp');
+
+        $canonicalUrl = site_url('actualites/' . $post['slug']);
+        $structuredData = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Article',
+            'headline' => (string) ($post['title'] ?? ''),
+            'description' => $metaDescription,
+            'image' => [$coverImage],
+            'author' => [
+                '@type' => 'Organization',
+                'name' => 'KayArt',
+            ],
+            'publisher' => [
+                '@type' => 'Organization',
+                'name' => 'KayArt',
+            ],
+            'datePublished' => isset($post['created_at']) ? date(DATE_ATOM, strtotime((string) $post['created_at'])) : null,
+            'dateModified' => isset($post['updated_at']) ? date(DATE_ATOM, strtotime((string) $post['updated_at'])) : null,
+            'mainEntityOfPage' => $canonicalUrl,
+        ];
+
         return view('layouts/main', [
             'title' => $data['title'],
+            'meta_description' => $metaDescription,
+            'canonicalUrl' => $canonicalUrl,
+            'meta_image' => $coverImage,
+            'structuredData' => $structuredData,
             'content' => view('components/section/blog_detail_section', $data)
         ]);
     }

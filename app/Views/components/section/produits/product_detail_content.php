@@ -135,7 +135,7 @@ $errors = session()->getFlashdata('errors') ?? [];
                     $originalUrl = $imageProcessor->getImageUrl($img['filename'], 'original');
                 ?>
                 <img src="<?= esc($thumbUrl) ?>" 
-                     alt="Image <?= $img['position'] ?>"
+                     alt="<?= esc($title) ?> - vue <?= (int) $img['position'] ?>"
                      width="80"
                      height="80"
                      class="thumbnail-image w-20 h-20 flex-shrink-0 object-cover rounded-lg cursor-pointer border-2 <?= $img['is_primary'] ? 'border-accent-gold' : 'border-gray-200 hover:border-accent-gold' ?> transition"
@@ -209,7 +209,7 @@ $errors = session()->getFlashdata('errors') ?? [];
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                     </svg>
                                 </button>
-                                <img src="${imageToShow}" alt="Image agrandie" class="max-w-full max-h-full object-contain">
+                                <img src="${imageToShow}" alt="<?= esc(addslashes($title)) ?> - image agrandie" class="max-w-full max-h-full object-contain">
                             `;
                             
                             // Event listener pour fermer
