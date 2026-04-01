@@ -12,7 +12,44 @@ if (isset($categories) && is_array($categories)) {
 }
 ?>
 
-<div class="pt-32 pb-12">
+<style>
+    .wizard-surface {
+        background: radial-gradient(1200px 380px at 8% -20%, rgba(184, 154, 102, 0.18), transparent 60%),
+                    radial-gradient(1200px 380px at 90% -18%, rgba(44, 62, 80, 0.12), transparent 60%),
+                    linear-gradient(180deg, #f8fafc 0%, #f3f4f6 100%);
+    }
+
+    .wizard-card {
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 10px 30px rgba(44, 62, 80, 0.08);
+    }
+
+    .step-panel-locked {
+        opacity: 0.68;
+        filter: grayscale(0.22);
+    }
+
+    .step-panel-active {
+        box-shadow: 0 14px 34px rgba(44, 62, 80, 0.14);
+        transform: translateY(-2px);
+    }
+
+    .step-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 30px;
+        height: 30px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #2c3e50;
+        background: #f4e7d2;
+        border: 1px solid rgba(184, 154, 102, 0.55);
+    }
+</style>
+
+<div class="pt-32 pb-12 wizard-surface">
 <div class="container mx-auto px-4 md:px-8">
     <div class="flex items-center gap-4 mb-8">
         <a href="<?= site_url('admin/produits') . $langQ ?>" class="p-2 rounded-full bg-white shadow hover:shadow-md transition text-gray-600 hover:text-primary-dark">
@@ -21,6 +58,26 @@ if (isset($categories) && is_array($categories)) {
         <div>
             <h1 class="text-3xl font-serif font-bold text-primary-dark">Nouveau produit</h1>
             <p class="text-gray-500">Formulaire guide en 4 etapes</p>
+        </div>
+    </div>
+
+    <div class="wizard-card rounded-3xl border border-white/60 p-6 md:p-7 mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <p class="text-xs uppercase tracking-[0.25em] text-primary-dark/70 font-semibold">Atelier produit</p>
+                <h2 class="text-2xl md:text-3xl font-serif font-bold text-primary-dark mt-1">Creation guidee du produit</h2>
+                <p class="text-sm text-gray-600 mt-1">Toutes les sections sont visibles. Les etapes se deverrouillent automatiquement apres validation.</p>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-600">
+                <span class="inline-flex items-center gap-1 rounded-full bg-white border border-gray-200 px-3 py-1.5">
+                    <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                    Verrouille
+                </span>
+                <span class="inline-flex items-center gap-1 rounded-full bg-white border border-gray-200 px-3 py-1.5">
+                    <i data-lucide="unlock" class="w-3.5 h-3.5"></i>
+                    Debloque
+                </span>
+            </div>
         </div>
     </div>
 
@@ -43,7 +100,7 @@ if (isset($categories) && is_array($categories)) {
     <form id="create-product-form" method="post" action="<?= site_url('admin/produits/create' . $langQ) ?>" enctype="multipart/form-data" class="space-y-6">
         <?= csrf_field() ?>
 
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div class="wizard-card rounded-3xl border border-white/50 p-6 md:p-7">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                 <div>
                     <p class="text-sm font-semibold tracking-wide text-primary-dark uppercase">Progression</p>
@@ -72,8 +129,9 @@ if (isset($categories) && is_array($categories)) {
             </div>
         </div>
 
-        <section data-step="1" class="step-panel bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition">
+        <section data-step="1" class="step-panel wizard-card bg-white rounded-3xl border border-gray-100 p-6 md:p-8 transition-all duration-300">
             <h3 class="text-lg font-semibold text-primary-dark mb-4 flex items-center gap-2">
+                <span class="step-pill">01</span>
                 <i data-lucide="package" class="w-5 h-5 text-accent-gold"></i>
                 Etape 1 - Informations generales
                 <span data-step-lock-badge class="hidden ml-auto inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-1 text-xs text-gray-600">
@@ -123,8 +181,9 @@ if (isset($categories) && is_array($categories)) {
             </fieldset>
         </section>
 
-        <section data-step="2" class="step-panel bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition">
+        <section data-step="2" class="step-panel wizard-card bg-white rounded-3xl border border-gray-100 p-6 md:p-8 transition-all duration-300">
             <h3 class="text-lg font-semibold text-primary-dark mb-4 flex items-center gap-2">
+                <span class="step-pill">02</span>
                 <i data-lucide="euro" class="w-5 h-5 text-accent-gold"></i>
                 Etape 2 - Tarification
                 <span data-step-lock-badge class="hidden ml-auto inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-1 text-xs text-gray-600">
@@ -162,8 +221,9 @@ if (isset($categories) && is_array($categories)) {
             </fieldset>
         </section>
 
-        <section data-step="3" class="step-panel bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition">
+        <section data-step="3" class="step-panel wizard-card bg-white rounded-3xl border border-gray-100 p-6 md:p-8 transition-all duration-300">
             <h3 class="text-lg font-semibold text-primary-dark mb-4 flex items-center gap-2">
+                <span class="step-pill">03</span>
                 <i data-lucide="ruler" class="w-5 h-5 text-accent-gold"></i>
                 Etape 3 - Caracteristiques physiques
                 <span data-step-lock-badge class="hidden ml-auto inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-1 text-xs text-gray-600">
@@ -199,9 +259,10 @@ if (isset($categories) && is_array($categories)) {
             </fieldset>
         </section>
 
-        <section data-step="4" class="step-panel bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition">
+        <section data-step="4" class="step-panel wizard-card bg-white rounded-3xl border border-gray-100 p-6 md:p-8 transition-all duration-300">
             <h3 class="text-lg font-semibold text-primary-dark mb-4 flex items-center gap-2">
-                <i data-lucide="images" class="w-5 h-5 text-accent-gold"></i>
+            <span class="step-pill">04</span>
+            <i data-lucide="images" class="w-5 h-5 text-accent-gold"></i>
                 Etape 4 - Galerie d'images
                 <span class="text-xs font-normal text-gray-500 ml-auto">(<span id="image-count">0</span>/6 images)</span>
                 <span data-step-lock-badge class="hidden inline-flex items-center gap-1 rounded-full border border-gray-300 bg-gray-100 px-2 py-1 text-xs text-gray-600">
@@ -431,7 +492,7 @@ function applySectionLockState(panel, step, isUnlocked, isCurrent) {
     const lockBadge = panel.querySelector('[data-step-lock-badge]');
     const lockMessage = panel.querySelector('[data-step-lock-message]');
 
-    panel.classList.remove('opacity-60', 'bg-gray-50', 'border-dashed', 'ring-2', 'ring-accent-gold/40');
+    panel.classList.remove('opacity-60', 'bg-gray-50', 'border-dashed', 'ring-2', 'ring-accent-gold/40', 'step-panel-locked', 'step-panel-active');
     panel.classList.add('border-gray-100');
 
     if (isUnlocked) {
@@ -454,11 +515,11 @@ function applySectionLockState(panel, step, isUnlocked, isCurrent) {
         if (lockMessage) {
             lockMessage.classList.remove('hidden');
         }
-        panel.classList.add('opacity-60', 'bg-gray-50', 'border-dashed');
+        panel.classList.add('opacity-60', 'bg-gray-50', 'border-dashed', 'step-panel-locked');
     }
 
     if (isCurrent) {
-        panel.classList.add('ring-2', 'ring-accent-gold/40');
+        panel.classList.add('ring-2', 'ring-accent-gold/40', 'step-panel-active');
     }
 }
 
