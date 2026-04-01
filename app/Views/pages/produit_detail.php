@@ -15,6 +15,7 @@ $this->setData([
 <?= view_cell('App\\Cells\\ContainerComposant::render', [
     'enfant' => view('components/section/produits/product_detail_content', [
         'product' => $product ?? [],
+        'faqItems' => $faqItems ?? [],
     ]),
     'bgColor' => 'bg-white',
 ]) ?>

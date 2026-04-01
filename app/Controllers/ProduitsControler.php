@@ -359,7 +359,7 @@ class ProduitsControler extends BaseController
         $metaDescription = mb_substr($cleanDescription, 0, 160);
 
         $productUrl = site_url('produits/' . $slug);
-        $schema = [
+        $productSchema = [
             '@context' => 'https://schema.org',
             '@type' => 'Product',
             'name' => (string) ($product['title'] ?? ''),
@@ -383,13 +383,65 @@ class ProduitsControler extends BaseController
             ],
         ];
 
+        $faqItems = [];
+        $faqSchema = null;
+        $testProductIds = $this->productModel->getSeoFaqTestProductIds(5);
+
+        if (in_array((int) $product['id'], $testProductIds, true)) {
+            $categoryLabel = (string) ($product['category_name'] ?? 'ce produit');
+            $weightLabel = !empty($product['weight']) ? ((string) $product['weight'] . ' kg') : 'non precise';
+            $conditionLabel = ($product['condition_state'] ?? 'new') === 'used' ? 'occasion' : 'neuf';
+            $isServiceLabel = $isService ? 'service' : 'produit physique';
+
+            $faqItems = [
+                [
+                    'question' => 'Ce produit est-il adapte a un debutant en canoe-kayak ?',
+                    'answer' => 'Oui, ' . (string) ($product['title'] ?? 'ce produit') . ' peut convenir a un pratiquant debutant selon son usage. Nous recommandons de verifier la categorie ' . $categoryLabel . ' et de nous contacter pour un conseil personnalise.',
+                ],
+                [
+                    'question' => 'Quelle est la disponibilite de ce produit ?',
+                    'answer' => $isService
+                        ? 'Ce service est disponible en continu et peut etre achete a tout moment.'
+                        : 'La disponibilite depend du stock en temps reel. Le statut affiche sur la fiche produit fait foi au moment de la commande.',
+                ],
+                [
+                    'question' => 'Quelles informations techniques sont importantes avant achat ?',
+                    'answer' => 'Avant achat, verifiez l\'etat (' . $conditionLabel . '), le type (' . $isServiceLabel . '), la reference SKU et le poids indique (' . $weightLabel . ').',
+                ],
+                [
+                    'question' => 'Comment choisir entre un service et un produit physique ?',
+                    'answer' => 'Un service correspond a une prestation (ex: intervention ou personnalisation), tandis qu\'un produit physique concerne un article livrable. La categorie affichee sur la fiche permet de les distinguer.',
+                ],
+            ];
+
+            $faqSchema = [
+                '@type' => 'FAQPage',
+                'mainEntity' => array_map(static function (array $item): array {
+                    return [
+                        '@type' => 'Question',
+                        'name' => (string) ($item['question'] ?? ''),
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => (string) ($item['answer'] ?? ''),
+                        ],
+                    ];
+                }, $faqItems),
+            ];
+        }
+
+        $structuredData = [
+            '@context' => 'https://schema.org',
+            '@graph' => array_values(array_filter([$productSchema, $faqSchema])),
+        ];
+
         return view('pages/produit_detail', [
             'product' => $formattedProduct,
             'pageTitle' => 'Acheter ' . (string) ($product['title'] ?? '') . ' | KayArt',
             'meta_description' => $metaDescription,
             'canonicalUrl' => $productUrl,
             'meta_image' => $imageUrl,
-            'structuredData' => $schema,
+            'structuredData' => $structuredData,
+            'faqItems' => $faqItems,
         ]);
     }
 

@@ -7,6 +7,35 @@
         $resolvedDescription = (string) ($meta_description ?? trans('meta_description'));
         $resolvedCanonical = (string) ($canonicalUrl ?? current_url());
         $resolvedOgImage = (string) ($meta_image ?? base_url('images/default-image.webp'));
+
+        $buildLangUrl = static function (string $baseUrl, string $lang): string {
+            $parts = parse_url($baseUrl);
+
+            if ($parts === false) {
+                return $baseUrl;
+            }
+
+            $query = [];
+            if (!empty($parts['query'])) {
+                parse_str($parts['query'], $query);
+            }
+            $query['lang'] = $lang;
+
+            $scheme = $parts['scheme'] ?? 'https';
+            $host = $parts['host'] ?? '';
+            $port = isset($parts['port']) ? ':' . $parts['port'] : '';
+            $path = $parts['path'] ?? '';
+            $queryString = http_build_query($query);
+
+            if ($host === '') {
+                return $path . ($queryString !== '' ? '?' . $queryString : '');
+            }
+
+            return $scheme . '://' . $host . $port . $path . ($queryString !== '' ? '?' . $queryString : '');
+        };
+
+        $hreflangFr = $buildLangUrl($resolvedCanonical, 'fr');
+        $hreflangEn = $buildLangUrl($resolvedCanonical, 'en');
     ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +45,9 @@
 
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="<?= esc($resolvedCanonical) ?>">
+    <link rel="alternate" hreflang="fr" href="<?= esc($hreflangFr) ?>">
+    <link rel="alternate" hreflang="en" href="<?= esc($hreflangEn) ?>">
+    <link rel="alternate" hreflang="x-default" href="<?= esc($hreflangFr) ?>">
 
     <meta property="og:type" content="website">
     <meta property="og:locale" content="<?= esc(site_lang()) ?>">

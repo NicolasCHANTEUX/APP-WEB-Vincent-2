@@ -272,6 +272,24 @@ class ProductModel extends Model
     }
 
     /**
+     * Récupère les IDs des 5 produits utilisés pour le test SEO FAQ.
+     */
+    public function getSeoFaqTestProductIds(int $limit = 5): array
+    {
+        $rows = $this->select('product.id')
+            ->join('category', 'category.id = product.category_id', 'left')
+            ->groupStart()
+                ->where('product.condition_state', 'new')
+                ->orWhere('product.stock >', 0)
+            ->groupEnd()
+            ->orderBy('product.created_at', 'DESC')
+            ->limit(max(1, $limit))
+            ->findAll();
+
+        return array_map(static fn(array $row): int => (int) ($row['id'] ?? 0), $rows);
+    }
+
+    /**
      * Vérifier si un produit est disponible à l'achat
      */
     public function isAvailableForPurchase(int $productId): bool

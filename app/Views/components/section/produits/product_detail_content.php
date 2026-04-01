@@ -50,6 +50,7 @@ $success = session()->getFlashdata('success');
 $error = session()->getFlashdata('error');
 $info = session()->getFlashdata('info');
 $errors = session()->getFlashdata('errors') ?? [];
+$faqItems = $faqItems ?? [];
 ?>
 
 <div class="py-12">
@@ -369,6 +370,26 @@ $errors = session()->getFlashdata('errors') ?? [];
                     <?= nl2br(esc($description)) ?>
                 </div>
             </div>
+
+            <?php if (!empty($faqItems)): ?>
+                <section class="mb-8 bg-white border border-gray-200 rounded-2xl p-6">
+                    <h2 class="font-serif text-xl font-semibold text-primary-dark uppercase mb-4">
+                        FAQ
+                    </h2>
+                    <div class="space-y-4">
+                        <?php foreach ($faqItems as $faq): ?>
+                            <article class="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
+                                <h3 class="text-base font-semibold text-gray-900 mb-2">
+                                    <?= esc($faq['question'] ?? '') ?>
+                                </h3>
+                                <p class="text-sm text-gray-700 leading-relaxed">
+                                    <?= esc($faq['answer'] ?? '') ?>
+                                </p>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                </section>
+            <?php endif; ?>
 
             <?php if ($conditionState === 'used'): ?>
                 <!-- PRODUIT OCCASION: Formulaire de réservation -->

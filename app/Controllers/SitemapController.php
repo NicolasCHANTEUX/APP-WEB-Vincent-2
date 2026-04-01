@@ -78,16 +78,18 @@ class SitemapController extends BaseController
 
     private function renderSitemapXml(array $urls): string
     {
+        $xmlEscape = static fn(string $value): string => htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+
         $lines = [];
         $lines[] = '<?xml version="1.0" encoding="UTF-8"?>';
         $lines[] = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 
         foreach ($urls as $url) {
             $lines[] = '  <url>';
-            $lines[] = '    <loc>' . esc($url['loc']) . '</loc>';
-            $lines[] = '    <lastmod>' . esc($url['lastmod']) . '</lastmod>';
-            $lines[] = '    <changefreq>' . esc($url['changefreq']) . '</changefreq>';
-            $lines[] = '    <priority>' . esc($url['priority']) . '</priority>';
+            $lines[] = '    <loc>' . $xmlEscape((string) $url['loc']) . '</loc>';
+            $lines[] = '    <lastmod>' . $xmlEscape((string) $url['lastmod']) . '</lastmod>';
+            $lines[] = '    <changefreq>' . $xmlEscape((string) $url['changefreq']) . '</changefreq>';
+            $lines[] = '    <priority>' . $xmlEscape((string) $url['priority']) . '</priority>';
             $lines[] = '  </url>';
         }
 
