@@ -354,16 +354,25 @@ class CheckoutController extends BaseController
 
             // Créer les order items depuis le panier
             foreach ($this->cart->getItems() as $item) {
+                $product = $this->productModel->findByIdWithCategory((int) $item['id']);
+                if (!$product) {
+                    continue;
+                }
+
                 $this->orderItemModel->createFromProduct(
                     $orderId,
-                    $this->productModel->find($item['id']),
+                    $product,
                     $item['quantity']
                 );
 
-                // Décrémenter le stock
-                $this->productModel->update($item['id'], [
-                    'stock' => $this->productModel->find($item['id'])['stock'] - $item['quantity']
-                ]);
+                // Les services ne décrémentent jamais le stock.
+                if (!$this->productModel->isServiceProduct($product)) {
+                    $currentStock = (int) ($product['stock'] ?? 0);
+                    $nextStock = max(0, $currentStock - (int) $item['quantity']);
+                    $this->productModel->update((int) $item['id'], [
+                        'stock' => $nextStock
+                    ]);
+                }
             }
 
             // Créer la facture

@@ -144,6 +144,35 @@ class ProductModel extends Model
     }
 
     /**
+     * Récupérer un produit par son id avec sa catégorie.
+     */
+    public function findByIdWithCategory(int $id): ?array
+    {
+        return $this->select('product.*, category.name as category_name, category.slug as category_slug')
+            ->join('category', 'category.id = product.category_id', 'left')
+            ->where('product.id', $id)
+            ->first();
+    }
+
+    /**
+     * Déterminer si un produit est de type service.
+     * Compatibilité immédiate : fallback sur slug/nom tant que la colonne type n'existe pas.
+     */
+    public function isServiceProduct(array $product): bool
+    {
+        $categoryType = mb_strtolower(trim((string) ($product['category_type'] ?? '')));
+        if ($categoryType === 'service') {
+            return true;
+        }
+
+        $categorySlug = mb_strtolower(trim((string) ($product['category_slug'] ?? '')));
+        $categoryName = mb_strtolower(trim((string) ($product['category_name'] ?? '')));
+
+        return in_array($categorySlug, ['service', 'services'], true)
+            || in_array($categoryName, ['service', 'services'], true);
+    }
+
+    /**
      * Récupérer les produits en stock faible
      */
     public function getLowStock(int $threshold = 5): array

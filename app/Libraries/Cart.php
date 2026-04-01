@@ -27,11 +27,13 @@ class Cart
     public function add(int $productId, int $quantity = 1): array
     {
         // Vérifier que le produit existe et est disponible
-        $product = $this->productModel->find($productId);
+        $product = $this->productModel->findByIdWithCategory($productId);
         
         if (!$product) {
             return ['success' => false, 'message' => 'Produit introuvable'];
         }
+
+        $isService = $this->productModel->isServiceProduct($product);
 
         // Vérifier que c'est un produit neuf (seuls les neufs sont achetables directement)
         if ($product['condition_state'] !== 'new') {
@@ -39,7 +41,7 @@ class Cart
         }
 
         // Vérifier le stock disponible
-        if ($product['stock'] < 1) {
+        if (!$isService && (int) $product['stock'] < 1) {
             return ['success' => false, 'message' => 'Produit en rupture de stock'];
         }
 
@@ -50,14 +52,14 @@ class Cart
             $newQuantity = $cart[$productId]['quantity'] + $quantity;
             
             // Vérifier qu'on ne dépasse pas le stock
-            if ($newQuantity > $product['stock']) {
+            if (!$isService && $newQuantity > (int) $product['stock']) {
                 return ['success' => false, 'message' => 'Stock insuffisant (disponible: ' . $product['stock'] . ')'];
             }
             
             $cart[$productId]['quantity'] = $newQuantity;
         } else {
             // Vérifier la quantité demandée
-            if ($quantity > $product['stock']) {
+            if (!$isService && $quantity > (int) $product['stock']) {
                 return ['success' => false, 'message' => 'Stock insuffisant (disponible: ' . $product['stock'] . ')'];
             }
             
@@ -72,7 +74,8 @@ class Cart
                 'image' => $product['image'],
                 'quantity' => $quantity,
                 'weight' => $product['weight'],
-                'dimensions' => $product['dimensions']
+                'dimensions' => $product['dimensions'],
+                'is_service' => $isService,
             ];
         }
 
@@ -97,12 +100,14 @@ class Cart
         }
 
         // Vérifier le stock
-        $product = $this->productModel->find($productId);
+        $product = $this->productModel->findByIdWithCategory($productId);
         if (!$product) {
             return $this->remove($productId);
         }
 
-        if ($quantity > $product['stock']) {
+        $isService = $this->productModel->isServiceProduct($product);
+
+        if (!$isService && $quantity > (int) $product['stock']) {
             return ['success' => false, 'message' => 'Stock insuffisant (disponible: ' . $product['stock'] . ')'];
         }
 
@@ -231,14 +236,16 @@ class Cart
         $errors = [];
 
         foreach ($cart as $productId => $item) {
-            $product = $this->productModel->find($productId);
+            $product = $this->productModel->findByIdWithCategory((int) $productId);
             
             if (!$product) {
                 $errors[] = "Le produit {$item['title']} n'est plus disponible";
                 continue;
             }
 
-            if ($product['stock'] < $item['quantity']) {
+            $isService = $this->productModel->isServiceProduct($product);
+
+            if (!$isService && (int) $product['stock'] < (int) $item['quantity']) {
                 $errors[] = "Stock insuffisant pour {$item['title']} (disponible: {$product['stock']})";
             }
 

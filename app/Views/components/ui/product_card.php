@@ -8,6 +8,10 @@ $discountPercent = isset($p['discount_percent']) ? (float) $p['discount_percent'
 $stock = (int) ($p['stock'] ?? 0);
 $slug = (string) ($p['slug'] ?? '');
 $productId = (int) ($p['id'] ?? 0);
+$categorySlug = mb_strtolower(trim((string) ($p['category_slug'] ?? '')));
+$categoryName = mb_strtolower(trim((string) ($p['category_name'] ?? '')));
+$isService = in_array($categorySlug, ['service', 'services'], true)
+    || in_array($categoryName, ['service', 'services'], true);
 
 // L'image est déjà passée par le contrôleur
 $img = $p['image'] ?? base_url('images/default-image.webp');
@@ -58,7 +62,11 @@ $isUsed = ($conditionState === 'used');
             </div>
 
             <div>
-                <?php if ($stock > 0): ?>
+                <?php if ($isService): ?>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-800 border border-sky-200">
+                        Service
+                    </span>
+                <?php elseif ($stock > 0): ?>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
                         <?= esc(trans('products_stock_available') ?: 'En stock') ?>
                         <?php if (!$isUsed): ?>

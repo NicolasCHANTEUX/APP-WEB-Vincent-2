@@ -9,6 +9,12 @@ $price = $product['price'] ?? 0;
 $discountPercent = $product['discount_percent'] ?? null;
 $stock = $product['stock'] ?? 0;
 $categoryName = $product['category_name'] ?? '';
+$categorySlug = mb_strtolower(trim((string) ($product['category_slug'] ?? '')));
+$normalizedCategoryName = mb_strtolower(trim((string) $categoryName));
+$isService = in_array($categorySlug, ['service', 'services'], true)
+    || in_array($normalizedCategoryName, ['service', 'services'], true);
+$availableStock = (int) ($stock ?? 0);
+$isPurchasable = $isService || $availableStock > 0;
 $sku = $product['sku'] ?? '';
 $weight = $product['weight'] ?? null;
 $dimensions = $product['dimensions'] ?? null;
@@ -256,7 +262,7 @@ $errors = session()->getFlashdata('errors') ?? [];
                     <?php if ($weight): ?>
                     <div class="flex justify-between">
                         <span class="text-gray-600"><?= trans('product_weight') ?> :</span>
-                        <span class="font-medium text-gray-900"><?= esc($weight) ?> kg</span>
+                        <span class="font-medium text-gray-900"><?= $isService ? '+' : '' ?><?= esc($weight) ?> kg</span>
                     </div>
                     <?php endif; ?>
                     
@@ -281,17 +287,18 @@ $errors = session()->getFlashdata('errors') ?? [];
                     </div>
                     <?php endif; ?>
                     
+                    <?php if (!$isService): ?>
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600"><?= trans('product_availability') ?> :</span>
-                        <?php if ($stock > 10): ?>
+                        <?php if ($availableStock > 10): ?>
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
                                 <span class="w-2 h-2 bg-emerald-500 rounded-full mr-1.5"></span>
-                                <?= trans('products_stock_available') ?> (<?= $stock ?>)
+                                <?= trans('products_stock_available') ?> (<?= $availableStock ?>)
                             </span>
-                        <?php elseif ($stock > 0): ?>
+                        <?php elseif ($availableStock > 0): ?>
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
                                 <span class="w-2 h-2 bg-amber-500 rounded-full mr-1.5"></span>
-                                <?= trans('products_stock_limited') ?> (<?= $stock ?>)
+                                <?= trans('products_stock_limited') ?> (<?= $availableStock ?>)
                             </span>
                         <?php else: ?>
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
@@ -300,6 +307,7 @@ $errors = session()->getFlashdata('errors') ?? [];
                             </span>
                         <?php endif; ?>
                     </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -473,7 +481,7 @@ $errors = session()->getFlashdata('errors') ?? [];
                         <?= trans('payment_card_title') ?? 'Achat en ligne' ?>
                     </h2>
                     
-                    <?php if ($stock > 0): ?>
+                    <?php if ($isPurchasable): ?>
                         <form id="add-to-cart-form" class="space-y-4">
                             <input type="hidden" name="product_id" value="<?= $id ?>">
                             
@@ -489,7 +497,7 @@ $errors = session()->getFlashdata('errors') ?? [];
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
                                         </svg>
                                     </button>
-                                    <input type="number" id="quantity" name="quantity" value="1" min="1" max="<?= $stock ?>"
+                                    <input type="number" id="quantity" name="quantity" value="1" min="1" max="<?= $isService ? 99 : $availableStock ?>"
                                            class="w-20 text-center px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                     <button type="button" onclick="incrementQuantity()" 
                                             class="w-10 h-10 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition">
@@ -497,7 +505,9 @@ $errors = session()->getFlashdata('errors') ?? [];
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                         </svg>
                                     </button>
-                                    <span class="text-sm text-gray-600">/ <?= $stock ?> disponible<?= $stock > 1 ? 's' : '' ?></span>
+                                    <?php if (!$isService): ?>
+                                        <span class="text-sm text-gray-600">/ <?= $availableStock ?> disponible<?= $availableStock > 1 ? 's' : '' ?></span>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             
