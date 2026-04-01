@@ -12,7 +12,7 @@ class BlogPostBlockModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['post_id', 'block_type', 'text_content', 'image_path', 'sort_order'];
+    protected $allowedFields    = ['post_id', 'block_type', 'subtitle', 'text_content', 'image_path', 'sort_order'];
 
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
@@ -22,6 +22,7 @@ class BlogPostBlockModel extends Model
     protected $validationRules = [
         'post_id'      => 'required|is_natural_no_zero',
         'block_type'   => 'required|in_list[paragraph,image]',
+        'subtitle'     => 'permit_empty|max_length[255]',
         'text_content' => 'permit_empty|string',
         'image_path'   => 'permit_empty|max_length[255]',
         'sort_order'   => 'required|is_natural',
@@ -48,6 +49,7 @@ class BlogPostBlockModel extends Model
                 $insertRows[] = [
                     'post_id' => $postId,
                     'block_type' => $block['type'],
+                    'subtitle' => $block['subtitle'] ?? null,
                     'text_content' => $block['text'] ?? null,
                     'image_path' => $block['image'] ?? null,
                     'sort_order' => $index,

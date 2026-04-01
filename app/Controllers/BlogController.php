@@ -73,6 +73,7 @@ class BlogController extends BaseController
             'blocks' => array_map(static function (array $block): array {
                 return [
                     'type' => $block['block_type'] ?? '',
+                    'subtitle' => $block['subtitle'] ?? '',
                     'text' => $block['text_content'] ?? '',
                     'image' => $block['image_path'] ?? '',
                 ];

@@ -45,11 +45,10 @@ helper('blog_image');
         </header>
 
         <!-- Image de couverture (Option A : entre le titre et le contenu) -->
-        <div class="mb-14 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-black/5 relative left-1/2 -translate-x-1/2 w-screen max-w-none">
+          <div class="mb-14 max-w-6xl mx-auto rounded-2xl overflow-hidden shadow-2xl ring-1 ring-black/5">
               <img src="<?= blog_cover_url($post['image'] ?? null, true) ?>"
                  alt="<?= esc($post['title']) ?>"
-                 class="w-full h-auto object-cover"
-                  style="max-height: 68vh;"
+                 class="w-full h-96 md:h-[34rem] object-cover"
                   onerror="this.onerror=null;this.src='<?= blog_default_image_url() ?>';">
         </div>
 

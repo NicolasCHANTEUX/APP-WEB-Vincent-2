@@ -9,12 +9,13 @@ if (!is_array($initialBlocks) || empty($initialBlocks)) {
         $initialBlocks = array_map(static function (array $block): array {
             return [
                 'type' => $block['block_type'] ?? 'paragraph',
+                'subtitle' => $block['subtitle'] ?? '',
                 'text' => $block['text_content'] ?? '',
                 'existing_image' => $block['image_path'] ?? '',
             ];
         }, $blocks);
     } else {
-        $initialBlocks = [['type' => 'paragraph', 'text' => '']];
+        $initialBlocks = [['type' => 'paragraph', 'subtitle' => '', 'text' => '']];
     }
 }
 ?>
@@ -156,6 +157,7 @@ if (!is_array($initialBlocks) || empty($initialBlocks)) {
                     <h3 class="font-semibold text-gray-800">Bloc paragraphe</h3>
                     <button type="button" class="remove-block text-red-600 hover:text-red-700 text-sm font-semibold">Supprimer</button>
                 </div>
+                <input type="text" name="blocks[${idx}][subtitle]" class="w-full mb-3 px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-accent-gold focus:ring-2 focus:ring-accent-gold/20 transition" placeholder="Sous-titre (optionnel)">
                 <textarea name="blocks[${idx}][text]" rows="4" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-accent-gold focus:ring-2 focus:ring-accent-gold/20 transition" placeholder="Écrire le paragraphe..."></textarea>
                 <div class="mt-3 flex flex-wrap gap-2">
                     <button type="button" class="insert-image inline-flex items-center px-3 py-1.5 rounded-lg border border-gray-300 hover:border-accent-gold hover:text-accent-gold text-sm">+ Ajouter une image après</button>
@@ -163,6 +165,7 @@ if (!is_array($initialBlocks) || empty($initialBlocks)) {
                 </div>
             `;
 
+            wrapper.querySelector(`input[name="blocks[${idx}][subtitle]"]`).value = data.subtitle || '';
             wrapper.querySelector(`textarea[name="blocks[${idx}][text]"]`).value = data.text || '';
         } else {
             const existingImage = data.existing_image || '';

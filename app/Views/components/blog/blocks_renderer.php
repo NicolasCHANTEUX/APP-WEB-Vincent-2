@@ -5,8 +5,12 @@ helper('blog_image');
 <?php if (!empty($blocks)): ?>
     <?php foreach ($blocks as $index => $block): ?>
         <?php if (($block['type'] ?? '') === 'paragraph'): ?>
+            <?php $subtitle = trim((string) ($block['subtitle'] ?? '')); ?>
             <?php $text = trim((string) ($block['text'] ?? '')); ?>
             <?php if ($text !== ''): ?>
+                <?php if ($subtitle !== ''): ?>
+                    <h2 class="mt-8 mb-3 text-2xl md:text-3xl font-bold text-primary-dark tracking-tight"><?= esc($subtitle) ?></h2>
+                <?php endif; ?>
                 <p class="mb-7 leading-8 text-gray-700 whitespace-pre-line text-[1.08rem] md:text-[1.12rem]"><?= esc($text) ?></p>
             <?php endif; ?>
         <?php endif; ?>

@@ -86,21 +86,19 @@ class AdminBlogController extends BaseController
         ];
 
         $uploadedCoverImage = null;
+        [$coverFilename, $coverError] = $this->handleCoverUpload('image');
 
-        // Upload image de couverture
-        $image = $this->request->getFile('image');
-        if ($image && $image->isValid() && !$image->hasMoved()) {
-            $newName = $image->getRandomName();
-            $image->move(self::BLOG_UPLOAD_DIR, $newName);
-            $uploadedCoverImage = $newName;
-            
-            // Redimensionner pour le web avec le service Image de CodeIgniter
-            $imageService = \Config\Services::image();
-            $imageService->withFile(self::BLOG_UPLOAD_DIR . '/' . $newName)
-                        ->fit(800, 600, 'center')
-                        ->save(self::BLOG_UPLOAD_DIR . '/thumb_' . $newName);
-            
-            $postData['image'] = $newName;
+        if ($coverError !== null) {
+            $this->cleanupUploadedFiles($uploadedBlockImages, null);
+
+            return redirect()->back()
+                ->withInput()
+                ->with('errors', [$coverError]);
+        }
+
+        if ($coverFilename !== null) {
+            $uploadedCoverImage = $coverFilename;
+            $postData['image'] = $coverFilename;
         }
 
         if (! $this->blogPostModel->insert($postData)) {
@@ -192,27 +190,24 @@ class AdminBlogController extends BaseController
         ];
 
         $uploadedCoverImage = null;
+        [$coverFilename, $coverError] = $this->handleCoverUpload('image');
 
-        // Upload nouvelle image
-        $image = $this->request->getFile('image');
-        if ($image && $image->isValid() && !$image->hasMoved()) {
-            // Supprimer l'ancienne image
-            if ($post['image']) {
+        if ($coverError !== null) {
+            $this->cleanupUploadedFiles($uploadedBlockImages, null);
+
+            return redirect()->back()
+                ->withInput()
+                ->with('errors', [$coverError]);
+        }
+
+        if ($coverFilename !== null) {
+            if (!empty($post['image'])) {
                 @unlink(self::BLOG_UPLOAD_DIR . '/' . $post['image']);
                 @unlink(self::BLOG_UPLOAD_DIR . '/thumb_' . $post['image']);
             }
 
-            $newName = $image->getRandomName();
-            $image->move(self::BLOG_UPLOAD_DIR, $newName);
-            $uploadedCoverImage = $newName;
-            
-            // Redimensionner pour le web avec le service Image de CodeIgniter
-            $imageService = \Config\Services::image();
-            $imageService->withFile(self::BLOG_UPLOAD_DIR . '/' . $newName)
-                        ->fit(800, 600, 'center')
-                        ->save(self::BLOG_UPLOAD_DIR . '/thumb_' . $newName);
-            
-            $postData['image'] = $newName;
+            $uploadedCoverImage = $coverFilename;
+            $postData['image'] = $coverFilename;
         }
 
         if (! $this->blogPostModel->update($id, $postData)) {
@@ -296,6 +291,7 @@ class AdminBlogController extends BaseController
             }
 
             if ($type === 'paragraph') {
+                $subtitle = trim((string) ($blockInput['subtitle'] ?? ''));
                 $text = trim((string) ($blockInput['text'] ?? ''));
 
                 if ($text === '') {
@@ -305,6 +301,7 @@ class AdminBlogController extends BaseController
                 $hasParagraph = true;
                 $resultBlocks[] = [
                     'type' => 'paragraph',
+                    'subtitle' => $subtitle !== '' ? $subtitle : null,
                     'text' => $text,
                 ];
 
@@ -359,6 +356,43 @@ class AdminBlogController extends BaseController
             @unlink(self::BLOG_UPLOAD_DIR . '/' . $uploadedCoverImage);
             @unlink(self::BLOG_UPLOAD_DIR . '/thumb_' . $uploadedCoverImage);
         }
+    }
+
+    protected function handleCoverUpload(string $fieldName): array
+    {
+        $file = $this->request->getFile($fieldName);
+
+        if (! $file || $file->getError() === UPLOAD_ERR_NO_FILE) {
+            return [null, null];
+        }
+
+        if (! $file->isValid() || $file->hasMoved()) {
+            return [null, 'Le televersement de l\'image de couverture a echoue.'];
+        }
+
+        $extension = strtolower((string) $file->getExtension());
+        if (! in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+            return [null, 'Le format de l\'image de couverture est invalide (jpg, jpeg, png, webp).'];
+        }
+
+        $newName = $file->getRandomName();
+        $file->move(self::BLOG_UPLOAD_DIR, $newName);
+
+        $absolutePath = self::BLOG_UPLOAD_DIR . '/' . $newName;
+        $thumbPath = self::BLOG_UPLOAD_DIR . '/thumb_' . $newName;
+
+        try {
+            $imageService = \Config\Services::image();
+            $imageService->withFile($absolutePath)
+                ->fit(1200, 720, 'center')
+                ->save($thumbPath);
+        } catch (\Throwable $e) {
+            // Si la generation mini echoue, on conserve l'original et on copie en thumb.
+            @copy($absolutePath, $thumbPath);
+            log_message('warning', '[AdminBlog] Thumbnail generation failed for cover image: ' . $e->getMessage());
+        }
+
+        return [$newName, null];
     }
 
     protected function ensureBlogUploadDirectories(): void
