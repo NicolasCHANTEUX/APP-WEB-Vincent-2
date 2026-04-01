@@ -119,9 +119,9 @@ $getNavLinkClasses = static function (string $page) use ($activePage): string {
             
             <!-- Panier - Icône intégrée à la navbar -->
             <li class="relative hidden" id="cart-nav-item">
-                <button 
+                <a
                     id="cart-trigger"
-                    type="button"
+                    href="<?= site_url('panier') . $langQ ?>"
                     class="flex items-center text-accent-gold hover:text-white transition-colors duration-200 relative group"
                     aria-label="Mon panier"
                 >
@@ -136,7 +136,7 @@ $getNavLinkClasses = static function (string $page) use ($activePage): string {
                     </span>
                     
                     <span class="hidden md:inline">Panier</span>
-                </button>
+                </a>
                 
                 <!-- Dropdown blanc épuré -->
                 <div id="cart-dropdown-nav" class="absolute top-full right-0 mt-2 w-96 bg-white rounded-lg shadow-2xl border border-gray-200 opacity-0 pointer-events-none transition-all duration-300 transform -translate-y-2 overflow-hidden">
@@ -268,6 +268,9 @@ $getNavLinkClasses = static function (string $page) use ($activePage): string {
         }
         
         let hideTimeout;
+        let pollTimer = null;
+        let hasLoadedOnce = false;
+        const POLL_INTERVAL_MS = 30000;
         
         // Charger le panier
         function loadCart() {
@@ -355,11 +358,35 @@ $getNavLinkClasses = static function (string $page) use ($activePage): string {
             });
         }
         
+        function startPolling() {
+            if (pollTimer !== null) {
+                return;
+            }
+
+            pollTimer = window.setInterval(function() {
+                if (!document.hidden) {
+                    loadCart();
+                }
+            }, POLL_INTERVAL_MS);
+        }
+
+        function stopPolling() {
+            if (pollTimer !== null) {
+                window.clearInterval(pollTimer);
+                pollTimer = null;
+            }
+        }
+
         // Afficher le dropdown au survol
         cartTrigger.addEventListener('mouseenter', function() {
             clearTimeout(hideTimeout);
             cartDropdown.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-2');
             cartDropdown.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
+
+            if (!hasLoadedOnce) {
+                hasLoadedOnce = true;
+                loadCart();
+            }
         });
         
         cartDropdown.addEventListener('mouseenter', function() {
@@ -375,12 +402,29 @@ $getNavLinkClasses = static function (string $page) use ($activePage): string {
         
         cartTrigger.addEventListener('mouseleave', hideDropdown);
         cartDropdown.addEventListener('mouseleave', hideDropdown);
+
+        cartTrigger.addEventListener('focus', function() {
+            if (!hasLoadedOnce) {
+                hasLoadedOnce = true;
+                loadCart();
+            }
+        });
+
+        window.addEventListener('pagehide', stopPolling);
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                stopPolling();
+            } else {
+                startPolling();
+            }
+        });
         
-        // Chargement initial
-        loadCart();
-        
-        // Rafraîchir toutes les 5 secondes
-        setInterval(loadCart, 5000);
+        // Chargement différé pour limiter le coût sur le thread principal.
+        window.setTimeout(function() {
+            loadCart();
+            hasLoadedOnce = true;
+            startPolling();
+        }, 1200);
         
         // Écouter l'événement cart-updated
         window.addEventListener('cart-updated', function() {

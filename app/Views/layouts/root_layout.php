@@ -53,7 +53,7 @@
                     <i data-lucide="check-circle" class="w-5 h-5"></i>
                 </div>
                 <div class="ms-3 text-sm font-normal"><?= session()->getFlashdata('success') ?></div>
-                <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-green-50 text-green-500 rounded-lg focus:ring-2 focus:ring-green-400 p-1.5 hover:bg-green-200 inline-flex items-center justify-center h-8 w-8" aria-label="Close" onclick="this.parentElement.remove()">
+                <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-green-50 text-green-500 rounded-lg focus:ring-2 focus:ring-green-400 p-2 hover:bg-green-200 inline-flex items-center justify-center h-11 w-11" aria-label="Close" onclick="this.parentElement.remove()">
                     <i data-lucide="x" class="w-4 h-4 hover:cursor-pointer"></i>
                 </button>
             </div>
@@ -65,7 +65,7 @@
                     <i data-lucide="alert-circle" class="w-5 h-5"></i>
                 </div>
                 <div class="ms-3 text-sm font-normal"><?= session()->getFlashdata('error') ?></div>
-                <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-red-50 text-red-500 rounded-lg focus:ring-2 focus:ring-red-400 p-1.5 hover:bg-red-200 inline-flex items-center justify-center h-8 w-8" aria-label="Close" onclick="this.parentElement.remove()">
+                <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-red-50 text-red-500 rounded-lg focus:ring-2 focus:ring-red-400 p-2 hover:bg-red-200 inline-flex items-center justify-center h-11 w-11" aria-label="Close" onclick="this.parentElement.remove()">
                     <i data-lucide="x" class="w-4 h-4 hover:cursor-pointer"></i>
                 </button>
             </div>
@@ -78,7 +78,7 @@
                         <i data-lucide="alert-triangle" class="w-5 h-5"></i>
                     </div>
                     <div class="ms-3 text-sm font-bold">Veuillez corriger les erreurs :</div>
-                    <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-red-50 text-red-500 rounded-lg focus:ring-2 focus:ring-red-400 p-1.5 hover:bg-red-200 inline-flex items-center justify-center h-8 w-8" aria-label="Close" onclick="this.parentElement.parentElement.remove()">
+                    <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-red-50 text-red-500 rounded-lg focus:ring-2 focus:ring-red-400 p-2 hover:bg-red-200 inline-flex items-center justify-center h-11 w-11" aria-label="Close" onclick="this.parentElement.parentElement.remove()">
                         <i data-lucide="x" class="w-4 h-4 hover:cursor-pointer"></i>
                     </button>
                 </div>
@@ -97,15 +97,37 @@
     </main>
 
     <?= view('components/footer') ?>
-
-
-    <script src="https://unpkg.com/lucide@latest" defer></script>
-
     <script defer>
-        // Initialisation des icônes Lucide une fois chargées
+        // Stub Lucide to avoid runtime errors before script is loaded.
+        window.lucide = window.lucide || { createIcons: function () {} };
+
+        // Load Lucide only when needed, outside critical path.
+        function loadLucideIfNeeded() {
+            if (!document.querySelector('[data-lucide]')) {
+                return;
+            }
+
+            if (document.querySelector('script[data-lucide-loader="1"]')) {
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/lucide@0.511.0/dist/umd/lucide.min.js';
+            script.defer = true;
+            script.dataset.lucideLoader = '1';
+            script.onload = function () {
+                if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                    window.lucide.createIcons();
+                }
+            };
+            document.head.appendChild(script);
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
-            if (window.lucide) {
-                lucide.createIcons();
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(loadLucideIfNeeded, { timeout: 1200 });
+            } else {
+                setTimeout(loadLucideIfNeeded, 120);
             }
         });
 

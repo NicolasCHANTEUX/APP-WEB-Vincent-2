@@ -42,13 +42,28 @@ Options -Indexes
     
     # Don't cache HTML
     <FilesMatch "\.(html|htm|php)$">
-        Header set Cache-Control "no-cache, no-store, must-revalidate"
-        Header set Pragma "no-cache"
-        Header set Expires 0
+        Header set Cache-Control "private, max-age=0, must-revalidate"
     </FilesMatch>
-    
-    # Enable bfcache - avoid no-store on navigations
-    Header always set Cache-Control "private, max-age=0, must-revalidate" "expr=%{CONTENT_TYPE} =~ m#text/html#i"
+
+    # Ensure proxies vary compressed and uncompressed responses correctly
+    Header append Vary Accept-Encoding
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Compression (Gzip/Brotli fallback via mod_deflate)
+# ----------------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
 </IfModule>
 
 # ----------------------------------------------------------------------
