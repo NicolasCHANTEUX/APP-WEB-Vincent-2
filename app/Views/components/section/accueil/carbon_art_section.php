@@ -27,6 +27,10 @@
                 <?= trans('carbon_benefit3') ?>
             </li>
         </ul>
+        <div class="mt-6 flex flex-wrap gap-3">
+            <a href="<?= site_url('services') . '?lang=' . site_lang() ?>" class="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-primary-dark text-white font-semibold hover:bg-primary-dark/90 border border-accent-gold transition-all">Découvrir les prestations</a>
+            <a href="<?= site_url('contact') . '?lang=' . site_lang() ?>" class="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-primary-dark text-primary-dark font-semibold hover:bg-primary-dark hover:text-white transition-all">Parler à un expert</a>
+        </div>
     </div>
 </div>
 

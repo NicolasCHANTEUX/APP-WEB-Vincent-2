@@ -45,6 +45,8 @@ $getNavLinkClasses = static function (string $page) use ($activePage): string {
                 </a>
             </li>
 
+            <li class="text-[11px] uppercase tracking-[0.2em] text-white/60 md:ml-2">Boutique</li>
+
             <li>
                 <a href="<?= site_url('produits') . $langQ ?>" class="<?= $getNavLinkClasses('produits') ?>">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -53,6 +55,9 @@ $getNavLinkClasses = static function (string $page) use ($activePage): string {
                     <?= trans('nav_products') ?>
                 </a>
             </li>
+
+            <li class="hidden md:block h-6 w-px bg-accent-gold/50 mx-2"></li>
+            <li class="text-[11px] uppercase tracking-[0.2em] text-white/60">Prestations</li>
 
             <li>
                 <a href="<?= site_url('services') . $langQ ?>" class="<?= $getNavLinkClasses('services') ?>">

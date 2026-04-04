@@ -1,5 +1,13 @@
 <?= $this->extend('layouts/root_layout') ?>
 
+<?php
+$this->setData([
+    'pageTitle' => $pageTitle ?? 'Conditions generales de vente | KayArt',
+    'meta_description' => $meta_description ?? trans('meta_description'),
+    'canonicalUrl' => $canonicalUrl ?? site_url('cgv'),
+]);
+?>
+
 <?= $this->section('root_content') ?>
 
 <div class="min-h-screen bg-gray-50 py-12">

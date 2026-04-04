@@ -47,6 +47,7 @@ $routes->get('test-session', 'SessionTest::index');
 $routes->get('mentions-legales', 'PagesController::mentionsLegales');
 $routes->get('politique-confidentialite', 'PagesController::privacy');
 $routes->get('cgv', 'PagesController::cgv');
+$routes->get('faq', 'PagesController::faq');
 
 // Admin
 $routes->get('admin', 'AdminDashboardController::index', ['filter' => 'adminauth']);

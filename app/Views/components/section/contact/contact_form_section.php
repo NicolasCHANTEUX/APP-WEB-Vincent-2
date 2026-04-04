@@ -14,6 +14,7 @@ $action = site_url('contact') . '?lang=' . $lang;
     
     <form method="post" action="<?= esc($action) ?>" enctype="multipart/form-data" class="space-y-6">
         <?= csrf_field() ?>
+        <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
 
         <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2"><?= esc(trans('contact_form_name')) ?></label>

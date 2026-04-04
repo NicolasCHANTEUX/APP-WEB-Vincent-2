@@ -1,4 +1,12 @@
 <footer class="bg-primary-dark text-white">
+    <div class="border-t border-white/10 bg-black/20 py-4 px-6">
+        <div class="container mx-auto flex flex-wrap items-center justify-center gap-5 text-xs text-gray-200">
+            <span class="inline-flex items-center gap-2"><span class="text-accent-gold">●</span>Paiement securise (Stripe)</span>
+            <span class="inline-flex items-center gap-2"><span class="text-accent-gold">●</span>Expedition soignee et suivie</span>
+            <span class="inline-flex items-center gap-2"><span class="text-accent-gold">●</span>Accompagnement humain avant achat</span>
+        </div>
+    </div>
+
     <!-- Footer principal -->
     <div class="border-t border-white border-opacity-10 py-12 px-6">
         <div class="container mx-auto">
@@ -50,6 +58,13 @@
                                class="hover:text-accent-gold transition-colors inline-flex items-center group">
                                 <span class="w-1 h-1 bg-accent-gold rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                                 <?= trans('nav_contact') ?>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= base_url('faq?lang=' . site_lang()) ?>" 
+                               class="hover:text-accent-gold transition-colors inline-flex items-center group">
+                                <span class="w-1 h-1 bg-accent-gold rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                                FAQ
                             </a>
                         </li>
                     </ul>

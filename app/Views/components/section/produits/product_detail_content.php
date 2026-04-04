@@ -51,6 +51,8 @@ $error = session()->getFlashdata('error');
 $info = session()->getFlashdata('info');
 $errors = session()->getFlashdata('errors') ?? [];
 $faqItems = $faqItems ?? [];
+$relatedProducts = $relatedProducts ?? [];
+$responsiveImage = $product['responsive_image'] ?? [];
 ?>
 
 <div class="py-12">
@@ -105,7 +107,9 @@ $faqItems = $faqItems ?? [];
             <!-- Image principale -->
             <div class="relative aspect-square bg-gray-100 rounded-2xl overflow-hidden group">
                 <img id="main-product-image"
-                     src="<?= esc($image) ?>" 
+                     src="<?= esc($responsiveImage['src'] ?? $image) ?>" 
+                     srcset="<?= esc($responsiveImage['srcset'] ?? '') ?>"
+                     sizes="<?= esc($responsiveImage['sizes'] ?? '(max-width: 1024px) 92vw, 800px') ?>"
                      alt="<?= esc($title) ?>" 
                      width="800"
                      height="800"
@@ -370,6 +374,15 @@ $faqItems = $faqItems ?? [];
                     <?= nl2br(esc($description)) ?>
                 </div>
             </div>
+
+            <section class="mb-8 bg-white border border-gray-200 rounded-2xl p-6">
+                <h2 class="font-serif text-xl font-semibold text-primary-dark uppercase mb-4">Pourquoi choisir ce produit</h2>
+                <ul class="space-y-3 text-sm text-gray-700">
+                    <li class="flex items-start gap-2"><span class="text-emerald-600 mt-0.5">●</span><span>Fabrication artisanale KayArt avec finitions soignées et contrôle qualité.</span></li>
+                    <li class="flex items-start gap-2"><span class="text-emerald-600 mt-0.5">●</span><span>Configuration adaptée à l'usage <?= $isService ? 'service' : 'outdoor et navigation' ?> avec conseil personnalisé.</span></li>
+                    <li class="flex items-start gap-2"><span class="text-emerald-600 mt-0.5">●</span><span>Support humain rapide avant et après achat pour sécuriser votre choix.</span></li>
+                </ul>
+            </section>
 
             <?php if (!empty($faqItems)): ?>
                 <section class="mb-8 bg-white border border-gray-200 rounded-2xl p-6">
@@ -672,6 +685,41 @@ $faqItems = $faqItems ?? [];
             <?php endif; ?>
         </div>
     </div>
+
+    <?php if (!empty($relatedProducts)): ?>
+    <section class="mt-14">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="font-serif text-2xl md:text-3xl font-bold text-primary-dark uppercase">Produits apparentés</h2>
+            <a href="<?= site_url('produits') . '?lang=' . $lang ?>" class="text-sm font-semibold text-primary-dark hover:text-accent-gold transition-colors">Voir toute la boutique</a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <?php foreach ($relatedProducts as $related): ?>
+                <article class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    <a href="<?= site_url('produits/' . ($related['slug'] ?? '')) . '?lang=' . $lang ?>" class="block">
+                        <img src="<?= esc($related['image'] ?? base_url('images/default-image.webp')) ?>"
+                             alt="<?= esc($related['title'] ?? 'Produit KayArt') ?>"
+                             class="w-full h-40 object-cover"
+                             loading="lazy"
+                             onerror="this.onerror=null;this.src='<?= base_url('images/default-image.webp') ?>';">
+                    </a>
+                    <div class="p-4">
+                        <h3 class="text-sm font-semibold text-primary-dark line-clamp-2 min-h-[2.5rem]"><?= esc($related['title'] ?? '') ?></h3>
+                        <p class="text-xs text-gray-500 mt-1"><?= esc($related['category_name'] ?? '') ?></p>
+                        <div class="mt-3 font-bold text-gray-900">
+                            <?php if (!empty($related['discounted_price']) && $related['discounted_price'] < $related['price']): ?>
+                                <span class="text-gray-400 line-through text-xs mr-1"><?= number_format((float) $related['price'], 2, ',', ' ') ?> €</span>
+                                <span class="text-red-600"><?= number_format((float) $related['discounted_price'], 2, ',', ' ') ?> €</span>
+                            <?php else: ?>
+                                <?= number_format((float) ($related['price'] ?? 0), 2, ',', ' ') ?> €
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+        </div>
+    </section>
+    <?php endif; ?>
 </div>
 
 <!-- Lightbox pour agrandir l'image (uniquement si image réelle) -->

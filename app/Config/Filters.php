@@ -39,7 +39,14 @@ class Filters extends BaseFilters
     public array $globals = [
         'before' => [
             // 'honeypot',
-            // 'csrf',
+            'csrf' => [
+                'except' => [
+                    'webhook/stripe',
+                    'panier/*',
+                    'checkout/create-session',
+                    'actualites/*/commenter',
+                ],
+            ],
         ],
         'after' => [
             // 'honeypot',

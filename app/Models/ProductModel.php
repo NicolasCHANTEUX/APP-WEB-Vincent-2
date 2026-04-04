@@ -290,6 +290,54 @@ class ProductModel extends Model
     }
 
     /**
+     * Récupère des produits apparentés (même catégorie) pour cross-selling.
+     */
+    public function getRelatedProducts(int $productId, ?int $categoryId, int $limit = 4): array
+    {
+        $builder = $this->select('product.*, category.name as category_name, category.slug as category_slug')
+            ->join('category', 'category.id = product.category_id', 'left')
+            ->where('product.id !=', $productId)
+            ->groupStart()
+                ->where('product.condition_state', 'new')
+                ->orWhere('product.stock >', 0)
+            ->groupEnd();
+
+        if ($categoryId !== null) {
+            $builder->where('product.category_id', $categoryId);
+        }
+
+        $items = $builder->orderBy('product.created_at', 'DESC')
+            ->limit($limit)
+            ->findAll();
+
+        if (count($items) < $limit) {
+            $fallback = $this->select('product.*, category.name as category_name, category.slug as category_slug')
+                ->join('category', 'category.id = product.category_id', 'left')
+                ->where('product.id !=', $productId)
+                ->groupStart()
+                    ->where('product.condition_state', 'new')
+                    ->orWhere('product.stock >', 0)
+                ->groupEnd()
+                ->orderBy('product.created_at', 'DESC')
+                ->limit($limit)
+                ->findAll();
+
+            $ids = array_column($items, 'id');
+            foreach ($fallback as $candidate) {
+                if (count($items) >= $limit) {
+                    break;
+                }
+                if (!in_array($candidate['id'], $ids, true)) {
+                    $items[] = $candidate;
+                    $ids[] = $candidate['id'];
+                }
+            }
+        }
+
+        return $items;
+    }
+
+    /**
      * Vérifier si un produit est disponible à l'achat
      */
     public function isAvailableForPurchase(int $productId): bool

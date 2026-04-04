@@ -19,20 +19,41 @@ class ContactControler extends BaseController
     public function index()
     {
         return view('pages/contact', [
-            'pageTitle' => trans('nav_contact'),
-            'meta_description' => 'Contactez l\'Atelier Kayart pour toute demande sur mesure.',
+            'pageTitle' => trans('nav_contact') . ' | KayArt',
+            'meta_description' => 'Contactez KayArt pour un devis, une reparation ou une demande personnalisee.',
+            'canonicalUrl' => site_url('contact'),
+            'structuredData' => [
+                '@context' => 'https://schema.org',
+                '@type' => 'LocalBusiness',
+                'name' => 'KayArt',
+                'url' => site_url('/'),
+                'telephone' => '+33664631543',
+                'email' => 'contact.kayart@gmail.com',
+                'contactPoint' => [
+                    '@type' => 'ContactPoint',
+                    'contactType' => 'customer support',
+                    'telephone' => '+33664631543',
+                    'email' => 'contact.kayart@gmail.com',
+                    'availableLanguage' => ['fr', 'en'],
+                ],
+            ],
         ]);
     }
 
     public function sendEmail()
     {
+        $honeypot = trim((string) $this->request->getPost('website'));
+        if ($honeypot !== '') {
+            return redirect()->to('contact')->with('success', trans('contact_success_message'));
+        }
+
         // Validation des entrées
         $rules = [
-            'name'    => 'required|min_length[3]|max_length[100]',
+            'name'    => 'required|min_length[3]|max_length[100]|regex_match[/^[\p{L}\s\-\'\.]+$/u]',
             'email'   => 'required|valid_email|max_length[150]',
-            'phone'   => 'permit_empty|max_length[50]',
-            'subject' => 'required|min_length[5]|max_length[200]',
-            'message' => 'required|min_length[10]|max_length[5000]',
+            'phone'   => 'permit_empty|max_length[50]|regex_match[/^\+?[0-9\s\-\.\(\)]{6,20}$/]',
+            'subject' => 'required|in_list[devis,reparation,autre]',
+            'message' => 'required|min_length[20]|max_length[5000]',
         ];
 
         if (!$this->validate($rules)) {
@@ -41,11 +62,11 @@ class ContactControler extends BaseController
 
         // Sauvegarde en base de données
         $data = [
-            'name'    => $this->request->getPost('name'),
-            'email'   => $this->request->getPost('email'),
-            'phone'   => $this->request->getPost('phone'),
-            'subject' => $this->request->getPost('subject'),
-            'message' => $this->request->getPost('message'),
+            'name'    => trim((string) $this->request->getPost('name')),
+            'email'   => mb_strtolower(trim((string) $this->request->getPost('email'))),
+            'phone'   => trim((string) $this->request->getPost('phone')),
+            'subject' => trim((string) $this->request->getPost('subject')),
+            'message' => trim((string) $this->request->getPost('message')),
             'status'  => 'new'
         ];
 

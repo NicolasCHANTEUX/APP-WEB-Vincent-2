@@ -280,6 +280,7 @@ class ProduitsControler extends BaseController
                 'discounted_price' => $discountedPrice, 
                 'stock' => $product['stock'],
                 'image' => $this->getValidImagePath($imageFilename),
+                'responsive_image' => $this->imageProcessor->getResponsiveImageSources((string) ($imageFilename ?? '')),
                 'category_name' => $product['category_name'] ?? trans('products_category_uncategorized'),
                 'category_slug' => $product['category_slug'] ?? '',
                 'sku' => $product['sku'],
@@ -345,6 +346,8 @@ class ProduitsControler extends BaseController
             'created_at' => $product['created_at'],
         ];
 
+        $formattedProduct['responsive_image'] = $this->imageProcessor->getResponsiveImageSources($product['image'] ?? '');
+
         $isService = $this->productModel->isServiceProduct($product);
         $stock = (int) ($product['stock'] ?? 0);
         $availability = ($isService || $stock > 0)
@@ -360,7 +363,6 @@ class ProduitsControler extends BaseController
 
         $productUrl = site_url('produits/' . $slug);
         $productSchema = [
-            '@context' => 'https://schema.org',
             '@type' => 'Product',
             'name' => (string) ($product['title'] ?? ''),
             'image' => [$imageUrl],
@@ -380,6 +382,44 @@ class ProduitsControler extends BaseController
                 'itemCondition' => ($product['condition_state'] ?? 'new') === 'used'
                     ? 'https://schema.org/UsedCondition'
                     : 'https://schema.org/NewCondition',
+            ],
+        ];
+
+        $serviceSchema = null;
+        if ($isService) {
+            $serviceSchema = [
+                '@type' => 'Service',
+                'name' => (string) ($product['title'] ?? ''),
+                'description' => $cleanDescription,
+                'serviceType' => (string) ($product['category_name'] ?? 'Service'),
+                'provider' => [
+                    '@type' => 'LocalBusiness',
+                    'name' => 'KayArt',
+                    'url' => site_url('/'),
+                ],
+                'offers' => [
+                    '@type' => 'Offer',
+                    'url' => $productUrl,
+                    'priceCurrency' => 'EUR',
+                    'price' => number_format((float) ($discountedPrice ?? $product['price'] ?? 0), 2, '.', ''),
+                    'availability' => 'https://schema.org/InStock',
+                ],
+            ];
+        }
+
+        $localBusinessSchema = [
+            '@type' => 'LocalBusiness',
+            'name' => 'KayArt',
+            'url' => site_url('/'),
+            'image' => base_url('images/kayart_logo.svg'),
+            'telephone' => '+33664631543',
+            'email' => 'contact.kayart@gmail.com',
+            'address' => [
+                '@type' => 'PostalAddress',
+                'streetAddress' => '1 lotissement des fontaines',
+                'addressLocality' => 'Montferrier sur Lez',
+                'postalCode' => '34980',
+                'addressCountry' => 'FR',
             ],
         ];
 
@@ -431,8 +471,27 @@ class ProduitsControler extends BaseController
 
         $structuredData = [
             '@context' => 'https://schema.org',
-            '@graph' => array_values(array_filter([$productSchema, $faqSchema])),
+            '@graph' => array_values(array_filter([$productSchema, $serviceSchema, $localBusinessSchema, $faqSchema])),
         ];
+
+        $relatedRaw = $this->productModel->getRelatedProducts((int) $product['id'], isset($product['category_id']) ? (int) $product['category_id'] : null, 4);
+        $relatedProducts = array_map(function (array $item): array {
+            $relatedDiscounted = null;
+            if (!empty($item['discount_percent']) && (float) $item['discount_percent'] > 0) {
+                $relatedDiscounted = (float) $item['price'] - ((float) $item['price'] * ((float) $item['discount_percent'] / 100));
+            }
+
+            return [
+                'id' => $item['id'],
+                'title' => $item['title'],
+                'slug' => $item['slug'],
+                'price' => (float) $item['price'],
+                'discount_percent' => $item['discount_percent'] ?? null,
+                'discounted_price' => $relatedDiscounted,
+                'image' => $this->imageProcessor->getImageUrl((string) ($item['image'] ?? ''), 'format2'),
+                'category_name' => $item['category_name'] ?? '',
+            ];
+        }, $relatedRaw);
 
         return view('pages/produit_detail', [
             'product' => $formattedProduct,
@@ -442,6 +501,7 @@ class ProduitsControler extends BaseController
             'meta_image' => $imageUrl,
             'structuredData' => $structuredData,
             'faqItems' => $faqItems,
+            'relatedProducts' => $relatedProducts,
         ]);
     }
 

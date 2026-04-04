@@ -470,4 +470,27 @@ class ImageProcessor
         log_message('warning', '[ImageProcessor] Image non trouvée: ' . $filename . ' (format: ' . $format . ')');
         return base_url('images/default-image.webp');
     }
+
+    /**
+     * Génère les sources responsives (src, srcset, sizes) pour une image produit.
+     */
+    public function getResponsiveImageSources(string $filename): array
+    {
+        $small = $this->getImageUrl($filename, 'format2'); // ~350w
+        $medium = $this->getImageUrl($filename, 'format1'); // ~800w
+        $large = $this->getImageUrl($filename, 'original'); // ~1920w
+
+        return [
+            'src' => $medium,
+            'srcset' => implode(', ', [
+                $small . ' 350w',
+                $medium . ' 800w',
+                $large . ' 1920w',
+            ]),
+            'sizes' => '(max-width: 640px) 92vw, (max-width: 1024px) 70vw, 800px',
+            'small' => $small,
+            'medium' => $medium,
+            'large' => $large,
+        ];
+    }
 }

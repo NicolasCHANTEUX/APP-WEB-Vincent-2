@@ -1,5 +1,13 @@
 <?= $this->extend('layouts/root_layout') ?>
 
+<?php
+$this->setData([
+    'pageTitle' => $pageTitle ?? 'Politique de confidentialite | KayArt',
+    'meta_description' => $meta_description ?? trans('meta_description'),
+    'canonicalUrl' => $canonicalUrl ?? site_url('politique-confidentialite'),
+]);
+?>
+
 <?= $this->section('root_content') ?>
 
 <div class="min-h-screen bg-gray-50 py-12">

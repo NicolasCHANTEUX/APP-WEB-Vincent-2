@@ -2,8 +2,10 @@
 
 <?php
 $this->setData([
-    'pageTitle' => trans('meta_title') . ' - ' . trans('nav_contact'),
-    'meta_description' => trans('meta_description'),
+    'pageTitle' => $pageTitle ?? (trans('meta_title') . ' - ' . trans('nav_contact')),
+    'meta_description' => $meta_description ?? trans('meta_description'),
+    'canonicalUrl' => $canonicalUrl ?? site_url('contact'),
+    'structuredData' => $structuredData ?? null,
 ]);
 ?>
 

@@ -15,6 +15,7 @@ $isService = in_array($categorySlug, ['service', 'services'], true)
 
 // L'image est déjà passée par le contrôleur
 $img = $p['image'] ?? base_url('images/default-image.webp');
+$responsiveImage = $p['responsive_image'] ?? [];
 
 // Détection de l'état (Neuf ou Occasion)
 $conditionState = (string) ($p['condition_state'] ?? 'new');
@@ -25,6 +26,8 @@ $isUsed = ($conditionState === 'used');
     <div class="p-6">
         <div class="aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center relative">
             <img src="<?= esc($img) ?>" 
+                  srcset="<?= esc($responsiveImage['srcset'] ?? '') ?>"
+                  sizes="<?= esc($responsiveImage['sizes'] ?? '(max-width: 640px) 92vw, (max-width: 1024px) 46vw, 350px') ?>"
                  alt="<?= esc($title) ?>" 
                  width="400"
                  height="300"
