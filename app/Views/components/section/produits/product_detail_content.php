@@ -143,107 +143,13 @@ $responsiveImage = $product['responsive_image'] ?? [];
                      alt="<?= esc($title) ?> - vue <?= (int) $img['position'] ?>"
                      width="80"
                      height="80"
-                     class="thumbnail-image w-20 h-20 flex-shrink-0 object-cover rounded-lg cursor-pointer border-2 <?= $img['is_primary'] ? 'border-accent-gold' : 'border-gray-200 hover:border-accent-gold' ?> transition"
-                     data-full-url="<?= esc($fullUrl) ?>"
+                     class="thumbnail-image js-thumbnail w-20 h-20 flex-shrink-0 object-cover rounded-lg cursor-pointer border-2 <?= $img['is_primary'] ? 'border-accent-gold' : 'border-gray-200 hover:border-accent-gold' ?> transition"
+                     data-main-src="<?= esc($fullUrl) ?>"
+                     data-main-srcset="<?= esc($thumbUrl) ?> 350w, <?= esc($fullUrl) ?> 800w, <?= esc($originalUrl) ?> 1920w"
                      data-original-url="<?= esc($originalUrl) ?>">
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>
-            
-            <script>
-            (function() {
-                console.log('Script de zoom chargé');
-                
-                // Event listeners pour les miniatures
-                document.addEventListener('DOMContentLoaded', function() {
-                    const zoomButton = document.getElementById('zoom-button');
-                    const mainImage = document.getElementById('main-product-image');
-                    const thumbnails = document.querySelectorAll('.thumbnail-image');
-                    
-                    console.log('DOM loaded - Zoom button:', zoomButton ? 'trouvé' : 'non trouvé');
-                    console.log('Thumbnails found:', thumbnails.length);
-                    
-                    // Fonction pour changer l'image principale
-                    function changeMainImage(fullUrl, originalUrl) {
-                        if (mainImage) {
-                            mainImage.style.opacity = '0.5';
-                            mainImage.src = fullUrl;
-                            // Mettre à jour l'URL du bouton zoom
-                            if (zoomButton) {
-                                zoomButton.setAttribute('data-original-url', originalUrl);
-                                console.log('Zoom button updated with:', originalUrl);
-                            }
-                            console.log('Image changed to:', originalUrl);
-                            mainImage.onload = () => mainImage.style.opacity = '1';
-                        }
-                    }
-                    
-                    // Event listeners pour les miniatures
-                    thumbnails.forEach(thumb => {
-                        thumb.addEventListener('click', function() {
-                            const fullUrl = this.getAttribute('data-full-url');
-                            const originalUrl = this.getAttribute('data-original-url');
-                            if (fullUrl && originalUrl) {
-                                changeMainImage(fullUrl, originalUrl);
-                            }
-                        });
-                    });
-                    
-                    // Event listener pour le bouton zoom
-                    if (zoomButton) {
-                        console.log('Attaching click listener to zoom button');
-                        zoomButton.addEventListener('click', function(e) {
-                            console.log('Zoom button clicked!');
-                            e.preventDefault();
-                            e.stopPropagation();
-                            
-                            const imageToShow = this.getAttribute('data-original-url');
-                            console.log('Opening lightbox with:', imageToShow);
-                            
-                            if (!imageToShow) {
-                                console.error('No image URL found!');
-                                return;
-                            }
-                            
-                            const lightbox = document.createElement('div');
-                            lightbox.id = 'image-lightbox';
-                            lightbox.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; display: flex !important; align-items: center !important; justify-content: center !important; background-color: rgba(0, 0, 0, 0.95) !important; padding: 1rem !important;';
-                            lightbox.innerHTML = `
-                                <button class="close-lightbox absolute top-4 right-4 text-white hover:text-accent-gold transition p-2">
-                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </button>
-                                <img src="${imageToShow}" alt="<?= esc(addslashes($title)) ?> - image agrandie" class="max-w-full max-h-full object-contain">
-                            `;
-                            
-                            // Event listener pour fermer
-                            const closeBtn = lightbox.querySelector('.close-lightbox');
-                            closeBtn.addEventListener('click', function() {
-                                console.log('Closing lightbox');
-                                lightbox.remove();
-                                document.body.style.overflow = '';
-                            });
-                            
-                            // Fermer en cliquant sur le fond
-                            lightbox.addEventListener('click', function(e) {
-                                if (e.target === lightbox) {
-                                    console.log('Closing lightbox (background click)');
-                                    lightbox.remove();
-                                    document.body.style.overflow = '';
-                                }
-                            });
-                            
-                            console.log('Appending lightbox to body');
-                            document.body.appendChild(lightbox);
-                            document.body.style.overflow = 'hidden';
-                        });
-                    } else {
-                        console.error('Zoom button not found!');
-                    }
-                });
-            })();
-            </script>
             
             <!-- Informations techniques -->
             <div class="mt-6 bg-gray-50 rounded-xl p-6 space-y-3">
@@ -809,6 +715,58 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeImageLightbox();
     }
+});
+
+// Miniatures: mise a jour image principale (src/srcset) + cible zoom
+document.addEventListener('DOMContentLoaded', function () {
+    const mainImage = document.getElementById('main-product-image');
+    const zoomButton = document.getElementById('zoom-button');
+    const lightboxImage = document.getElementById('lightboxImage');
+    const thumbnails = document.querySelectorAll('.js-thumbnail');
+
+    if (!mainImage || thumbnails.length === 0) {
+        return;
+    }
+
+    thumbnails.forEach(function (thumb) {
+        thumb.addEventListener('click', function () {
+            const nextSrc = this.getAttribute('data-main-src') || this.getAttribute('src');
+            const nextSrcset = this.getAttribute('data-main-srcset') || '';
+            const nextOriginal = this.getAttribute('data-original-url') || nextSrc;
+
+            if (!nextSrc) {
+                return;
+            }
+
+            mainImage.style.opacity = '0.5';
+            mainImage.src = nextSrc;
+            mainImage.srcset = nextSrcset;
+            mainImage.onload = function () {
+                mainImage.style.opacity = '1';
+            };
+
+            if (zoomButton) {
+                zoomButton.setAttribute('data-original-url', nextOriginal);
+            }
+
+            if (lightboxImage) {
+                lightboxImage.src = nextOriginal;
+            }
+
+            thumbnails.forEach(function (item) {
+                item.classList.remove('border-accent-gold');
+                if (!item.classList.contains('hover:border-accent-gold')) {
+                    item.classList.add('hover:border-accent-gold');
+                }
+                if (!item.classList.contains('border-gray-200')) {
+                    item.classList.add('border-gray-200');
+                }
+            });
+
+            this.classList.add('border-accent-gold');
+            this.classList.remove('border-gray-200', 'hover:border-accent-gold');
+        });
+    });
 });
 </script>
 <?php endif; ?>

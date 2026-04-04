@@ -11,6 +11,29 @@ $action = site_url('contact') . '?lang=' . $lang;
         </h2>
         <p class="mt-2 text-gray-600 text-sm"><?= esc(trans('contact_form_subtitle')) ?></p>
     </div>
+
+    <?php if (session()->getFlashdata('success')): ?>
+        <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800">
+            <p class="text-sm font-medium"><?= esc((string) session()->getFlashdata('success')) ?></p>
+        </div>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('error')): ?>
+        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+            <p class="text-sm font-medium"><?= esc((string) session()->getFlashdata('error')) ?></p>
+        </div>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('errors')): ?>
+        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+            <p class="text-sm font-semibold mb-2">Veuillez corriger les erreurs suivantes :</p>
+            <ul class="list-disc pl-5 text-sm space-y-1">
+                <?php foreach ((array) session()->getFlashdata('errors') as $fieldError): ?>
+                    <li><?= esc((string) $fieldError) ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endif; ?>
     
     <form method="post" action="<?= esc($action) ?>" enctype="multipart/form-data" class="space-y-6">
         <?= csrf_field() ?>

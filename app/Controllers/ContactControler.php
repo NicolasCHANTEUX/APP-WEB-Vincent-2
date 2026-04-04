@@ -10,10 +10,12 @@ class ContactControler extends BaseController
     use ResponseTrait;
 
     protected $contactModel;
+    protected $session;
 
     public function __construct()
     {
         $this->contactModel = new ContactRequestModel();
+        $this->session = session();
     }
 
     public function index()
@@ -44,7 +46,8 @@ class ContactControler extends BaseController
     {
         $honeypot = trim((string) $this->request->getPost('website'));
         if ($honeypot !== '') {
-            return redirect()->to('contact')->with('success', trans('contact_success_message'));
+            $this->session->setFlashdata('success', trans('contact_success_message'));
+            return redirect()->to('contact');
         }
 
         // Validation des entrées
@@ -195,10 +198,19 @@ class ContactControler extends BaseController
         $body = $this->getEmailTemplate($emailTitle, $htmlContent);
         
         $emailService->setMessage($body);
-        $emailService->send();
+        $emailSent = $emailService->send();
+        if (!$emailSent) {
+            log_message('error', 'ContactControler::sendEmail - echec envoi email admin: ' . $emailService->printDebugger(['headers']));
+        }
         
         // -------------------------------------------------------
 
-        return redirect()->to('contact')->with('success', trans('contact_success_message'));
+        if ($emailSent) {
+            $this->session->setFlashdata('success', trans('contact_success_message'));
+        } else {
+            $this->session->setFlashdata('error', trans('contact_error_save'));
+        }
+
+        return redirect()->to('contact');
     }
 }

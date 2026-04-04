@@ -7,10 +7,12 @@ use App\Models\ContactRequestModel;
 class AdminDemandesController extends BaseController
 {
     protected $demandeModel;
+    protected $session;
 
     public function __construct()
     {
         $this->demandeModel = new ContactRequestModel();
+        $this->session = session();
     }
 
     /**
@@ -75,6 +77,7 @@ class AdminDemandesController extends BaseController
         $lang = site_lang();
         $newStatus = $this->request->getPost('status');
         $adminReply = $this->request->getPost('admin_reply');
+        $emailSent = null;
 
         log_message('error', '=== DEBUT updateStatus ===' . $newStatus);
         log_message('error', 'Réponse admin: ' . (!empty($adminReply) ? 'OUI (' . strlen($adminReply) . ' caractères)' : 'NON'));
@@ -116,13 +119,18 @@ class AdminDemandesController extends BaseController
 
         if ($this->demandeModel->update($id, $updateData)) {
             log_message('error', 'Demande ' . $id . ' mise à jour avec succès');
-            
-            $message = !empty($adminReply) 
-                ? 'Réponse envoyée avec succès au client' 
-                : 'Statut mis à jour avec succès';
-            
-            return redirect()->to('admin/demandes/' . $id . '?lang=' . $lang)
-                ->with('success', $message);
+
+            if (!empty($adminReply)) {
+                if ($emailSent === true) {
+                    $this->session->setFlashdata('success', 'Reponse envoyee avec succes au client.');
+                } else {
+                    $this->session->setFlashdata('error', 'Reponse enregistree, mais echec de l\'envoi email. Verifiez la configuration SMTP.');
+                }
+            } else {
+                $this->session->setFlashdata('success', 'Statut mis a jour avec succes.');
+            }
+
+            return redirect()->to('admin/demandes/' . $id . '?lang=' . $lang);
         }
 
         log_message('error', 'Erreur mise à jour BDD pour demande ' . $id);
